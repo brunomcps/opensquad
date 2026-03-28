@@ -537,7 +537,7 @@ export function VideoDetail() {
           {/* Title */}
           <div>
             <div style={metaRow}>
-              <StatusBadge status={video.scheduledAt ? 'scheduled' : video.privacyStatus} />
+              <StatusBadge status={video.scheduledAt && new Date(video.scheduledAt).getTime() > Date.now() ? 'scheduled' : video.privacyStatus} />
               {video.isShort ? <ShortsIcon size={16} /> : <YouTubeIcon size={16} />}
               <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                 {video.isShort ? 'YouTube Short' : 'YouTube Video'}

@@ -86,7 +86,7 @@ export function TikTokDetail() {
   const video = videos.find((v) => v.id === selectedId);
   if (!video) return null;
 
-  const isScheduled = video.viewCount === 0 && video.likeCount === 0;
+  const isScheduled = !!(video.scheduledAt && new Date(video.scheduledAt).getTime() > Date.now());
 
   return (
     <div style={getOverlayStyle(expanded)} onClick={(e) => { if (e.target === e.currentTarget) setSelectedTikTokId(null); }}>

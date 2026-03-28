@@ -34,8 +34,8 @@ const errorStyle: CSSProperties = {
 };
 
 function getVideoStatus(v: YouTubeVideo): string {
-  if (v.scheduledAt) return 'scheduled';
-  return v.privacyStatus;
+  if (v.scheduledAt && new Date(v.scheduledAt).getTime() > Date.now()) return 'scheduled';
+  return v.privacyStatus || 'public';
 }
 
 function filterVideos(
@@ -150,11 +150,12 @@ export function Timeline() {
   const filteredTikTok = useMemo(() => {
     let filtered = [...tiktokVideos];
 
-    // Status filter
+    // Status filter — scheduledAt in the future = scheduled, otherwise published
+    const now = Date.now();
     if (statusFilter === 'published') {
-      filtered = filtered.filter((v) => v.viewCount > 0 || v.likeCount > 0);
+      filtered = filtered.filter((v) => !v.scheduledAt || new Date(v.scheduledAt).getTime() <= now);
     } else if (statusFilter === 'scheduled') {
-      filtered = filtered.filter((v) => v.viewCount === 0 && v.likeCount === 0);
+      filtered = filtered.filter((v) => v.scheduledAt && new Date(v.scheduledAt).getTime() > now);
     }
 
     // Search filter
@@ -376,14 +377,14 @@ export function Timeline() {
           }}
         >
           {filteredTikTok.map((video) => {
-            const isScheduled = video.viewCount === 0 && video.likeCount === 0;
+            const isScheduled = !!(video.scheduledAt && new Date(video.scheduledAt).getTime() > Date.now());
             return (
               <ContentCard
                 key={video.id}
                 title={video.title}
                 thumbnail={video.thumbnail}
                 status={isScheduled ? 'scheduled' : 'published'}
-                date={video.scheduledAt || video.createTime}
+                date={isScheduled ? video.scheduledAt! : video.createTime}
                 views={video.viewCount}
                 likes={video.likeCount}
                 duration={video.duration ? formatDuration(video.duration) : undefined}
