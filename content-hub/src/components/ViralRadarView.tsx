@@ -101,6 +101,16 @@ function formatDate(dateStr: string): string {
   return `${day} ${month} ${year}`;
 }
 
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}min atrás`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h atrás`;
+  const days = Math.floor(hours / 24);
+  return `${days}d atrás`;
+}
+
 function formatNum(n: number | null): string {
   if (n == null) return '-';
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
@@ -115,6 +125,9 @@ const styles: Record<string, CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     gap: 20,
+    flex: 1,
+    overflowY: 'auto',
+    padding: '0 20px 60px',
   },
   subTabRow: {
     display: 'flex',
@@ -535,6 +548,88 @@ function CompetitorMultiSelect({
   );
 }
 
+// ─── Date Range Filter ──────────────────────────────────────────────────────
+
+function toISODate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+const DATE_PRESETS: { label: string; getRange: () => [string, string] }[] = [
+  { label: 'Hoje', getRange: () => { const d = toISODate(new Date()); return [d, d]; } },
+  { label: '7 dias', getRange: () => [toISODate(new Date(Date.now() - 7 * 86400000)), toISODate(new Date())] },
+  { label: '30 dias', getRange: () => [toISODate(new Date(Date.now() - 30 * 86400000)), toISODate(new Date())] },
+  { label: '3 meses', getRange: () => [toISODate(new Date(Date.now() - 90 * 86400000)), toISODate(new Date())] },
+  { label: 'Este ano', getRange: () => [`${new Date().getFullYear()}-01-01`, toISODate(new Date())] },
+  { label: '1 ano', getRange: () => [toISODate(new Date(Date.now() - 365 * 86400000)), toISODate(new Date())] },
+  { label: 'Tudo', getRange: () => ['', ''] },
+];
+
+function DateRangeFilter({ dateFrom, dateTo, onChangeFrom, onChangeTo }: {
+  dateFrom: string; dateTo: string;
+  onChangeFrom: (v: string) => void; onChangeTo: (v: string) => void;
+}) {
+  const [showCustom, setShowCustom] = useState(false);
+
+  const applyPreset = (preset: typeof DATE_PRESETS[number]) => {
+    const [from, to] = preset.getRange();
+    onChangeFrom(from);
+    onChangeTo(to);
+    setShowCustom(false);
+  };
+
+  const activeLabel = DATE_PRESETS.find(p => {
+    const [f, t] = p.getRange();
+    return f === dateFrom && t === dateTo;
+  })?.label;
+
+  return (
+    <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+      {DATE_PRESETS.map(p => (
+        <button
+          key={p.label}
+          onClick={() => applyPreset(p)}
+          style={{
+            ...styles.filterPill,
+            ...(activeLabel === p.label ? styles.filterPillActive : {}),
+            fontSize: 11,
+            padding: '4px 10px',
+          }}
+        >
+          {p.label}
+        </button>
+      ))}
+      <button
+        onClick={() => setShowCustom(!showCustom)}
+        style={{
+          ...styles.filterPill,
+          ...(showCustom || (!activeLabel && (dateFrom || dateTo)) ? styles.filterPillActive : {}),
+          fontSize: 11,
+          padding: '4px 10px',
+        }}
+      >
+        Personalizado
+      </button>
+      {showCustom && (
+        <>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => onChangeFrom(e.target.value)}
+            style={{ ...styles.select, minWidth: 130, fontSize: 12 }}
+          />
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>a</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => onChangeTo(e.target.value)}
+            style={{ ...styles.select, minWidth: 130, fontSize: 12 }}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
 // ─── Feed Sub-Tab ────────────────────────────────────────────────────────────
 
 function FeedTab() {
@@ -546,6 +641,9 @@ function FeedTab() {
   const [selectedCompetitors, setSelectedCompetitors] = useState<string[]>([]);
   const [competitors, setCompetitors] = useState<{ id: string; name: string }[]>([]);
   const [lastFetched, setLastFetched] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [datePreset, setDatePreset] = useState('');
 
   const fetchFeed = useCallback(async () => {
     setLoading(true);
@@ -563,6 +661,8 @@ function FeedTab() {
       if (platformFilter !== 'all') {
         params.set('platforms', platformFilter);
       }
+      if (dateFrom) params.set('dateFrom', dateFrom);
+      if (dateTo) params.set('dateTo', dateTo);
       const res = await fetch(`/api/competitors/feed?${params}`);
       if (!res.ok) throw new Error('Feed fetch failed');
       const json = await res.json();
@@ -588,7 +688,7 @@ function FeedTab() {
     } finally {
       setLoading(false);
     }
-  }, [sortBy, platformFilter, categoryFilter, selectedCompetitors, competitors.length]);
+  }, [sortBy, platformFilter, categoryFilter, selectedCompetitors, competitors.length, dateFrom, dateTo]);
 
   useEffect(() => { fetchFeed(); }, [fetchFeed]);
 
@@ -664,6 +764,16 @@ function FeedTab() {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
+        <div style={{ width: 1, height: 20, background: 'var(--border)', margin: '0 8px' }} />
+        <DateRangeFilter dateFrom={dateFrom} dateTo={dateTo} onChangeFrom={setDateFrom} onChangeTo={setDateTo} />
+        {(dateFrom || dateTo) && (
+          <button
+            onClick={() => { setDateFrom(''); setDateTo(''); setDatePreset(''); }}
+            style={{ ...styles.filterPill, fontSize: 11, padding: '4px 10px', cursor: 'pointer' }}
+          >
+            ✕ Limpar
+          </button>
+        )}
       </div>
 
       {/* Stats bar */}

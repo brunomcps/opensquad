@@ -386,6 +386,8 @@ export async function getFeed(filters?: {
   sortBy?: 'views' | 'likes' | 'comments' | 'date' | 'zScore';
   sortOrder?: 'asc' | 'desc';
   limit?: number;
+  dateFrom?: string;
+  dateTo?: string;
 }): Promise<{ items: (ContentItem & { competitorId: string; competitorName: string; platform: string })[], total: number, outlierCount: number, flopCount: number }> {
   const registry = await getRegistry();
   const allItems: (ContentItem & { competitorId: string; competitorName: string; platform: string })[] = [];
@@ -415,9 +417,18 @@ export async function getFeed(filters?: {
   // Category filter BEFORE sort+limit
   let filtered = allItems;
   if (filters?.category === 'outliers') {
-    filtered = allItems.filter(i => i.isOutlier);
+    filtered = filtered.filter(i => i.isOutlier);
   } else if (filters?.category === 'flops') {
-    filtered = allItems.filter(i => i.isFlop);
+    filtered = filtered.filter(i => i.isFlop);
+  }
+
+  // Date range filter
+  if (filters?.dateFrom) {
+    filtered = filtered.filter(i => i.publishedAt >= filters.dateFrom!);
+  }
+  if (filters?.dateTo) {
+    const toEnd = filters.dateTo + 'T23:59:59';
+    filtered = filtered.filter(i => i.publishedAt <= toEnd);
   }
 
   // Sort

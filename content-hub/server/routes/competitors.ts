@@ -72,7 +72,9 @@ router.get('/feed', async (req, res) => {
     const limit = req.query.limit ? parseInt(String(req.query.limit)) : 200;
 
     const category = (req.query.category as any) || 'all';
-    const feed = await getFeed({ competitorIds, platforms, category, sortBy, sortOrder, limit });
+    const dateFrom = req.query.dateFrom ? String(req.query.dateFrom) : undefined;
+    const dateTo = req.query.dateTo ? String(req.query.dateTo) : undefined;
+    const feed = await getFeed({ competitorIds, platforms, category, sortBy, sortOrder, limit, dateFrom, dateTo });
     res.json({ ok: true, data: feed });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
