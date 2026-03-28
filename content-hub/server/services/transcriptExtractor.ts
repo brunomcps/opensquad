@@ -2,12 +2,13 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import os from 'os';
+import {
+  getCompetitorTranscript,
+  saveCompetitorTranscript,
+} from '../db/competitors.js';
 
 const exec = promisify(execFile);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.resolve(__dirname, '../../data/competitors');
 
 interface TranscriptResult {
   videoId: string;
@@ -18,7 +19,6 @@ interface TranscriptResult {
   method: 'youtube-captions' | 'whisper';
   duration: number | null;
   savedAt: string;
-  filePath: string;
 }
 
 // Format seconds to [MM:SS]
@@ -37,22 +37,15 @@ export async function extractYouTubeTranscript(
   competitorId: string,
   videoUrl: string
 ): Promise<TranscriptResult> {
-  const transcriptDir = path.join(DATA_DIR, competitorId, 'transcripts');
-  await fs.mkdir(transcriptDir, { recursive: true });
-
-  const outputPath = path.join(transcriptDir, `${videoId}.txt`);
-
-  // Check if already exists
-  try {
-    const existing = await fs.readFile(outputPath, 'utf-8');
-    if (existing.length > 50) {
-      return {
-        videoId, competitorId, platform: 'youtube',
-        text: existing, segments: [], method: 'youtube-captions',
-        duration: null, savedAt: new Date().toISOString(), filePath: outputPath
-      };
-    }
-  } catch { /* doesn't exist yet */ }
+  // Check if already exists in DB
+  const existing = await getCompetitorTranscript(competitorId, videoId);
+  if (existing && existing.text.length > 50) {
+    return {
+      videoId, competitorId, platform: 'youtube',
+      text: existing.text, segments: existing.segments || [], method: existing.method as any,
+      duration: existing.duration || null, savedAt: existing.savedAt,
+    };
+  }
 
   // Strategy 1: Try YouTube auto-captions
   const tmpDir = path.join(os.tmpdir(), `transcript_${videoId}`);
@@ -76,11 +69,17 @@ export async function extractYouTubeTranscript(
 
     if (vttFile) {
       const vttContent = await fs.readFile(path.join(tmpDir, vttFile), 'utf-8');
-      const { text, segments } = parseVTT(vttContent);
+      const { segments } = parseVTT(vttContent);
 
-      // Save as timestamped text
+      // Format as timestamped text
       const formatted = segments.map(s => `${formatTimestamp(s.start)} ${s.text}`).join('\n');
-      await fs.writeFile(outputPath, formatted, 'utf-8');
+
+      // Save to Supabase
+      await saveCompetitorTranscript({
+        competitorId, videoId, platform: 'youtube',
+        text: formatted, segments, method: 'youtube-captions',
+        duration: segments.length > 0 ? segments[segments.length - 1].end : null,
+      });
 
       // Cleanup
       await fs.rm(tmpDir, { recursive: true, force: true });
@@ -89,7 +88,7 @@ export async function extractYouTubeTranscript(
         videoId, competitorId, platform: 'youtube',
         text: formatted, segments, method: 'youtube-captions',
         duration: segments.length > 0 ? segments[segments.length - 1].end : null,
-        savedAt: new Date().toISOString(), filePath: outputPath
+        savedAt: new Date().toISOString(),
       };
     }
   } catch (err) {
@@ -97,7 +96,7 @@ export async function extractYouTubeTranscript(
   }
 
   // Strategy 2: Download audio + whisper
-  return await downloadAndTranscribe(videoId, competitorId, 'youtube', videoUrl, tmpDir, outputPath);
+  return await downloadAndTranscribe(videoId, competitorId, 'youtube', videoUrl, tmpDir);
 }
 
 /**
@@ -110,27 +109,20 @@ export async function extractShortVideoTranscript(
   platform: string,
   videoUrl: string
 ): Promise<TranscriptResult> {
-  const transcriptDir = path.join(DATA_DIR, competitorId, 'transcripts');
-  await fs.mkdir(transcriptDir, { recursive: true });
-
-  const outputPath = path.join(transcriptDir, `${videoId}.txt`);
-
-  // Check if already exists
-  try {
-    const existing = await fs.readFile(outputPath, 'utf-8');
-    if (existing.length > 50) {
-      return {
-        videoId, competitorId, platform,
-        text: existing, segments: [], method: 'whisper',
-        duration: null, savedAt: new Date().toISOString(), filePath: outputPath
-      };
-    }
-  } catch { /* doesn't exist yet */ }
+  // Check if already exists in DB
+  const existing = await getCompetitorTranscript(competitorId, videoId);
+  if (existing && existing.text.length > 50) {
+    return {
+      videoId, competitorId, platform,
+      text: existing.text, segments: existing.segments || [], method: existing.method as any,
+      duration: existing.duration || null, savedAt: existing.savedAt,
+    };
+  }
 
   const tmpDir = path.join(os.tmpdir(), `transcript_${videoId}`);
   await fs.mkdir(tmpDir, { recursive: true });
 
-  return await downloadAndTranscribe(videoId, competitorId, platform, videoUrl, tmpDir, outputPath);
+  return await downloadAndTranscribe(videoId, competitorId, platform, videoUrl, tmpDir);
 }
 
 /**
@@ -142,7 +134,6 @@ async function downloadAndTranscribe(
   platform: string,
   videoUrl: string,
   tmpDir: string,
-  outputPath: string
 ): Promise<TranscriptResult> {
   const audioPath = path.join(tmpDir, `${videoId}.mp3`);
 
@@ -180,15 +171,21 @@ print(json.dumps({"segments": result, "language": info.language, "duration": inf
       text: s.text
     }));
 
-    // Save as timestamped text
+    // Format as timestamped text
     const formatted = segments.map((s: any) => `${formatTimestamp(s.start)} ${s.text}`).join('\n');
-    await fs.writeFile(outputPath, formatted, 'utf-8');
+
+    // Save to Supabase
+    await saveCompetitorTranscript({
+      competitorId, videoId, platform,
+      text: formatted, segments, method: 'whisper',
+      duration: result.duration || null,
+    });
 
     return {
       videoId, competitorId, platform,
       text: formatted, segments, method: 'whisper',
       duration: result.duration || null,
-      savedAt: new Date().toISOString(), filePath: outputPath
+      savedAt: new Date().toISOString(),
     };
   } finally {
     // Cleanup temp files
@@ -234,23 +231,14 @@ function parseVTT(vtt: string): { text: string; segments: { start: number; end: 
  * Check if transcript exists for a video
  */
 export async function hasTranscript(competitorId: string, videoId: string): Promise<boolean> {
-  const filePath = path.join(DATA_DIR, competitorId, 'transcripts', `${videoId}.txt`);
-  try {
-    const stat = await fs.stat(filePath);
-    return stat.size > 50;
-  } catch {
-    return false;
-  }
+  const transcript = await getCompetitorTranscript(competitorId, videoId);
+  return transcript !== null && transcript.text.length > 50;
 }
 
 /**
  * Get transcript text for a video
  */
 export async function getTranscript(competitorId: string, videoId: string): Promise<string | null> {
-  const filePath = path.join(DATA_DIR, competitorId, 'transcripts', `${videoId}.txt`);
-  try {
-    return await fs.readFile(filePath, 'utf-8');
-  } catch {
-    return null;
-  }
+  const transcript = await getCompetitorTranscript(competitorId, videoId);
+  return transcript?.text || null;
 }

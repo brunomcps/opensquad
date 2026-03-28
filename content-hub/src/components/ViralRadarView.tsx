@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { CSSProperties } from 'react';
+import { CompetitorFichasTab } from './CompetitorFichaDetail';
+import { TrendTab, ComparisonTab, BookmarksTab, CommentsTab, EvolutionTab } from './ViralRadarTabs';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -46,7 +48,7 @@ interface CompetitorEntry {
   platforms: CompetitorPlatform[];
 }
 
-type SubTab = 'feed' | 'concorrentes';
+type SubTab = 'feed' | 'concorrentes' | 'fichas' | 'tendencias' | 'vs-bruno' | 'salvos' | 'comentarios' | 'evolucao';
 type SortOption = 'date' | 'views' | 'likes' | 'comments' | 'zScore';
 type PlatformFilter = 'all' | 'youtube' | 'instagram' | 'tiktok' | 'twitter';
 type CategoryFilter = 'all' | 'outliers' | 'flops';
@@ -601,6 +603,24 @@ function FeedTab() {
     return true;
   });
 
+  const handleBookmark = async (item: FeedItem) => {
+    try {
+      await fetch('/api/competitors/bookmarks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          competitorId: item.competitorId || item.competitor || '',
+          videoId: item.id,
+          platform: item.platform,
+          title: item.title,
+          url: item.url,
+          thumbnail: item.thumbnail || item.thumbnailUrl || '',
+          tag: 'referência',
+        }),
+      });
+    } catch (e) { console.error('Bookmark error:', e); }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* Filter bar */}
@@ -672,7 +692,7 @@ function FeedTab() {
       ) : (
         <div style={styles.feedGrid}>
           {displayedItems.map((item) => (
-            <FeedCard key={item.id} item={item} />
+            <FeedCard key={item.id} item={item} onBookmark={handleBookmark} />
           ))}
         </div>
       )}
@@ -682,7 +702,7 @@ function FeedTab() {
 
 // ─── Feed Card ───────────────────────────────────────────────────────────────
 
-function FeedCard({ item }: { item: FeedItem }) {
+function FeedCard({ item, onBookmark }: { item: FeedItem; onBookmark?: (item: FeedItem) => void }) {
   const platformKey = item.platform.toLowerCase();
   const platformColor = PLATFORM_COLORS[platformKey] || '#666';
 
@@ -760,7 +780,18 @@ function FeedCard({ item }: { item: FeedItem }) {
           <span style={styles.metricItem}>♡ {formatNum(item.likes ?? item.metrics?.likes ?? null)}</span>
           <span style={styles.metricItem}>💬 {formatNum(item.comments ?? item.metrics?.comments ?? null)}</span>
         </div>
-        <div style={styles.cardDate}>{timeAgo(item.publishedAt)}</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={styles.cardDate}>{timeAgo(item.publishedAt)}</div>
+          {onBookmark && (
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBookmark(item); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: '2px 4px', color: 'var(--text-muted)' }}
+              title="Salvar"
+            >
+              🔖
+            </button>
+          )}
+        </div>
       </div>
     </a>
   );
@@ -975,6 +1006,12 @@ export function ViralRadarView() {
         {([
           { key: 'feed' as SubTab, label: 'Feed' },
           { key: 'concorrentes' as SubTab, label: 'Concorrentes' },
+          { key: 'fichas' as SubTab, label: 'Fichas' },
+          { key: 'tendencias' as SubTab, label: 'Tendências' },
+          { key: 'vs-bruno' as SubTab, label: 'vs Bruno' },
+          { key: 'salvos' as SubTab, label: 'Salvos' },
+          { key: 'comentarios' as SubTab, label: 'Comentários' },
+          { key: 'evolucao' as SubTab, label: 'Evolução' },
         ]).map((tab) => (
           <button
             key={tab.key}
@@ -992,6 +1029,12 @@ export function ViralRadarView() {
       {/* Tab content */}
       {subTab === 'feed' && <FeedTab />}
       {subTab === 'concorrentes' && <ConcorrentesTab />}
+      {subTab === 'fichas' && <CompetitorFichasTab />}
+      {subTab === 'tendencias' && <TrendTab />}
+      {subTab === 'vs-bruno' && <ComparisonTab />}
+      {subTab === 'salvos' && <BookmarksTab />}
+      {subTab === 'comentarios' && <CommentsTab />}
+      {subTab === 'evolucao' && <EvolutionTab />}
     </div>
   );
 }

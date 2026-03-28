@@ -1,0 +1,15 @@
+name: "Fichas de Roteiro — Concorrentes"
+code: competitor-fichas
+icon: "🔍📝"
+description: >
+  Gera fichas de roteiro analíticas (10 seções) para vídeos de concorrentes do Viral Radar.
+  Mesma estrutura das fichas do Bruno, adaptada para qualquer criador.
+  Input: transcrição do concorrente (extraída via yt-dlp/whisper) + metadados do vídeo.
+performance_mode: alta-performance
+skills:
+  - web_search
+  - web_fetch
+output:
+  primary: json
+  targets:
+    - supabase_competitor_fichas

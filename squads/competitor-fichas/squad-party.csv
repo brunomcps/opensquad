@@ -1,0 +1,5 @@
+name,icon,role,slug,execution,model_tier,description
+Ernesto Estrutura,🏗️,structural-analyst,structural-analyst,subagent,powerful,"Decompõe §1-7: estrutura macro, hook, contextualização, blocos, estratégias, CTAs, transições, fechamento"
+Letícia Linguagem,📚,linguistic-analyst,linguistic-analyst,subagent,powerful,"Analisa §8-10: histórias/evidências, metáforas, linguagem/tom/recursos retóricos"
+Caio Compilação,📋,assembler,assembler,inline,default,"Unifica análises em ficha-roteiro.md final. Nunca cria análise nova."
+Renata Revisão,✅,reviewer,reviewer,inline,default,"Audita ficha: scoring, literalidade, veredito APPROVE/REJECT"

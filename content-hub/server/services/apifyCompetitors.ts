@@ -1,10 +1,12 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import {
+  getCompetitorRegistry,
+  saveCompetitorRegistry,
+  getCompetitorPlatformData,
+  saveCompetitorPlatformData,
+  addCompetitorHistoryEntry,
+  getCompetitorHistory as dbGetCompetitorHistory,
+} from '../db/competitors.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.resolve(__dirname, '../../data/competitors');
-const REGISTRY_FILE = path.join(DATA_DIR, '_registry.json');
 const APIFY_TOKEN = process.env.APIFY_TOKEN || '';
 const APIFY_BASE = 'https://api.apify.com/v2';
 
@@ -77,7 +79,6 @@ const ACTORS: Record<string, { actorId: string; buildInput: (handle: string) => 
       maxResultsShorts: 0,
     }),
     transform: (raw) => {
-      // YouTube scraper returns video objects
       const items: ContentItem[] = raw.map((v: any) => ({
         id: v.id || v.videoId || '',
         title: v.title || v.text || '',
@@ -96,7 +97,6 @@ const ACTORS: Record<string, { actorId: string; buildInput: (handle: string) => 
         outlierMultiplier: null,
       }));
 
-      // Try to extract channel profile from first result
       const first = raw[0] || {};
       const profile: Partial<CompetitorProfile> = {
         name: first.channelName || first.channel || null,
@@ -223,13 +223,11 @@ const ACTORS: Record<string, { actorId: string; buildInput: (handle: string) => 
 // --- Registry Functions ---
 
 export async function getRegistry(): Promise<Registry> {
-  const raw = await fs.readFile(REGISTRY_FILE, 'utf-8');
-  return JSON.parse(raw);
+  return await getCompetitorRegistry();
 }
 
 export async function saveRegistry(data: Registry): Promise<void> {
-  data.updatedAt = new Date().toISOString();
-  await fs.writeFile(REGISTRY_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  await saveCompetitorRegistry(data.competitors);
 }
 
 // --- Apify Core ---
@@ -338,30 +336,17 @@ export async function syncCompetitorPlatform(competitorId: string, platform: str
       itemCount: items.length,
     };
 
-    // Save to file
-    const dir = path.join(DATA_DIR, competitorId);
-    await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(path.join(dir, `${platform}.json`), JSON.stringify(data, null, 2), 'utf-8');
+    // Save to Supabase
+    await saveCompetitorPlatformData(competitorId, platform, data);
 
     // Save history snapshot
-    const historyFile = path.join(dir, `${platform}_history.json`);
-    let history: any[] = [];
-    try {
-      const raw = await fs.readFile(historyFile, 'utf-8');
-      history = JSON.parse(raw);
-    } catch { /* first sync, no history */ }
-
-    history.push({
+    await addCompetitorHistoryEntry(competitorId, platform, {
       syncedAt: data.syncedAt,
       followers: profile.followers,
       itemCount: data.itemCount,
       outlierCount: filteredItems.filter(i => i.isOutlier).length,
       flopCount: filteredItems.filter(i => i.isFlop).length,
     });
-
-    // Keep last 52 snapshots (1 year of weekly syncs)
-    if (history.length > 52) history = history.slice(-52);
-    await fs.writeFile(historyFile, JSON.stringify(history, null, 2), 'utf-8');
 
     return data;
   } finally {
@@ -376,29 +361,20 @@ export function isSyncing(competitorId: string, platform: string): boolean {
 // --- Read Functions ---
 
 export async function getCompetitorData(competitorId: string, platform: string): Promise<PlatformData | null> {
-  const filePath = path.join(DATA_DIR, competitorId, `${platform}.json`);
-  try {
-    const raw = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
+  return await getCompetitorPlatformData(competitorId, platform);
 }
 
 // Get all available data for a competitor
 export async function getCompetitorAllPlatforms(competitorId: string): Promise<Record<string, PlatformData>> {
-  const dir = path.join(DATA_DIR, competitorId);
+  const registry = await getRegistry();
+  const competitor = registry.competitors.find(c => c.id === competitorId);
+  if (!competitor) return {};
+
   const result: Record<string, PlatformData> = {};
-  try {
-    const files = await fs.readdir(dir);
-    for (const file of files) {
-      if (file.endsWith('.json')) {
-        const platform = file.replace('.json', '');
-        const raw = await fs.readFile(path.join(dir, file), 'utf-8');
-        result[platform] = JSON.parse(raw);
-      }
-    }
-  } catch { /* dir doesn't exist yet */ }
+  for (const platform of Object.keys(competitor.platforms)) {
+    const data = await getCompetitorPlatformData(competitorId, platform);
+    if (data) result[platform] = data as PlatformData;
+  }
   return result;
 }
 
@@ -468,13 +444,7 @@ export async function getSyncStatus(): Promise<Record<string, Record<string, { s
 }
 
 export async function getCompetitorHistory(competitorId: string, platform: string): Promise<any[]> {
-  const historyFile = path.join(DATA_DIR, competitorId, `${platform}_history.json`);
-  try {
-    const raw = await fs.readFile(historyFile, 'utf-8');
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
+  return await dbGetCompetitorHistory(competitorId, platform);
 }
 
 export const SUPPORTED_PLATFORMS = Object.keys(ACTORS);

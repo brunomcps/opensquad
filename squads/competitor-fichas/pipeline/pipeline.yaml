@@ -1,0 +1,76 @@
+name: "Pipeline — Fichas de Concorrentes"
+version: "1.0"
+
+steps:
+  - id: select-video
+    name: "Selecionar vídeo do concorrente"
+    type: checkpoint
+    agent: user
+    description: "Selecionar qual vídeo de concorrente analisar"
+    questions:
+      - key: competitor_id
+        question: "Qual concorrente?"
+        type: choice
+      - key: video_id
+        question: "Qual vídeo?"
+        type: choice
+    outputs:
+      - video-selection.md
+
+  - id: structural-analysis
+    name: "Análise Estrutural (§1-7)"
+    type: task
+    agent: structural-analyst
+    task: analyze-structure
+    inputs:
+      - video-selection.md
+      - transcript.txt
+    outputs:
+      - structural-analysis.md
+
+  - id: linguistic-analysis
+    name: "Análise Linguística (§8-10)"
+    type: task
+    agent: linguistic-analyst
+    task: analyze-language
+    inputs:
+      - structural-analysis.md
+      - transcript.txt
+    outputs:
+      - linguistic-analysis.md
+
+  - id: assemble-ficha
+    name: "Montar Ficha Final"
+    type: task
+    agent: assembler
+    task: assemble-ficha
+    inputs:
+      - structural-analysis.md
+      - linguistic-analysis.md
+    outputs:
+      - ficha-roteiro.md
+
+  - id: review
+    name: "Revisão de Qualidade"
+    type: task
+    agent: reviewer
+    task: review-ficha
+    inputs:
+      - ficha-roteiro.md
+      - transcript.txt
+    outputs:
+      - review-verdict.md
+    on_reject: assemble-ficha
+
+  - id: approve
+    name: "Aprovação Final"
+    type: checkpoint
+    agent: user
+    description: "Revisar ficha final e veredito"
+    questions:
+      - key: approval
+        question: "Aprovar ficha?"
+        type: choice
+        options:
+          - "Sim, aprovar"
+          - "Não, rejeitar e refazer"
