@@ -5,6 +5,7 @@ import { Timeline } from './components/Timeline';
 import { CalendarView } from './components/CalendarView';
 import { AnalyticsViewV2 } from './components/AnalyticsViewV2';
 import { CompetitorsView } from './components/CompetitorsView';
+import { ViralRadarView } from './components/ViralRadarView';
 import { CrossPostingView } from './components/CrossPostingView';
 import { BRollLibrary } from './components/BRollLibrary';
 import { ProductionsView } from './components/productions/ProductionsView';
@@ -35,7 +36,7 @@ export default function App() {
       {viewMode === 'calendar' && <CalendarView />}
       {viewMode === 'analytics' && <AnalyticsViewV2 />}
       {viewMode === 'financial' && <FinancialView />}
-      {viewMode === 'competitors' && <CompetitorsView />}
+      {viewMode === 'viral-radar' && <ViralRadarView />}
       {viewMode === 'crosspost' && <CrossPostingView />}
       {viewMode === 'productions' && <ProductionsView />}
       {viewMode === 'brolls' && <BRollLibrary />}
