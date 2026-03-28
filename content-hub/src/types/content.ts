@@ -256,6 +256,44 @@ export interface FichaFull extends FichaListItem {
   sections: Record<string, string>;
 }
 
+// --- Comments ---
+
+export interface VideoComment {
+  id: string;
+  authorName: string;
+  text: string;
+  likeCount: number;
+  publishedAt: string;
+  isReply: boolean;
+  category?: string;
+}
+
+export interface CommentsData {
+  videoId: string;
+  fetchedAt: string;
+  totalComments: number;
+  comments: VideoComment[];
+  categorySummary: Record<string, number>;
+}
+
+// --- YouTube Analytics ---
+
+export interface VideoAnalytics {
+  videoId: string;
+  fetchedAt: string;
+  period: { start: string; end: string };
+  metrics: {
+    views: number;
+    estimatedMinutesWatched: number;
+    averageViewDuration: number;
+    averageViewPercentage: number;
+    likes: number;
+    comments: number;
+    shares: number;
+    subscribersGained: number;
+  };
+}
+
 export interface FichaSummaryStats {
   totalFichas: number;
   avgDurationSeconds: number;

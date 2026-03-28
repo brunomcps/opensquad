@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useFichaStore } from '../store/useFichaStore';
 import { FichaCard } from './FichaCard';
-import { FichaDetail } from './FichaDetail';
 import { CrossPatterns } from './CrossPatterns';
+import { PerformanceAnalysis } from './PerformanceAnalysis';
 import type { FichaFull } from '../types/content';
 
-type TabMode = 'fichas' | 'patterns';
+type TabMode = 'fichas' | 'patterns' | 'performance';
 
 const container: CSSProperties = {
   padding: '24px',
@@ -187,6 +187,9 @@ export function RoteiroLab() {
             <button style={tab === 'patterns' ? tabBtnActive : tabBtn} onClick={() => setTab('patterns')}>
               🔬 Padrões do Canal
             </button>
+            <button style={tab === 'performance' ? tabBtnActive : tabBtn} onClick={() => setTab('performance')}>
+              📊 Performance
+            </button>
           </div>
           {tab === 'fichas' && (
             <input
@@ -241,7 +244,7 @@ export function RoteiroLab() {
 
       {tab === 'patterns' && <CrossPatterns />}
 
-      <FichaDetail />
+      {tab === 'performance' && <PerformanceAnalysis />}
     </div>
   );
 }

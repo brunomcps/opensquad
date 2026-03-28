@@ -1,0 +1,396 @@
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = path.resolve(__dirname, '../../data/competitors');
+const REGISTRY_FILE = path.join(DATA_DIR, '_registry.json');
+const APIFY_TOKEN = process.env.APIFY_TOKEN || '';
+const APIFY_BASE = 'https://api.apify.com/v2';
+
+// --- Types ---
+
+interface PlatformHandle {
+  handle: string;
+}
+
+interface Competitor {
+  id: string;
+  name: string;
+  niche: string;
+  region: string;
+  platforms: Record<string, PlatformHandle>;
+}
+
+interface Registry {
+  competitors: Competitor[];
+  updatedAt: string;
+}
+
+interface CompetitorProfile {
+  handle: string;
+  name: string;
+  followers: number | null;
+  bio: string | null;
+  profilePicture: string | null;
+  scrapedAt: string;
+}
+
+interface ContentItem {
+  id: string;
+  title: string;
+  url: string;
+  thumbnail: string | null;
+  publishedAt: string;
+  views: number | null;
+  likes: number | null;
+  comments: number | null;
+  shares: number | null;
+  duration: number | null;
+  type: string;
+}
+
+interface PlatformData {
+  competitorId: string;
+  platform: string;
+  profile: CompetitorProfile;
+  items: ContentItem[];
+  syncedAt: string;
+  source: 'apify';
+  actorId: string;
+  itemCount: number;
+}
+
+// --- Actor Config ---
+
+// Map platform -> Apify actor ID and input builder
+const ACTORS: Record<string, { actorId: string; buildInput: (handle: string) => any; transform: (raw: any[]) => { profile: Partial<CompetitorProfile>; items: ContentItem[] } }> = {
+  youtube: {
+    actorId: 'streamers~youtube-scraper',
+    buildInput: (handle) => ({
+      startUrls: [{ url: `https://www.youtube.com/${handle}/videos` }],
+      maxResults: 50,
+      maxResultsShorts: 0,
+    }),
+    transform: (raw) => {
+      // YouTube scraper returns video objects
+      const items: ContentItem[] = raw.map((v: any) => ({
+        id: v.id || v.videoId || '',
+        title: v.title || v.text || '',
+        url: v.url || (v.id ? `https://www.youtube.com/watch?v=${v.id}` : ''),
+        thumbnail: v.thumbnailUrl || v.thumbnail || (v.id ? `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg` : null),
+        publishedAt: v.date || v.uploadDate || v.publishedAt || '',
+        views: parseInt(v.viewCount ?? v.views ?? '0') || null,
+        likes: parseInt(v.likes ?? v.likeCount ?? '0') || null,
+        comments: parseInt(v.commentsCount ?? v.commentCount ?? v.comments ?? '0') || null,
+        shares: null,
+        duration: v.duration || null,
+        type: (v.isShort ? 'short' : 'video'),
+      }));
+
+      // Try to extract channel profile from first result
+      const first = raw[0] || {};
+      const profile: Partial<CompetitorProfile> = {
+        name: first.channelName || first.channel || null,
+        followers: parseInt(first.channelFollowers ?? first.subscriberCount ?? '0') || null,
+      };
+
+      return { profile, items };
+    },
+  },
+  instagram: {
+    actorId: 'apify~instagram-post-scraper',
+    buildInput: (handle) => ({
+      username: [handle],
+      resultsLimit: 30,
+    }),
+    transform: (raw) => {
+      const items: ContentItem[] = raw.map((p: any) => ({
+        id: p.id || p.shortCode || '',
+        title: (p.caption || '').slice(0, 300),
+        url: p.url || (p.shortCode ? `https://www.instagram.com/p/${p.shortCode}/` : ''),
+        thumbnail: p.displayUrl || p.thumbnailUrl || p.previewUrl || null,
+        publishedAt: p.timestamp || p.takenAtTimestamp ? new Date((p.takenAtTimestamp || 0) * 1000).toISOString() : '',
+        views: parseInt(p.videoViewCount ?? '0') || null,
+        likes: parseInt(p.likesCount ?? p.likes ?? '0') || null,
+        comments: parseInt(p.commentsCount ?? p.comments ?? '0') || null,
+        shares: null,
+        duration: p.videoDuration || null,
+        type: p.type || (p.isVideo ? 'reel' : p.childPosts ? 'carousel' : 'post'),
+      }));
+
+      const first = raw[0] || {};
+      const profile: Partial<CompetitorProfile> = {
+        name: first.ownerFullName || first.ownerUsername || null,
+        followers: parseInt(first.ownerFollowerCount ?? '0') || null,
+        bio: first.ownerBiography || null,
+        profilePicture: first.ownerProfilePicUrl || null,
+      };
+
+      return { profile, items };
+    },
+  },
+  tiktok: {
+    actorId: 'clockworks~free-tiktok-scraper',
+    buildInput: (handle) => ({
+      profiles: [handle],
+      resultsPerPage: 30,
+      shouldDownloadCovers: false,
+    }),
+    transform: (raw) => {
+      const items: ContentItem[] = raw.map((v: any) => ({
+        id: v.id || '',
+        title: (v.text || v.desc || v.description || '').slice(0, 300),
+        url: v.webVideoUrl || v.url || '',
+        thumbnail: v.cover || v.dynamicCover || v.originCover || null,
+        publishedAt: v.createTimeISO || (v.createTime ? new Date(v.createTime * 1000).toISOString() : ''),
+        views: parseInt(v.playCount ?? v.views ?? '0') || null,
+        likes: parseInt(v.diggCount ?? v.likes ?? '0') || null,
+        comments: parseInt(v.commentCount ?? v.comments ?? '0') || null,
+        shares: parseInt(v.shareCount ?? v.shares ?? '0') || null,
+        duration: v.duration || v.videoLength || null,
+        type: 'video',
+      }));
+
+      const first = raw[0] || {};
+      const authorStats = first.authorMeta || first.author || {};
+      const profile: Partial<CompetitorProfile> = {
+        name: authorStats.nickName || authorStats.nickname || authorStats.name || null,
+        followers: parseInt(authorStats.fans ?? authorStats.followers ?? '0') || null,
+        bio: authorStats.signature || null,
+        profilePicture: authorStats.avatar || null,
+      };
+
+      return { profile, items };
+    },
+  },
+  twitter: {
+    actorId: 'apidojo~tweet-scraper',
+    buildInput: (handle) => ({
+      handle: [handle],
+      maxTweets: 50,
+      mode: 'user',
+    }),
+    transform: (raw) => {
+      const items: ContentItem[] = raw.map((t: any) => ({
+        id: t.id || t.id_str || '',
+        title: (t.full_text || t.text || '').slice(0, 300),
+        url: t.url || (t.id ? `https://x.com/i/status/${t.id}` : ''),
+        thumbnail: t.entities?.media?.[0]?.media_url_https || null,
+        publishedAt: t.created_at || '',
+        views: parseInt(t.views ?? t.view_count ?? '0') || null,
+        likes: parseInt(t.favorite_count ?? t.likes ?? '0') || null,
+        comments: parseInt(t.reply_count ?? t.replies ?? '0') || null,
+        shares: parseInt(t.retweet_count ?? t.retweets ?? '0') || null,
+        duration: null,
+        type: t.is_quote_status ? 'quote' : t.in_reply_to_status_id ? 'reply' : 'tweet',
+      }));
+
+      const first = raw[0] || {};
+      const user = first.user || {};
+      const profile: Partial<CompetitorProfile> = {
+        name: user.name || null,
+        followers: parseInt(user.followers_count ?? '0') || null,
+        bio: user.description || null,
+        profilePicture: user.profile_image_url_https || null,
+      };
+
+      return { profile, items };
+    },
+  },
+};
+
+// --- Registry Functions ---
+
+export async function getRegistry(): Promise<Registry> {
+  const raw = await fs.readFile(REGISTRY_FILE, 'utf-8');
+  return JSON.parse(raw);
+}
+
+export async function saveRegistry(data: Registry): Promise<void> {
+  data.updatedAt = new Date().toISOString();
+  await fs.writeFile(REGISTRY_FILE, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+// --- Apify Core ---
+
+async function callApifyActor(actorId: string, input: any): Promise<any[]> {
+  if (!APIFY_TOKEN) throw new Error('APIFY_TOKEN not configured');
+
+  const url = `${APIFY_BASE}/acts/${encodeURIComponent(actorId)}/run-sync-get-dataset-items?token=${APIFY_TOKEN}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+    signal: AbortSignal.timeout(300_000), // 5 min timeout
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Apify error ${res.status}: ${text.slice(0, 200)}`);
+  }
+
+  return res.json();
+}
+
+// --- Sync Functions ---
+
+// Locks to prevent duplicate syncs
+const syncLocks = new Set<string>();
+
+export async function syncCompetitorPlatform(competitorId: string, platform: string): Promise<PlatformData> {
+  const lockKey = `${competitorId}:${platform}`;
+  if (syncLocks.has(lockKey)) throw new Error(`Sync already in progress for ${lockKey}`);
+
+  const registry = await getRegistry();
+  const competitor = registry.competitors.find(c => c.id === competitorId);
+  if (!competitor) throw new Error(`Competitor ${competitorId} not found`);
+
+  const platformConfig = competitor.platforms[platform];
+  if (!platformConfig) throw new Error(`${competitorId} has no ${platform} handle`);
+
+  const actorConfig = ACTORS[platform];
+  if (!actorConfig) throw new Error(`No scraper configured for ${platform}`);
+
+  syncLocks.add(lockKey);
+  try {
+    console.log(`[sync] Starting ${competitorId}/${platform} via ${actorConfig.actorId}`);
+
+    const input = actorConfig.buildInput(platformConfig.handle);
+    const rawData = await callApifyActor(actorConfig.actorId, input);
+
+    console.log(`[sync] Got ${rawData.length} items for ${competitorId}/${platform}`);
+
+    const { profile: partialProfile, items } = actorConfig.transform(rawData);
+
+    const profile: CompetitorProfile = {
+      handle: platformConfig.handle,
+      name: partialProfile.name || competitor.name,
+      followers: partialProfile.followers || null,
+      bio: partialProfile.bio || null,
+      profilePicture: partialProfile.profilePicture || null,
+      scrapedAt: new Date().toISOString(),
+    };
+
+    const data: PlatformData = {
+      competitorId,
+      platform,
+      profile,
+      items: items.filter(i => i.id), // Remove items without ID
+      syncedAt: new Date().toISOString(),
+      source: 'apify',
+      actorId: actorConfig.actorId,
+      itemCount: items.length,
+    };
+
+    // Save to file
+    const dir = path.join(DATA_DIR, competitorId);
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(path.join(dir, `${platform}.json`), JSON.stringify(data, null, 2), 'utf-8');
+
+    return data;
+  } finally {
+    syncLocks.delete(lockKey);
+  }
+}
+
+export function isSyncing(competitorId: string, platform: string): boolean {
+  return syncLocks.has(`${competitorId}:${platform}`);
+}
+
+// --- Read Functions ---
+
+export async function getCompetitorData(competitorId: string, platform: string): Promise<PlatformData | null> {
+  const filePath = path.join(DATA_DIR, competitorId, `${platform}.json`);
+  try {
+    const raw = await fs.readFile(filePath, 'utf-8');
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+// Get all available data for a competitor
+export async function getCompetitorAllPlatforms(competitorId: string): Promise<Record<string, PlatformData>> {
+  const dir = path.join(DATA_DIR, competitorId);
+  const result: Record<string, PlatformData> = {};
+  try {
+    const files = await fs.readdir(dir);
+    for (const file of files) {
+      if (file.endsWith('.json')) {
+        const platform = file.replace('.json', '');
+        const raw = await fs.readFile(path.join(dir, file), 'utf-8');
+        result[platform] = JSON.parse(raw);
+      }
+    }
+  } catch { /* dir doesn't exist yet */ }
+  return result;
+}
+
+// Aggregated feed of all content across all competitors
+export async function getFeed(filters?: {
+  competitorIds?: string[];
+  platforms?: string[];
+  sortBy?: 'views' | 'likes' | 'comments' | 'date';
+  sortOrder?: 'asc' | 'desc';
+  limit?: number;
+}): Promise<{ items: (ContentItem & { competitorId: string; competitorName: string; platform: string })[], total: number }> {
+  const registry = await getRegistry();
+  const allItems: (ContentItem & { competitorId: string; competitorName: string; platform: string })[] = [];
+
+  for (const competitor of registry.competitors) {
+    if (filters?.competitorIds && !filters.competitorIds.includes(competitor.id)) continue;
+
+    const platformsData = await getCompetitorAllPlatforms(competitor.id);
+    for (const [platform, data] of Object.entries(platformsData)) {
+      if (filters?.platforms && !filters.platforms.includes(platform)) continue;
+
+      for (const item of data.items) {
+        allItems.push({
+          ...item,
+          competitorId: competitor.id,
+          competitorName: competitor.name,
+          platform,
+        });
+      }
+    }
+  }
+
+  // Sort
+  const sortBy = filters?.sortBy || 'date';
+  const sortOrder = filters?.sortOrder || 'desc';
+  const multiplier = sortOrder === 'desc' ? -1 : 1;
+
+  allItems.sort((a, b) => {
+    if (sortBy === 'date') return multiplier * ((a.publishedAt || '').localeCompare(b.publishedAt || ''));
+    const valA = (a as any)[sortBy] ?? 0;
+    const valB = (b as any)[sortBy] ?? 0;
+    return multiplier * (valA - valB);
+  });
+
+  const limit = filters?.limit || 200;
+  return { items: allItems.slice(0, limit), total: allItems.length };
+}
+
+// Get sync status for all competitors
+export async function getSyncStatus(): Promise<Record<string, Record<string, { syncedAt: string | null; itemCount: number; syncing: boolean }>>> {
+  const registry = await getRegistry();
+  const status: Record<string, Record<string, { syncedAt: string | null; itemCount: number; syncing: boolean }>> = {};
+
+  for (const competitor of registry.competitors) {
+    status[competitor.id] = {};
+    for (const platform of Object.keys(competitor.platforms)) {
+      const data = await getCompetitorData(competitor.id, platform);
+      status[competitor.id][platform] = {
+        syncedAt: data?.syncedAt || null,
+        itemCount: data?.itemCount || 0,
+        syncing: isSyncing(competitor.id, platform),
+      };
+    }
+  }
+
+  return status;
+}
+
+export const SUPPORTED_PLATFORMS = Object.keys(ACTORS);
