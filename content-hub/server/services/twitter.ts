@@ -48,10 +48,11 @@ export function getCachedTwitterPosts(): SyncResult {
 export async function scrapeTwitterProfile(handle: string): Promise<SyncResult> {
   console.log(`[Twitter] Scraping profile @${handle}...`);
 
+  const isProduction = process.env.NODE_ENV === 'production';
   const browser = await chromium.launchPersistentContext(BROWSER_PROFILE, {
-    headless: false,
-    channel: 'chrome',
-    args: ['--disable-blink-features=AutomationControlled'],
+    headless: isProduction,
+    ...(isProduction ? {} : { channel: 'chrome' }),
+    args: ['--disable-blink-features=AutomationControlled', ...(isProduction ? ['--no-sandbox'] : [])],
   });
 
   try {

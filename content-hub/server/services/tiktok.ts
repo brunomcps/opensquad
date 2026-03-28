@@ -52,10 +52,11 @@ export async function scrapeTikTokProfile(handle: string): Promise<SyncResult> {
 
   if (!fs.existsSync(THUMB_DIR)) fs.mkdirSync(THUMB_DIR, { recursive: true });
 
+  const isProduction = process.env.NODE_ENV === 'production';
   const browser = await chromium.launchPersistentContext(BROWSER_PROFILE, {
-    headless: false,
-    channel: 'chrome',
-    args: ['--disable-blink-features=AutomationControlled'],
+    headless: isProduction,
+    ...(isProduction ? {} : { channel: 'chrome' }),
+    args: ['--disable-blink-features=AutomationControlled', ...(isProduction ? ['--no-sandbox'] : [])],
   });
 
   try {
