@@ -17,6 +17,7 @@ import { runEmbeddingPipeline, analyzeContentGaps, indexBrunoVideos, indexCompet
 import { syncCompetitorAds, getCompetitorAds } from '../services/adLibrary.js';
 import { extractYouTubeTranscript, extractShortVideoTranscript, getTranscript, hasTranscript } from '../services/transcriptExtractor.js';
 import { fetchVideoComments } from '../services/comments.js';
+import { cacheItemThumbnails } from '../services/thumbnailCache.js';
 import {
   getBookmarks,
   saveBookmark,
@@ -487,6 +488,36 @@ router.get('/img-proxy', async (req, res) => {
     res.send(buffer);
   } catch {
     res.status(502).send('Proxy error');
+  }
+});
+
+// POST /thumbnails/cache — cache thumbnails for existing items (no re-sync needed)
+router.post('/thumbnails/cache', async (req, res) => {
+  try {
+    const registry = await getRegistry();
+    const results: string[] = [];
+
+    for (const comp of registry.competitors) {
+      const allData = await getCompetitorAllPlatforms(comp.id);
+      for (const [platform, data] of Object.entries(allData)) {
+        if (platform === 'youtube') continue;
+        const items = (data as any).items || [];
+        const uncached = items.filter((i: any) => i.thumbnail === null || (i.thumbnail && !i.thumbnail.includes('supabase.co')));
+        if (uncached.length === 0) continue;
+
+        const count = await cacheItemThumbnails(comp.id, platform, items);
+        if (count > 0) {
+          // Save updated items back to DB
+          const { saveCompetitorPlatformData } = await import('../db/competitors.js');
+          await saveCompetitorPlatformData(comp.id, platform, { ...data, items });
+          results.push(`${comp.name}/${platform}: ${count} cached`);
+        }
+      }
+    }
+
+    res.json({ ok: true, data: results, message: `Cached thumbnails: ${results.length} platforms updated` });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 
