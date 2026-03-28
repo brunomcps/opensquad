@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { CSSProperties } from 'react';
 import { CompetitorFichasTab } from './CompetitorFichaDetail';
 import { TrendTab, ComparisonTab, BookmarksTab, CommentsTab, EvolutionTab } from './ViralRadarTabs';
+import { CompetitorProfileView } from './CompetitorProfileView';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -905,7 +906,7 @@ function FeedCard({ item, onBookmark }: { item: FeedItem; onBookmark?: (item: Fe
 
 // ─── Concorrentes Sub-Tab ────────────────────────────────────────────────────
 
-function ConcorrentesTab() {
+function ConcorrentesTab({ onSelectCompetitor }: { onSelectCompetitor?: (comp: { id: string; name: string }) => void }) {
   const [competitors, setCompetitors] = useState<CompetitorEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncingAll, setSyncingAll] = useState(false);
@@ -1042,7 +1043,13 @@ function ConcorrentesTab() {
       <div style={styles.competitorsGrid}>
         {competitors.map((comp) => (
           <div key={comp.id} style={styles.competitorCard}>
-            <div style={styles.competitorCardName}>{comp.name}</div>
+            <div
+              style={{ ...styles.competitorCardName, cursor: 'pointer', transition: 'var(--transition)' }}
+              onClick={() => onSelectCompetitor?.({ id: comp.id, name: comp.name })}
+              title="Ver perfil completo"
+            >
+              {comp.name} <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 400 }}>→</span>
+            </div>
             <div style={styles.badgeRow}>
               {comp.niche && <span style={styles.badge}>{comp.niche}</span>}
               {comp.region && <span style={styles.badge}>{comp.region}</span>}
@@ -1084,15 +1091,29 @@ function ConcorrentesTab() {
               })}
             </div>
 
-            {/* Sync all for this competitor */}
-            {comp.platforms.length > 1 && (
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: 8 }}>
+              {comp.platforms.length > 1 && (
+                <button
+                  style={{ ...styles.syncAllBtn, flex: 1 }}
+                  onClick={() => syncAllForCompetitor(comp)}
+                >
+                  Sincronizar Tudo
+                </button>
+              )}
               <button
-                style={styles.syncAllBtn}
-                onClick={() => syncAllForCompetitor(comp)}
+                style={{
+                  ...styles.syncAllBtn,
+                  flex: 1,
+                  background: 'var(--bg-secondary)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border)',
+                }}
+                onClick={() => onSelectCompetitor?.({ id: comp.id, name: comp.name })}
               >
-                Sincronizar Tudo
+                Ver Perfil
               </button>
-            )}
+            </div>
           </div>
         ))}
       </div>
@@ -1104,6 +1125,20 @@ function ConcorrentesTab() {
 
 export function ViralRadarView() {
   const [subTab, setSubTab] = useState<SubTab>('feed');
+  const [selectedCompetitor, setSelectedCompetitor] = useState<{ id: string; name: string } | null>(null);
+
+  // If a competitor profile is selected, show the profile view
+  if (selectedCompetitor) {
+    return (
+      <div style={styles.container}>
+        <CompetitorProfileView
+          competitorId={selectedCompetitor.id}
+          competitorName={selectedCompetitor.name}
+          onBack={() => setSelectedCompetitor(null)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
@@ -1134,7 +1169,7 @@ export function ViralRadarView() {
 
       {/* Tab content */}
       {subTab === 'feed' && <FeedTab />}
-      {subTab === 'concorrentes' && <ConcorrentesTab />}
+      {subTab === 'concorrentes' && <ConcorrentesTab onSelectCompetitor={setSelectedCompetitor} />}
       {subTab === 'fichas' && <CompetitorFichasTab />}
       {subTab === 'tendencias' && <TrendTab />}
       {subTab === 'vs-bruno' && <ComparisonTab />}

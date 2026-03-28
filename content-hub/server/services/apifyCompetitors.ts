@@ -336,6 +336,20 @@ export async function syncCompetitorPlatform(competitorId: string, platform: str
       itemCount: items.length,
     };
 
+    // Merge with existing items (accumulate, never lose old data)
+    const existing = await getCompetitorPlatformData(competitorId, platform);
+    if (existing && existing.items && existing.items.length > 0) {
+      const existingMap = new Map(existing.items.map((i: any) => [i.id, i]));
+      // Update existing items with fresh data, add new ones
+      for (const item of filteredItems) {
+        existingMap.set(item.id, item);
+      }
+      data.items = Array.from(existingMap.values()) as ContentItem[];
+      data.itemCount = data.items.length;
+      // Recalculate z-scores on merged set
+      calculateZScores(data.items, metricKey as any);
+    }
+
     // Save to Supabase
     await saveCompetitorPlatformData(competitorId, platform, data);
 

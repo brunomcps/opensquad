@@ -15,7 +15,7 @@ import { detectTrends, getDetectedTrends } from '../services/trendDetector.js';
 import { compareToBruno } from '../services/brunoComparison.js';
 import { runEmbeddingPipeline, analyzeContentGaps, indexBrunoVideos, indexCompetitorVideos } from '../services/embeddings.js';
 import { syncCompetitorAds, getCompetitorAds } from '../services/adLibrary.js';
-import { extractYouTubeTranscript, extractShortVideoTranscript, getTranscript } from '../services/transcriptExtractor.js';
+import { extractYouTubeTranscript, extractShortVideoTranscript, getTranscript, hasTranscript } from '../services/transcriptExtractor.js';
 import { fetchVideoComments } from '../services/comments.js';
 import {
   getBookmarks,
@@ -309,6 +309,62 @@ router.post('/fichas/:competitorId/:videoId', async (req, res) => {
 });
 
 // --- Transcripts ---
+
+// Batch transcription: transcribe all outliers (then flops) that don't have transcripts yet
+router.post('/transcripts/batch', async (req, res) => {
+  try {
+    const maxItems = req.body.maxItems || 10;
+    const priority = req.body.priority || 'outliers'; // 'outliers' | 'flops' | 'all'
+    const registry = await getRegistry();
+    const results: { videoId: string; competitorId: string; status: string; error?: string }[] = [];
+    let processed = 0;
+
+    // Collect all items that need transcription
+    const candidates: { competitorId: string; item: any; platform: string; priority: number }[] = [];
+
+    for (const comp of registry.competitors) {
+      const platformsData = await getCompetitorAllPlatforms(comp.id);
+      for (const [platform, data] of Object.entries(platformsData)) {
+        for (const item of (data as any).items || []) {
+          if (!item.id || !item.url) continue;
+          const p = item.isOutlier ? 0 : item.isFlop ? 1 : 2;
+          if (priority === 'outliers' && p > 0) continue;
+          if (priority === 'flops' && p > 1) continue;
+          candidates.push({ competitorId: comp.id, item, platform, priority: p });
+        }
+      }
+    }
+
+    // Sort by priority (outliers first, then flops, then normal)
+    candidates.sort((a, b) => a.priority - b.priority);
+
+    for (const { competitorId, item, platform } of candidates) {
+      if (processed >= maxItems) break;
+      const already = await hasTranscript(competitorId, item.id);
+      if (already) continue;
+
+      try {
+        if (platform === 'youtube') {
+          await extractYouTubeTranscript(item.id, competitorId, item.url);
+        } else {
+          await extractShortVideoTranscript(item.id, competitorId, platform, item.url);
+        }
+        results.push({ videoId: item.id, competitorId, status: 'ok' });
+      } catch (err: any) {
+        results.push({ videoId: item.id, competitorId, status: 'error', error: err.message });
+      }
+      processed++;
+    }
+
+    res.json({
+      ok: true,
+      data: { processed, total: candidates.length, results },
+      message: `Transcribed ${results.filter(r => r.status === 'ok').length}/${processed} items`,
+    });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
 
 router.post('/:id/transcript/:videoId', async (req, res) => {
   const { id, videoId } = req.params;
