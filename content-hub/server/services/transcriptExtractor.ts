@@ -151,7 +151,9 @@ async function downloadAndTranscribe(
     const whisperScript = `
 import json, sys
 from faster_whisper import WhisperModel
-model = WhisperModel("medium", device="cpu", compute_type="int8")
+import os
+_model = os.environ.get("WHISPER_MODEL", "base")
+model = WhisperModel(_model, device="cpu", compute_type="int8")
 segments, info = model.transcribe("${audioPath.replace(/\\/g, '\\\\')}", language=None)
 result = []
 for seg in segments:

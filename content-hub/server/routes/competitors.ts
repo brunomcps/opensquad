@@ -116,7 +116,39 @@ router.post('/weekly-sync', async (_req, res) => {
       results.push(`✗ Comparação Bruno: ${err.message}`);
     }
 
-    // Step 4: Embedding-based analysis (if Voyage API key is set)
+    // Step 4: Batch transcription of outliers (top 5 per sync to limit time)
+    try {
+      const transcriptCandidates: { competitorId: string; item: any; platform: string }[] = [];
+      for (const comp of registry.competitors) {
+        const platformsData = await getCompetitorAllPlatforms(comp.id);
+        for (const [platform, data] of Object.entries(platformsData)) {
+          for (const item of (data as any).items || []) {
+            if (item.isOutlier && item.id && item.url) {
+              transcriptCandidates.push({ competitorId: comp.id, item, platform });
+            }
+          }
+        }
+      }
+      let transcribed = 0;
+      for (const { competitorId, item, platform } of transcriptCandidates) {
+        if (transcribed >= 5) break;
+        const already = await hasTranscript(competitorId, item.id);
+        if (already) continue;
+        try {
+          if (platform === 'youtube') {
+            await extractYouTubeTranscript(item.id, competitorId, item.url);
+          } else {
+            await extractShortVideoTranscript(item.id, competitorId, platform, item.url);
+          }
+          transcribed++;
+        } catch {}
+      }
+      results.push(`✓ Transcrições: ${transcribed} outliers transcritos`);
+    } catch (err: any) {
+      results.push(`✗ Transcrições: ${err.message}`);
+    }
+
+    // Step 5: Embedding-based analysis (if Voyage API key is set)
     if (process.env.VOYAGE_API_KEY) {
       try {
         const embResult = await runEmbeddingPipeline();
