@@ -811,9 +811,10 @@ function FeedTab({ onSelectCompetitor }: { onSelectCompetitor?: (comp: { id: str
 
 function proxyThumb(url: string | null | undefined, platform: string): string | null {
   if (!url) return null;
-  // YouTube thumbnails work fine directly
-  if (platform === 'youtube' || url.includes('ytimg.com')) return url;
-  // Proxy Instagram/TikTok/Twitter thumbnails through our server
+  // Already a permanent URL (YouTube CDN or Supabase Storage)
+  if (url.includes('ytimg.com') || url.includes('supabase.co/storage')) return url;
+  if (platform === 'youtube') return url;
+  // Proxy expiring CDN URLs through our server
   return `/api/competitors/img-proxy?url=${encodeURIComponent(url)}`;
 }
 

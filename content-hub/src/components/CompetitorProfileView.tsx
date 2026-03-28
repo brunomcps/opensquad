@@ -98,7 +98,10 @@ const PLATFORM_LABELS: Record<string, string> = {
 
 function proxyThumb(url: string | null | undefined, platform: string): string | null {
   if (!url) return null;
-  if (platform === 'youtube' || url.includes('ytimg.com')) return url;
+  // Already a permanent URL (YouTube CDN or Supabase Storage)
+  if (url.includes('ytimg.com') || url.includes('supabase.co/storage')) return url;
+  if (platform === 'youtube') return url;
+  // Proxy expiring CDN URLs through our server
   return `/api/competitors/img-proxy?url=${encodeURIComponent(url)}`;
 }
 
