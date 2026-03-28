@@ -3,11 +3,15 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getTikTokVideos, saveTikTokVideos } from '../db/index.js';
+import { supabase } from '../db/client.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BROWSER_PROFILE = path.resolve(__dirname, '../../data/browser-profile');
 const CACHE_PATH = path.resolve(__dirname, '../../data/tiktok-videos.json');
 const THUMB_DIR = path.resolve(__dirname, '../../data/tiktok-thumbs');
+
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://vdaualgktroizsttbrfh.supabase.co';
+const THUMB_BUCKET = 'thumbnails';
 
 export interface TikTokVideo {
   id: string;
@@ -151,19 +155,29 @@ export async function scrapeTikTokProfile(handle: string): Promise<SyncResult> {
 
     console.log(`[TikTok] Final: ${videos.length} unique videos`);
 
-    // Download thumbnails
+    // Download thumbnails → Supabase Storage (persistent) with local fallback
     for (const v of videos) {
       try {
         if (v.thumbnail && v.thumbnail.startsWith('http')) {
-          const thumbPath = path.join(THUMB_DIR, `${v.id}.jpg`);
-          if (!fs.existsSync(thumbPath)) {
-            const resp = await page.request.get(v.thumbnail);
-            const body = await resp.body();
-            if (body.length > 1000) {
-              fs.writeFileSync(thumbPath, body);
-            }
+          const storagePath = `bruno-tiktok/${v.id}.jpg`;
+          const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${THUMB_BUCKET}/${storagePath}`;
+
+          // Check if already in Supabase Storage
+          const { data: existing } = await supabase.storage.from(THUMB_BUCKET).list('bruno-tiktok', { search: `${v.id}.jpg`, limit: 1 });
+          if (existing && existing.length > 0) {
+            v.thumbnail = publicUrl;
+            continue;
           }
-          v.thumbnail = `/api/tiktok/thumb/${v.id}.jpg`;
+
+          // Download and upload to Supabase Storage
+          const resp = await page.request.get(v.thumbnail);
+          const body = await resp.body();
+          if (body.length > 1000) {
+            await supabase.storage.from(THUMB_BUCKET).upload(storagePath, body, { contentType: 'image/jpeg', upsert: true });
+            v.thumbnail = publicUrl;
+            // Also save locally as fallback
+            try { if (!fs.existsSync(THUMB_DIR)) fs.mkdirSync(THUMB_DIR, { recursive: true }); fs.writeFileSync(path.join(THUMB_DIR, `${v.id}.jpg`), body); } catch {}
+          }
         }
       } catch {}
     }

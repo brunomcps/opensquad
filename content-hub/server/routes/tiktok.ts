@@ -35,7 +35,7 @@ router.post('/sync', async (_req, res) => {
   }
 });
 
-// Serve cached thumbnails
+// Serve cached thumbnails (local fallback, redirect to Supabase Storage if missing)
 router.get('/thumb/:filename', (req, res) => {
   const thumbPath = path.resolve(__dirname, '../../data/tiktok-thumbs', req.params.filename);
   if (fs.existsSync(thumbPath)) {
@@ -43,7 +43,10 @@ router.get('/thumb/:filename', (req, res) => {
     res.setHeader('Cache-Control', 'public, max-age=86400');
     fs.createReadStream(thumbPath).pipe(res);
   } else {
-    res.status(404).json({ ok: false });
+    // Redirect to Supabase Storage
+    const supabaseUrl = process.env.SUPABASE_URL || 'https://vdaualgktroizsttbrfh.supabase.co';
+    const storagePath = `bruno-tiktok/${req.params.filename}`;
+    res.redirect(`${supabaseUrl}/storage/v1/object/public/thumbnails/${storagePath}`);
   }
 });
 
