@@ -721,6 +721,53 @@ function AggregatedProfileTab({ competitorId }: { competitorId: string }) {
         ))}
       </div>
 
+      {/* === CONTENT SECTION (what they talk about) === */}
+
+      {/* Teses centrais per video */}
+      {profile.teses?.length > 0 && (
+        <div style={cardStyle}>
+          <div style={sectionTitle}>O que esse criador defende</div>
+          {profile.teses.map((t: any, i: number) => (
+            <InsightCard key={i} insight={t} />
+          ))}
+        </div>
+      )}
+
+      {/* Temas recorrentes across videos */}
+      {profile.temas?.length > 0 && (
+        <div style={cardStyle}>
+          <div style={sectionTitle}>Temas recorrentes</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', marginBottom: 4 }}>
+            Temas que aparecem em mais de um video estao no topo. Clique em "Ver fonte" pra ver o que exatamente foi dito.
+          </div>
+          {profile.temas.map((t: any, i: number) => (
+            <InsightCard key={i} insight={{ ...t, label: `${t.evidence?.length || 1} video${(t.evidence?.length || 1) > 1 ? 's' : ''} — ${t.label}` }} />
+          ))}
+        </div>
+      )}
+
+      {/* Conselhos praticos */}
+      {profile.conselhosRecorrentes?.length > 0 && (
+        <div style={cardStyle}>
+          <div style={sectionTitle}>Conselhos praticos dados ao publico</div>
+          {profile.conselhosRecorrentes.map((c: any, i: number) => (
+            <InsightCard key={i} insight={c} />
+          ))}
+        </div>
+      )}
+
+      {/* Angulo unico */}
+      {profile.anguloUnico && (
+        <div style={{ ...cardStyle, background: 'var(--bg-secondary)' }}>
+          <div style={sectionTitle}>Angulo unico deste criador</div>
+          <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', lineHeight: 1.7 }}>
+            {profile.anguloUnico}
+          </div>
+        </div>
+      )}
+
+      {/* === STRUCTURAL SECTION (how they build scripts) === */}
+
       {/* Proportions bar */}
       {p.count > 0 && (
         <div style={cardStyle}>

@@ -52,6 +52,15 @@ function fmt(s: string): string {
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
+interface FichaSummary {
+  resumo: string;
+  tese_central: string;
+  temas: { tema: string; peso_percentual: number; descricao: string }[];
+  argumentos: { argumento: string; evidencia: string }[];
+  conselhos_praticos: { conselho: string; fala_literal: string }[];
+  angulo_unico: string;
+}
+
 interface CompetitorFicha {
   competitorId: string;
   videoId: string;
@@ -66,6 +75,7 @@ interface CompetitorFicha {
   blockCount?: number;
   blocks?: any[];
   sections: Record<string, string>;
+  summary?: FichaSummary;
   generatedAt?: string;
 }
 
@@ -243,21 +253,85 @@ export function CompetitorFichaDetail({
           </div>
         </div>
 
-        {/* Quick summary */}
-        <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '16px', fontSize: '13px', lineHeight: '1.7', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Resumo</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '8px' }}>
-            {ficha.structureType && <span><strong>Estrutura:</strong> {ficha.structureType}</span>}
-            {ficha.proportions && (
-              <span><strong>Proporcao:</strong> hook {ficha.proportions.hook}% | conteudo {ficha.proportions.content}% | fechamento {ficha.proportions.closing}%</span>
+        {/* Content summary (§0) */}
+        {ficha.summary && (
+          <div style={{ marginBottom: '20px' }}>
+            {/* Resumo */}
+            <div style={{ fontSize: '14px', lineHeight: '1.8', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', marginBottom: '16px' }}>
+              {ficha.summary.resumo.split('\n').filter(Boolean).map((p, i) => (
+                <p key={i} style={{ margin: '0 0 10px' }}>{p}</p>
+              ))}
+            </div>
+
+            {/* Tese central */}
+            {ficha.summary.tese_central && (
+              <div style={{ background: 'var(--accent-gold)', color: '#fff', borderRadius: 'var(--radius)', padding: '12px 16px', marginBottom: '12px', fontSize: '13px', fontWeight: 600, fontFamily: 'var(--font)', lineHeight: 1.5 }}>
+                Tese: {ficha.summary.tese_central}
+              </div>
+            )}
+
+            {/* Temas */}
+            {ficha.summary.temas?.length > 0 && (
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font)', color: 'var(--text-primary)', marginBottom: '8px' }}>Temas abordados</div>
+                {ficha.summary.temas.map((t, i) => (
+                  <div key={i} style={{ display: 'flex', gap: '10px', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: '12px', fontFamily: 'var(--font-body)' }}>
+                    <div style={{ minWidth: '40px', fontWeight: 700, color: 'var(--accent-gold-dark)', fontFamily: 'var(--font)' }}>{t.peso_percentual}%</div>
+                    <div>
+                      <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>{t.tema}</div>
+                      <div style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}>{t.descricao}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Argumentos com falas literais */}
+            {ficha.summary.argumentos?.length > 0 && (
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font)', color: 'var(--text-primary)', marginBottom: '8px' }}>Argumentos e evidencias</div>
+                {ficha.summary.argumentos.map((a, i) => (
+                  <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: '12px', fontFamily: 'var(--font-body)' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>{a.argumento}</div>
+                    <div style={{ background: 'var(--bg-primary)', borderLeft: '3px solid var(--accent-gold)', padding: '6px 10px', color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: 1.5, fontSize: '11px' }}>
+                      {a.evidencia}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Conselhos praticos */}
+            {ficha.summary.conselhos_praticos?.length > 0 && (
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, fontFamily: 'var(--font)', color: 'var(--text-primary)', marginBottom: '8px' }}>Conselhos praticos</div>
+                {ficha.summary.conselhos_praticos.map((c, i) => (
+                  <div key={i} style={{ padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: '12px', fontFamily: 'var(--font-body)' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>{c.conselho}</div>
+                    <div style={{ background: 'var(--bg-primary)', borderLeft: '3px solid var(--accent-gold)', padding: '6px 10px', color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: 1.5, fontSize: '11px' }}>
+                      {c.fala_literal}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Angulo unico */}
+            {ficha.summary.angulo_unico && (
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '10px 14px', fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', lineHeight: 1.6 }}>
+                <strong style={{ color: 'var(--text-primary)' }}>Angulo unico:</strong> {ficha.summary.angulo_unico}
+              </div>
             )}
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-            {ficha.hookElementCount != null && <span><strong>{ficha.hookElementCount}</strong> elementos no hook</span>}
-            {ficha.blockCount != null && <span><strong>{ficha.blockCount}</strong> blocos de conteudo</span>}
-            {ficha.durationText && <span><strong>Duracao:</strong> {ficha.durationText}</span>}
-            <span><strong>{availableKeys.size}</strong> secoes analisadas</span>
-          </div>
+        )}
+
+        {/* Structural quick stats */}
+        <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '10px 14px', marginBottom: '16px', fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+          {ficha.structureType && <span><strong>Estrutura:</strong> {ficha.structureType}</span>}
+          {ficha.proportions && <span>Hook {ficha.proportions.hook}% | Conteudo {ficha.proportions.content}% | Fechamento {ficha.proportions.closing}%</span>}
+          {ficha.hookElementCount != null && <span>{ficha.hookElementCount} hooks</span>}
+          {ficha.blockCount != null && <span>{ficha.blockCount} blocos</span>}
+          <span>{availableKeys.size} secoes</span>
         </div>
 
         {/* Expand/collapse */}

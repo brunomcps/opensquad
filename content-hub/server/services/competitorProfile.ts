@@ -15,6 +15,11 @@ interface InsightWithEvidence {
 interface AggregatedProfile {
   competitorId: string;
   fichaCount: number;
+  // Content (§0) — the actual substance
+  temas: InsightWithEvidence[];  // aggregated themes across videos
+  teses: InsightWithEvidence[];  // thesis per video
+  conselhosRecorrentes: InsightWithEvidence[];  // recurring advice
+  anguloUnico: string;  // synthesized unique angle
   // Structure
   structures: InsightWithEvidence[];
   proportions: { hook: number; content: number; closing: number; count: number };
@@ -83,6 +88,66 @@ export async function generateAggregatedProfile(competitorId: string): Promise<A
 
   const allFichas = fichas || [];
   const allPlatforms = platforms || [];
+
+  // --- Content analysis (§0 summaries) ---
+  const temas: InsightWithEvidence[] = [];
+  const teses: InsightWithEvidence[] = [];
+  const conselhosRecorrentes: InsightWithEvidence[] = [];
+  const angulos: string[] = [];
+
+  for (const f of allFichas) {
+    const sum = f.summary as any;
+    if (!sum) continue;
+
+    // Teses per video
+    if (sum.tese_central) {
+      teses.push({
+        label: f.title || f.video_id,
+        value: sum.tese_central,
+        evidence: [{ videoId: f.video_id, title: f.title || f.video_id, excerpt: sum.resumo?.slice(0, 300) || sum.tese_central }],
+      });
+    }
+
+    // Aggregate themes across videos
+    if (sum.temas && Array.isArray(sum.temas)) {
+      for (const t of sum.temas) {
+        const existing = temas.find(x => x.value.toLowerCase() === t.tema.toLowerCase());
+        const evidenceItem = {
+          videoId: f.video_id,
+          title: f.title || f.video_id,
+          excerpt: t.descricao || t.tema,
+        };
+        if (existing) {
+          existing.evidence.push(evidenceItem);
+        } else {
+          temas.push({
+            label: `${t.peso_percentual || '?'}% do video`,
+            value: t.tema,
+            evidence: [evidenceItem],
+          });
+        }
+      }
+    }
+
+    // Conselhos praticos
+    if (sum.conselhos_praticos && Array.isArray(sum.conselhos_praticos)) {
+      for (const c of sum.conselhos_praticos) {
+        conselhosRecorrentes.push({
+          label: f.title || f.video_id,
+          value: c.conselho,
+          evidence: [{ videoId: f.video_id, title: f.title || f.video_id, excerpt: c.fala_literal || c.conselho }],
+        });
+      }
+    }
+
+    // Angulo unico
+    if (sum.angulo_unico) angulos.push(sum.angulo_unico);
+  }
+
+  // Sort themes by number of videos that cover them (most recurring first)
+  temas.sort((a, b) => b.evidence.length - a.evidence.length);
+
+  const anguloUnico = angulos.length > 0 ? angulos.join(' | ') : '';
 
   // --- Structure patterns (§1) ---
   const structures: InsightWithEvidence[] = [];
@@ -258,6 +323,10 @@ export async function generateAggregatedProfile(competitorId: string): Promise<A
   return {
     competitorId,
     fichaCount: allFichas.length,
+    temas,
+    teses,
+    conselhosRecorrentes,
+    anguloUnico,
     structures,
     proportions: {
       hook: propCount > 0 ? Math.round((totalHook / propCount) * 10) / 10 : 0,
