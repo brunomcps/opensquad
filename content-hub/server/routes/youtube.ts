@@ -3,16 +3,23 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getChannelVideos, getChannelStats, updateVideo, getCompetitorStats } from '../services/youtube.js';
+import { getYoutubeCompetitorStats, saveYoutubeCompetitorStat } from '../db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const COMPETITORS_PATH = path.resolve(__dirname, '../../data/competitors.json');
 
-function readCompetitors() {
-  try { return JSON.parse(fs.readFileSync(COMPETITORS_PATH, 'utf-8')); }
-  catch { return []; }
+function readCompetitorsFromFile() {
+  try { return JSON.parse(fs.readFileSync(COMPETITORS_PATH, 'utf-8')); } catch { return []; }
 }
-function writeCompetitors(data: any[]) {
-  fs.writeFileSync(COMPETITORS_PATH, JSON.stringify(data, null, 2), 'utf-8');
+
+async function readCompetitors() {
+  try { const db = await getYoutubeCompetitorStats(); if (db.length > 0) return db; } catch {}
+  return readCompetitorsFromFile();
+}
+
+async function writeCompetitors(data: any[]) {
+  for (const c of data) { try { await saveYoutubeCompetitorStat(c); } catch {} }
+  try { fs.writeFileSync(COMPETITORS_PATH, JSON.stringify(data, null, 2), 'utf-8'); } catch {}
 }
 
 const router = Router();
@@ -61,24 +68,24 @@ router.get('/competitor/:channelId', async (req, res) => {
 });
 
 // Saved competitors persistence
-router.get('/competitors', (_req, res) => {
-  res.json({ ok: true, competitors: readCompetitors() });
+router.get('/competitors', async (_req, res) => {
+  res.json({ ok: true, competitors: await readCompetitors() });
 });
 
-router.post('/competitors', (req, res) => {
-  const competitors = readCompetitors();
+router.post('/competitors', async (req, res) => {
+  const competitors = await readCompetitors();
   const entry = req.body;
   if (competitors.some((c: any) => c.channelId === entry.channelId)) {
     return res.status(409).json({ ok: false, error: 'Ja adicionado' });
   }
   competitors.push(entry);
-  writeCompetitors(competitors);
+  await writeCompetitors(competitors);
   res.status(201).json({ ok: true });
 });
 
-router.delete('/competitors/:channelId', (req, res) => {
-  const competitors = readCompetitors().filter((c: any) => c.channelId !== req.params.channelId);
-  writeCompetitors(competitors);
+router.delete('/competitors/:channelId', async (req, res) => {
+  const competitors = (await readCompetitors()).filter((c: any) => c.channelId !== req.params.channelId);
+  await writeCompetitors(competitors);
   res.json({ ok: true });
 });
 

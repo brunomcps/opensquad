@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getInstagramPosts, saveInstagramPosts, getApiToken, saveApiToken } from '../db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CACHE_PATH = path.resolve(__dirname, '../../data/instagram-posts.json');
@@ -19,14 +20,18 @@ interface TokenData {
   expiresIn: number;
 }
 
-function readTokenData(): TokenData | null {
+async function readTokenData(): Promise<TokenData | null> {
   try {
-    return JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf-8'));
-  } catch { return null; }
+    const db = await getApiToken('instagram');
+    if (db) return { token: db.token, refreshedAt: db.refreshedAt, expiresIn: db.expiresIn };
+  } catch {}
+  // Fallback to JSON
+  try { return JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf-8')); } catch { return null; }
 }
 
-function saveTokenData(data: TokenData) {
-  fs.writeFileSync(TOKEN_PATH, JSON.stringify(data, null, 2), 'utf-8');
+async function saveTokenDataToDB(data: TokenData) {
+  try { await saveApiToken('instagram', data.token, data.refreshedAt, data.expiresIn); } catch {}
+  try { fs.writeFileSync(TOKEN_PATH, JSON.stringify(data, null, 2), 'utf-8'); } catch {}
 }
 
 function updateEnvToken(newToken: string) {
@@ -42,7 +47,7 @@ function updateEnvToken(newToken: string) {
 export async function refreshTokenIfNeeded() {
   if (!currentToken) return;
 
-  const tokenData = readTokenData();
+  const tokenData = await readTokenData();
   const now = Date.now();
 
   // If we have token data, check if it's been more than 30 days since last refresh
@@ -68,7 +73,7 @@ export async function refreshTokenIfNeeded() {
         refreshedAt: new Date().toISOString(),
         expiresIn: data.expires_in || 5184000,
       };
-      saveTokenData(tokenInfo);
+      await saveTokenDataToDB(tokenInfo);
       updateEnvToken(data.access_token);
       console.log(`[Instagram] Token refreshed! Expires in ${Math.round(data.expires_in / 86400)} days`);
     } else {
@@ -114,7 +119,12 @@ function writeCache(posts: InstagramPost[]) {
   fs.writeFileSync(CACHE_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-export function getCachedInstagramPosts(): CacheData {
+export async function getCachedInstagramPosts(): Promise<CacheData> {
+  try {
+    const db = await getInstagramPosts();
+    if (db.posts.length > 0) return db;
+  } catch {}
+  // Fallback to JSON
   const cache = readCache();
   if (cache) return cache;
   return { posts: [], syncedAt: '' };
@@ -152,6 +162,8 @@ export async function fetchInstagramPosts(): Promise<CacheData> {
   }
 
   console.log(`[Instagram] Fetched ${allPosts.length} posts via API`);
-  writeCache(allPosts);
-  return { posts: allPosts, syncedAt: new Date().toISOString() };
+  const syncedAt = new Date().toISOString();
+  writeCache(allPosts); // local fallback
+  try { await saveInstagramPosts(allPosts, syncedAt); } catch (e: any) { console.error('[Instagram] DB write error:', e.message); }
+  return { posts: allPosts, syncedAt };
 }

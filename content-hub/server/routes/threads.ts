@@ -4,8 +4,8 @@ import { getCachedThreadsPosts, fetchThreadsPosts } from '../services/threads.js
 const router = Router();
 
 // Get cached posts (fast)
-router.get('/posts', (_req, res) => {
-  const data = getCachedThreadsPosts();
+router.get('/posts', async (_req, res) => {
+  const data = await getCachedThreadsPosts();
   res.json({ ok: true, ...data });
 });
 

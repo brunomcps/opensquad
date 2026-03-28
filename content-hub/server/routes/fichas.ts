@@ -2,33 +2,41 @@ import { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getFichas, getFichaById, getCrossPatterns } from '../db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_PATH = path.resolve(__dirname, '../../data/fichas.json');
 const PATTERNS_PATH = path.resolve(__dirname, '../../data/cross-patterns.json');
 
-function readFichas(): any[] {
-  if (!fs.existsSync(DATA_PATH)) return [];
-  return JSON.parse(fs.readFileSync(DATA_PATH, 'utf-8'));
+// JSON fallback
+function readFichasFromFile(): any[] {
+  try { if (fs.existsSync(DATA_PATH)) return JSON.parse(fs.readFileSync(DATA_PATH, 'utf-8')); } catch {}
+  return [];
 }
 
 const router = Router();
 
 // GET /api/fichas/patterns — cross-video patterns analysis
-router.get('/patterns', (_req, res) => {
+router.get('/patterns', async (_req, res) => {
   try {
-    if (!fs.existsSync(PATTERNS_PATH)) return res.json({ ok: true, patterns: null });
-    const patterns = JSON.parse(fs.readFileSync(PATTERNS_PATH, 'utf-8'));
-    res.json({ ok: true, patterns });
+    const patterns = await getCrossPatterns();
+    if (patterns) return res.json({ ok: true, patterns });
+    // Fallback
+    if (fs.existsSync(PATTERNS_PATH)) {
+      const p = JSON.parse(fs.readFileSync(PATTERNS_PATH, 'utf-8'));
+      return res.json({ ok: true, patterns: p });
+    }
+    res.json({ ok: true, patterns: null });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
   }
 });
 
-// GET /api/fichas/stats/summary — must be before /:videoId
-router.get('/stats/summary', (_req, res) => {
+// GET /api/fichas/stats/summary
+router.get('/stats/summary', async (_req, res) => {
   try {
-    const fichas = readFichas();
+    let fichas = await getFichas();
+    if (fichas.length === 0) fichas = readFichasFromFile();
     const total = fichas.length;
     if (total === 0) return res.json({ ok: true, stats: null });
 
@@ -42,7 +50,6 @@ router.get('/stats/summary', (_req, res) => {
     const avgContentPct = withProportions.reduce((s: number, f: any) => s + f.proportions.content, 0) / pTotal;
     const avgClosingPct = withProportions.reduce((s: number, f: any) => s + f.proportions.closing, 0) / pTotal;
 
-    // Count structure types
     const typeCounts: Record<string, number> = {};
     for (const f of fichas) {
       const type = (f.structureType || '').substring(0, 60);
@@ -52,14 +59,6 @@ router.get('/stats/summary', (_req, res) => {
       .map(([type, count]) => ({ type, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-
-    // Count sections present
-    const sectionPresence: Record<string, number> = {};
-    for (const f of fichas) {
-      for (const key of Object.keys(f.sections || {})) {
-        sectionPresence[key] = (sectionPresence[key] || 0) + 1;
-      }
-    }
 
     res.json({
       ok: true,
@@ -72,7 +71,6 @@ router.get('/stats/summary', (_req, res) => {
         avgHookElementCount: +avgHookElements.toFixed(1),
         avgBlockCount: +avgBlocks.toFixed(1),
         structureTypes,
-        sectionPresence,
       },
     });
   } catch (err: any) {
@@ -81,27 +79,22 @@ router.get('/stats/summary', (_req, res) => {
 });
 
 // GET /api/fichas — list all fichas (without heavy sections data)
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const fichas = readFichas();
+    let fichas = await getFichas();
+    if (fichas.length === 0) fichas = readFichasFromFile();
     const { search } = req.query;
     let result = fichas;
 
     if (search) {
       const q = String(search).toLowerCase();
       result = result.filter((f: any) => {
-        // Search in title and structure type
         if (f.title.toLowerCase().includes(q)) return true;
         if ((f.structureType || '').toLowerCase().includes(q)) return true;
-        // Full-text search in all sections content
-        for (const content of Object.values(f.sections || {})) {
-          if (typeof content === 'string' && content.toLowerCase().includes(q)) return true;
-        }
         return false;
       });
     }
 
-    // Return lightweight list (without full sections markdown)
     const list = result.map((f: any) => ({
       videoId: f.videoId,
       runId: f.runId,
@@ -123,12 +116,15 @@ router.get('/', (req, res) => {
 });
 
 // GET /api/fichas/:videoId — single ficha with full sections
-router.get('/:videoId', (req, res) => {
+router.get('/:videoId', async (req, res) => {
   try {
-    const fichas = readFichas();
-    const ficha = fichas.find((f: any) => f.videoId === req.params.videoId);
-    if (!ficha) return res.status(404).json({ ok: false, error: 'Ficha not found' });
-    res.json({ ok: true, ficha });
+    const ficha = await getFichaById(req.params.videoId);
+    if (ficha) return res.json({ ok: true, ficha });
+    // Fallback
+    const fichas = readFichasFromFile();
+    const fromFile = fichas.find((f: any) => f.videoId === req.params.videoId);
+    if (!fromFile) return res.status(404).json({ ok: false, error: 'Ficha not found' });
+    res.json({ ok: true, ficha: fromFile });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
   }

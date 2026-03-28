@@ -2,6 +2,7 @@ import { chromium } from 'playwright-core';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getLinkedInPosts, saveLinkedInPosts } from '../db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BROWSER_PROFILE = path.resolve(__dirname, '../../../_opensquad/_browser_profile');
@@ -40,7 +41,8 @@ function writeCache(posts: LinkedInPost[]) {
   fs.writeFileSync(CACHE_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-export function getCachedLinkedInPosts(): SyncResult {
+export async function getCachedLinkedInPosts(): Promise<SyncResult> {
+  try { const db = await getLinkedInPosts(); if (db.posts.length > 0) return db; } catch {}
   const cache = readCache();
   if (cache) return { ...cache, source: 'cache' };
   return { posts: [], syncedAt: '', source: 'cache' };
@@ -187,11 +189,13 @@ export async function scrapeLinkedInProfile(handle: string): Promise<SyncResult>
 
     console.log(`[LinkedIn] Final: ${posts.length} unique posts`);
 
+    const syncedAt = new Date().toISOString();
     if (posts.length > 0) {
       writeCache(posts);
+      try { await saveLinkedInPosts(posts, syncedAt); } catch (e: any) { console.error('[LinkedIn] DB write error:', e.message); }
     }
 
-    return { posts, syncedAt: new Date().toISOString(), source: 'scrape' };
+    return { posts, syncedAt, source: 'scrape' };
   } finally {
     await browser.close();
   }

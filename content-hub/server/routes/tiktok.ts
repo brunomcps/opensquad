@@ -10,8 +10,8 @@ const router = Router();
 const TIKTOK_HANDLE = 'brunosallesphd';
 
 // Get cached videos (fast, no Playwright)
-router.get('/videos', (_req, res) => {
-  const data = getCachedTikTokVideos();
+router.get('/videos', async (_req, res) => {
+  const data = await getCachedTikTokVideos();
   res.json({ ok: true, ...data });
 });
 

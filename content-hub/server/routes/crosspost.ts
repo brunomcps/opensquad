@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { findMatches, ensureYTThumbnail, getYTThumbPath, getTTThumbPath } from '../services/matching.js';
 import { getChannelVideos } from '../services/youtube.js';
 import { getCachedTikTokVideos } from '../services/tiktok.js';
+import { getContentGroups, saveContentGroups } from '../db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const GROUPS_PATH = path.resolve(__dirname, '../../data/content-groups.json');
@@ -22,23 +23,32 @@ export interface ContentGroup {
   };
 }
 
-function readGroups(): ContentGroup[] {
-  try { return JSON.parse(fs.readFileSync(GROUPS_PATH, 'utf-8')); }
-  catch { return []; }
+function readGroupsFromFile(): ContentGroup[] {
+  try { return JSON.parse(fs.readFileSync(GROUPS_PATH, 'utf-8')); } catch { return []; }
 }
 
-function writeGroups(groups: ContentGroup[]) {
-  fs.writeFileSync(GROUPS_PATH, JSON.stringify(groups, null, 2), 'utf-8');
+function writeGroupsToFile(groups: ContentGroup[]) {
+  try { fs.writeFileSync(GROUPS_PATH, JSON.stringify(groups, null, 2), 'utf-8'); } catch {}
+}
+
+async function readGroups(): Promise<ContentGroup[]> {
+  try { const db = await getContentGroups(); if (db.length > 0) return db as ContentGroup[]; } catch {}
+  return readGroupsFromFile();
+}
+
+async function writeGroups(groups: ContentGroup[]) {
+  try { await saveContentGroups(groups); } catch {}
+  writeGroupsToFile(groups);
 }
 
 // GET all content groups
-router.get('/groups', (_req, res) => {
-  res.json({ ok: true, groups: readGroups() });
+router.get('/groups', async (_req, res) => {
+  res.json({ ok: true, groups: await readGroups() });
 });
 
 // POST create/update a content group (manual link)
-router.post('/groups', (req, res) => {
-  const groups = readGroups();
+router.post('/groups', async (req, res) => {
+  const groups = await readGroups();
   const { name, youtube, tiktok, instagram } = req.body;
 
   const group: ContentGroup = {
@@ -53,13 +63,13 @@ router.post('/groups', (req, res) => {
   if (instagram) group.platforms.instagram = instagram;
 
   groups.push(group);
-  writeGroups(groups);
+  await writeGroups(groups);
   res.status(201).json({ ok: true, group });
 });
 
 // PUT update a group
-router.put('/groups/:id', (req, res) => {
-  const groups = readGroups();
+router.put('/groups/:id', async (req, res) => {
+  const groups = await readGroups();
   const idx = groups.findIndex((g) => g.id === req.params.id);
   if (idx === -1) return res.status(404).json({ ok: false, error: 'Not found' });
 
@@ -69,14 +79,14 @@ router.put('/groups/:id', (req, res) => {
   if (tiktok !== undefined) groups[idx].platforms.tiktok = tiktok;
   if (instagram !== undefined) groups[idx].platforms.instagram = instagram;
 
-  writeGroups(groups);
+  await writeGroups(groups);
   res.json({ ok: true, group: groups[idx] });
 });
 
 // DELETE a group
-router.delete('/groups/:id', (req, res) => {
-  const groups = readGroups().filter((g) => g.id !== req.params.id);
-  writeGroups(groups);
+router.delete('/groups/:id', async (req, res) => {
+  const groups = (await readGroups()).filter((g) => g.id !== req.params.id);
+  await writeGroups(groups);
   res.json({ ok: true });
 });
 
@@ -84,8 +94,8 @@ router.delete('/groups/:id', (req, res) => {
 router.post('/auto-match', async (_req, res) => {
   try {
     const ytVideos = await getChannelVideos();
-    const ttData = getCachedTikTokVideos();
-    const groups = readGroups();
+    const ttData = await getCachedTikTokVideos();
+    const groups = await readGroups();
 
     // Only match YouTube Shorts (< 300s) against TikTok
     const ytShorts = ytVideos.filter((v) => v.isShort);
@@ -138,9 +148,9 @@ router.post('/auto-match', async (_req, res) => {
 });
 
 // POST confirm a match (create group from match)
-router.post('/confirm-match', (req, res) => {
+router.post('/confirm-match', async (req, res) => {
   const { ytVideoId, ytTitle, ytUrl, ttVideoId, ttUrl, name } = req.body;
-  const groups = readGroups();
+  const groups = await readGroups();
 
   const group: ContentGroup = {
     id: crypto.randomUUID(),
@@ -153,7 +163,7 @@ router.post('/confirm-match', (req, res) => {
   };
 
   groups.push(group);
-  writeGroups(groups);
+  await writeGroups(groups);
   res.status(201).json({ ok: true, group });
 });
 

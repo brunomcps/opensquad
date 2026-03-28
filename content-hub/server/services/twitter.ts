@@ -2,6 +2,7 @@ import { chromium } from 'playwright-core';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getTwitterPosts, saveTwitterPosts } from '../db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BROWSER_PROFILE = path.resolve(__dirname, '../../../_opensquad/_browser_profile');
@@ -39,7 +40,8 @@ function writeCache(posts: TwitterPost[]) {
   fs.writeFileSync(CACHE_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-export function getCachedTwitterPosts(): SyncResult {
+export async function getCachedTwitterPosts(): Promise<SyncResult> {
+  try { const db = await getTwitterPosts(); if (db.posts.length > 0) return db; } catch {}
   const cache = readCache();
   if (cache) return { ...cache, source: 'cache' };
   return { posts: [], syncedAt: '', source: 'cache' };
@@ -150,8 +152,10 @@ export async function scrapeTwitterProfile(handle: string): Promise<SyncResult> 
 
     console.log(`[Twitter] Final: ${posts.length} unique tweets`);
 
+    const syncedAt = new Date().toISOString();
     writeCache(posts);
-    return { posts, syncedAt: new Date().toISOString(), source: 'scrape' };
+    try { await saveTwitterPosts(posts, syncedAt); } catch (e: any) { console.error('[Twitter] DB write error:', e.message); }
+    return { posts, syncedAt, source: 'scrape' };
   } finally {
     await browser.close();
   }

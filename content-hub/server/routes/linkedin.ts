@@ -8,8 +8,8 @@ const HANDLE = process.env.LINKEDIN_HANDLE || '';
 let scraping = false;
 
 // Get cached posts (fast)
-router.get('/posts', (_req, res) => {
-  const data = getCachedLinkedInPosts();
+router.get('/posts', async (_req, res) => {
+  const data = await getCachedLinkedInPosts();
   res.json({ ok: true, ...data });
 });
 

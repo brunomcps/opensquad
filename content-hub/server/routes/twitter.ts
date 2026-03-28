@@ -6,8 +6,8 @@ const router = Router();
 const TWITTER_HANDLE = process.env.TWITTER_HANDLE || 'brunosallesphd';
 
 // Get cached posts (fast, no Playwright)
-router.get('/posts', (_req, res) => {
-  const data = getCachedTwitterPosts();
+router.get('/posts', async (_req, res) => {
+  const data = await getCachedTwitterPosts();
   res.json({ ok: true, ...data });
 });
 

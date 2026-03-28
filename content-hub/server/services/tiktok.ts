@@ -2,6 +2,7 @@ import { chromium } from 'playwright-core';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getTikTokVideos, saveTikTokVideos } from '../db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BROWSER_PROFILE = path.resolve(__dirname, '../../data/browser-profile');
@@ -41,7 +42,8 @@ function writeCache(videos: TikTokVideo[]) {
   fs.writeFileSync(CACHE_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-export function getCachedTikTokVideos(): SyncResult {
+export async function getCachedTikTokVideos(): Promise<SyncResult> {
+  try { const db = await getTikTokVideos(); if (db.videos.length > 0) return db; } catch {}
   const cache = readCache();
   if (cache) return { ...cache, source: 'cache' };
   return { videos: [], syncedAt: '', source: 'cache' };
@@ -166,8 +168,10 @@ export async function scrapeTikTokProfile(handle: string): Promise<SyncResult> {
       } catch {}
     }
 
+    const syncedAt = new Date().toISOString();
     writeCache(videos);
-    return { videos, syncedAt: new Date().toISOString(), source: 'scrape' };
+    try { await saveTikTokVideos(videos, syncedAt); } catch (e: any) { console.error('[TikTok] DB write error:', e.message); }
+    return { videos, syncedAt, source: 'scrape' };
   } finally {
     await browser.close();
   }

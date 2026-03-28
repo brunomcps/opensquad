@@ -48,6 +48,10 @@ interface ContentItem {
   shares: number | null;
   duration: number | null;
   type: string;
+  zScore: number | null;
+  isOutlier: boolean;  // z > 2
+  isFlop: boolean;     // z < -1
+  outlierMultiplier: string | null;  // e.g., "8.5x"
 }
 
 interface PlatformData {
@@ -86,6 +90,10 @@ const ACTORS: Record<string, { actorId: string; buildInput: (handle: string) => 
         shares: null,
         duration: v.duration || null,
         type: (v.isShort ? 'short' : 'video'),
+        zScore: null,
+        isOutlier: false,
+        isFlop: false,
+        outlierMultiplier: null,
       }));
 
       // Try to extract channel profile from first result
@@ -117,6 +125,10 @@ const ACTORS: Record<string, { actorId: string; buildInput: (handle: string) => 
         shares: null,
         duration: p.videoDuration || null,
         type: p.type || (p.isVideo ? 'reel' : p.childPosts ? 'carousel' : 'post'),
+        zScore: null,
+        isOutlier: false,
+        isFlop: false,
+        outlierMultiplier: null,
       }));
 
       const first = raw[0] || {};
@@ -150,6 +162,10 @@ const ACTORS: Record<string, { actorId: string; buildInput: (handle: string) => 
         shares: parseInt(v.shareCount ?? v.shares ?? '0') || null,
         duration: v.duration || v.videoLength || null,
         type: 'video',
+        zScore: null,
+        isOutlier: false,
+        isFlop: false,
+        outlierMultiplier: null,
       }));
 
       const first = raw[0] || {};
@@ -184,6 +200,10 @@ const ACTORS: Record<string, { actorId: string; buildInput: (handle: string) => 
         shares: parseInt(t.retweet_count ?? t.retweets ?? '0') || null,
         duration: null,
         type: t.is_quote_status ? 'quote' : t.in_reply_to_status_id ? 'reply' : 'tweet',
+        zScore: null,
+        isOutlier: false,
+        isFlop: false,
+        outlierMultiplier: null,
       }));
 
       const first = raw[0] || {};
@@ -234,6 +254,35 @@ async function callApifyActor(actorId: string, input: any): Promise<any[]> {
   return res.json();
 }
 
+// --- Z-Score Calculation ---
+
+function calculateZScores(items: ContentItem[], metricKey: 'views' | 'likes'): void {
+  const values = items.map(i => (i[metricKey] as number) ?? 0).filter(v => v > 0);
+  if (values.length < 3) return; // Need at least 3 items for meaningful stats
+
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length;
+  const stdDev = Math.sqrt(variance);
+
+  if (stdDev === 0) return; // All same value
+
+  for (const item of items) {
+    const val = (item[metricKey] as number) ?? 0;
+    if (val <= 0) {
+      item.zScore = null;
+      item.isOutlier = false;
+      item.isFlop = false;
+      item.outlierMultiplier = null;
+      continue;
+    }
+    const z = (val - mean) / stdDev;
+    item.zScore = Math.round(z * 100) / 100;
+    item.isOutlier = z > 2;
+    item.isFlop = z < -1;
+    item.outlierMultiplier = mean > 0 ? (val / mean).toFixed(1) + 'x' : null;
+  }
+}
+
 // --- Sync Functions ---
 
 // Locks to prevent duplicate syncs
@@ -273,11 +322,16 @@ export async function syncCompetitorPlatform(competitorId: string, platform: str
       scrapedAt: new Date().toISOString(),
     };
 
+    // Calculate z-scores
+    const filteredItems = items.filter(i => i.id);
+    const metricKey = (platform === 'youtube' || platform === 'tiktok') ? 'views' : 'likes';
+    calculateZScores(filteredItems, metricKey as any);
+
     const data: PlatformData = {
       competitorId,
       platform,
       profile,
-      items: items.filter(i => i.id), // Remove items without ID
+      items: filteredItems,
       syncedAt: new Date().toISOString(),
       source: 'apify',
       actorId: actorConfig.actorId,
@@ -288,6 +342,26 @@ export async function syncCompetitorPlatform(competitorId: string, platform: str
     const dir = path.join(DATA_DIR, competitorId);
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(path.join(dir, `${platform}.json`), JSON.stringify(data, null, 2), 'utf-8');
+
+    // Save history snapshot
+    const historyFile = path.join(dir, `${platform}_history.json`);
+    let history: any[] = [];
+    try {
+      const raw = await fs.readFile(historyFile, 'utf-8');
+      history = JSON.parse(raw);
+    } catch { /* first sync, no history */ }
+
+    history.push({
+      syncedAt: data.syncedAt,
+      followers: profile.followers,
+      itemCount: data.itemCount,
+      outlierCount: filteredItems.filter(i => i.isOutlier).length,
+      flopCount: filteredItems.filter(i => i.isFlop).length,
+    });
+
+    // Keep last 52 snapshots (1 year of weekly syncs)
+    if (history.length > 52) history = history.slice(-52);
+    await fs.writeFile(historyFile, JSON.stringify(history, null, 2), 'utf-8');
 
     return data;
   } finally {
@@ -391,6 +465,16 @@ export async function getSyncStatus(): Promise<Record<string, Record<string, { s
   }
 
   return status;
+}
+
+export async function getCompetitorHistory(competitorId: string, platform: string): Promise<any[]> {
+  const historyFile = path.join(DATA_DIR, competitorId, `${platform}_history.json`);
+  try {
+    const raw = await fs.readFile(historyFile, 'utf-8');
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
 }
 
 export const SUPPORTED_PLATFORMS = Object.keys(ACTORS);

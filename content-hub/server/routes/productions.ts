@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { renderLowerThird } from '../services/lowerThirdRenderer.js';
 import { exportForSquad, launchSquadInteractive, launchThumbnailGenerator } from '../services/squadLauncher.js';
 import { suggestLowerThirds, applyLowerThirdSuggestions } from '../services/geminiAnalysis.js';
+import { getProductions as getProductionsDB, saveProduction as saveProductionDB, deleteProduction as deleteProductionDB } from '../db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_PATH = path.resolve(__dirname, '../../data/productions.json');
@@ -57,19 +58,36 @@ interface Production {
   updatedAt: string;
 }
 
-function readProductions(): Production[] {
+function readProductionsFromFile(): Production[] {
   if (!fs.existsSync(DATA_PATH)) return [];
   return JSON.parse(fs.readFileSync(DATA_PATH, 'utf-8'));
 }
 
-function writeProductions(data: Production[]) {
-  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), 'utf-8');
+function writeProductionsToFile(data: Production[]) {
+  try { fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), 'utf-8'); } catch {}
+}
+
+async function readProductions(): Promise<Production[]> {
+  try {
+    const db = await getProductionsDB();
+    if (db.length > 0) return db as Production[];
+  } catch {}
+  return readProductionsFromFile();
+}
+
+async function writeProduction(prod: Production) {
+  try { await saveProductionDB(prod); } catch (e: any) { console.error('[Productions] DB write:', e.message); }
+  // Also update filesystem
+  const all = readProductionsFromFile();
+  const idx = all.findIndex(p => p.id === prod.id);
+  if (idx >= 0) all[idx] = prod; else all.push(prod);
+  writeProductionsToFile(all);
 }
 
 // GET /api/productions — list all
-router.get('/', (_req, res) => {
+router.get('/', async (_req, res) => {
   try {
-    const productions = readProductions();
+    const productions = await readProductions();
     res.json({ ok: true, productions });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
@@ -87,9 +105,9 @@ router.get('/lower-third-template', (_req, res) => {
 });
 
 // GET /api/productions/:id
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const productions = readProductions();
+    const productions = await readProductions();
     const p = productions.find((x) => x.id === req.params.id);
     if (!p) { res.status(404).json({ ok: false, error: 'Not found' }); return; }
     res.json({ ok: true, production: p });
@@ -99,9 +117,8 @@ router.get('/:id', (req, res) => {
 });
 
 // POST /api/productions — create
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const productions = readProductions();
     const now = new Date().toISOString();
     const entry: Production = {
       id: crypto.randomUUID(),
@@ -120,8 +137,7 @@ router.post('/', (req, res) => {
       createdAt: now,
       updatedAt: now,
     };
-    productions.push(entry);
-    writeProductions(productions);
+    await writeProduction(entry);
     res.status(201).json({ ok: true, production: entry });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
@@ -129,9 +145,9 @@ router.post('/', (req, res) => {
 });
 
 // PUT /api/productions/:id — update
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
-    const productions = readProductions();
+    const productions = await readProductions();
     const idx = productions.findIndex((x) => x.id === req.params.id);
     if (idx === -1) { res.status(404).json({ ok: false, error: 'Not found' }); return; }
 
@@ -145,7 +161,7 @@ router.put('/:id', (req, res) => {
     }
     productions[idx].updatedAt = new Date().toISOString();
 
-    writeProductions(productions);
+    await writeProduction(productions[idx]);
     res.json({ ok: true, production: productions[idx] });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
@@ -153,20 +169,20 @@ router.put('/:id', (req, res) => {
 });
 
 // DELETE /api/productions/:id
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const productions = readProductions();
+    const productions = await readProductions();
     const idx = productions.findIndex((x) => x.id === req.params.id);
     if (idx === -1) { res.status(404).json({ ok: false, error: 'Not found' }); return; }
 
-    // Clean up thumbnail if exists
     const thumb = productions[idx].thumbnailPath;
     if (thumb && fs.existsSync(thumb)) {
-      try { fs.unlinkSync(thumb); } catch { /* ignore */ }
+      try { fs.unlinkSync(thumb); } catch {}
     }
 
+    try { await deleteProductionDB(req.params.id); } catch {}
     productions.splice(idx, 1);
-    writeProductions(productions);
+    writeProductionsToFile(productions);
     res.json({ ok: true });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
@@ -174,9 +190,9 @@ router.delete('/:id', (req, res) => {
 });
 
 // POST /api/productions/:id/import-srt — parse SRT (content or file path) and create blocks
-router.post('/:id/import-srt', (req, res) => {
+router.post('/:id/import-srt', async (req, res) => {
   try {
-    const productions = readProductions();
+    const productions = await readProductions();
     const idx = productions.findIndex((x) => x.id === req.params.id);
     if (idx === -1) { res.status(404).json({ ok: false, error: 'Not found' }); return; }
 
@@ -197,7 +213,7 @@ router.post('/:id/import-srt', (req, res) => {
     productions[idx].blocks = blocks;
     productions[idx].updatedAt = new Date().toISOString();
 
-    writeProductions(productions);
+    await writeProduction(productions[idx]);
     res.json({ ok: true, production: productions[idx], blocksCreated: blocks.length });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
@@ -205,9 +221,9 @@ router.post('/:id/import-srt', (req, res) => {
 });
 
 // POST /api/productions/:id/thumbnail — upload thumbnail from file path
-router.post('/:id/thumbnail', (req, res) => {
+router.post('/:id/thumbnail', async (req, res) => {
   try {
-    const productions = readProductions();
+    const productions = await readProductions();
     const idx = productions.findIndex((x) => x.id === req.params.id);
     if (idx === -1) { res.status(404).json({ ok: false, error: 'Not found' }); return; }
 
@@ -223,7 +239,7 @@ router.post('/:id/thumbnail', (req, res) => {
 
     productions[idx].thumbnailPath = destPath;
     productions[idx].updatedAt = new Date().toISOString();
-    writeProductions(productions);
+    await writeProduction(productions[idx]);
 
     res.json({ ok: true, thumbnailPath: destPath });
   } catch (err: any) {
@@ -232,9 +248,9 @@ router.post('/:id/thumbnail', (req, res) => {
 });
 
 // GET /api/productions/:id/thumbnail — serve thumbnail
-router.get('/:id/thumbnail', (req, res) => {
+router.get('/:id/thumbnail', async (req, res) => {
   try {
-    const productions = readProductions();
+    const productions = await readProductions();
     const p = productions.find((x) => x.id === req.params.id);
     if (!p?.thumbnailPath || !fs.existsSync(p.thumbnailPath)) {
       res.status(404).json({ ok: false, error: 'No thumbnail' });
@@ -249,7 +265,7 @@ router.get('/:id/thumbnail', (req, res) => {
 // POST /api/productions/:id/lower-third — generate lower-third PNG for a block
 router.post('/:id/lower-third', async (req, res) => {
   try {
-    const productions = readProductions();
+    const productions = await readProductions();
     const idx = productions.findIndex((x) => x.id === req.params.id);
     if (idx === -1) { res.status(404).json({ ok: false, error: 'Not found' }); return; }
 
@@ -270,7 +286,7 @@ router.post('/:id/lower-third', async (req, res) => {
 
     productions[idx].blocks[blockIdx].lowerThird = { type, text, subtitle, pngPath };
     productions[idx].updatedAt = new Date().toISOString();
-    writeProductions(productions);
+    await writeProduction(productions[idx]);
 
     res.json({ ok: true, pngPath });
   } catch (err: any) {
@@ -293,9 +309,9 @@ router.get('/lower-third/:filename', (req, res) => {
 });
 
 // POST /api/productions/:id/launch-squad — export data and open Claude Code with squad
-router.post('/:id/launch-squad', (req, res) => {
+router.post('/:id/launch-squad', async (req, res) => {
   try {
-    const productions = readProductions();
+    const productions = await readProductions();
     const p = productions.find((x) => x.id === req.params.id);
     if (!p) { res.status(404).json({ ok: false, error: 'Not found' }); return; }
     if (p.blocks.length === 0) { res.status(400).json({ ok: false, error: 'Importe o SRT primeiro. Sem blocos para analisar.' }); return; }
@@ -324,9 +340,9 @@ router.post('/:id/launch-squad', (req, res) => {
 });
 
 // POST /api/productions/:id/launch-thumbnail — open Claude Code with thumbnail generator
-router.post('/:id/launch-thumbnail', (req, res) => {
+router.post('/:id/launch-thumbnail', async (req, res) => {
   try {
-    const productions = readProductions();
+    const productions = await readProductions();
     const p = productions.find((x) => x.id === req.params.id);
     if (!p) { res.status(404).json({ ok: false, error: 'Not found' }); return; }
 
@@ -357,14 +373,14 @@ router.post('/:id/launch-thumbnail', (req, res) => {
 // POST /api/productions/:id/suggest-lower-thirds — AI analysis via Gemini
 router.post('/:id/suggest-lower-thirds', async (req, res) => {
   try {
-    const productions = readProductions();
+    const productions = await readProductions();
     const p = productions.find((x) => x.id === req.params.id);
     if (!p) { res.status(404).json({ ok: false, error: 'Not found' }); return; }
     if (p.blocks.length === 0) { res.status(400).json({ ok: false, error: 'Importe o SRT primeiro.' }); return; }
 
     const suggestions = await suggestLowerThirds(p.title, p.blocks);
     const applied = applyLowerThirdSuggestions(p.id, suggestions);
-    const updated = readProductions().find((x) => x.id === req.params.id);
+    const updated = (await readProductions()).find((x) => x.id === req.params.id);
 
     res.json({ ok: true, suggestionsCount: suggestions.length, applied, production: updated });
   } catch (err: any) {
@@ -373,9 +389,9 @@ router.post('/:id/suggest-lower-thirds', async (req, res) => {
 });
 
 // POST /api/productions/:id/refresh — re-read production from disk (after squad writeback)
-router.post('/:id/refresh', (req, res) => {
+router.post('/:id/refresh', async (req, res) => {
   try {
-    const productions = readProductions();
+    const productions = await readProductions();
     const p = productions.find((x) => x.id === req.params.id);
     if (!p) { res.status(404).json({ ok: false, error: 'Not found' }); return; }
     res.json({ ok: true, production: p });

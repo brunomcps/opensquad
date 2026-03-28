@@ -8,8 +8,8 @@ const PAGE_TOKEN = process.env.INSTAGRAM_PAGE_TOKEN || '';
 const FB_API = 'https://graph.facebook.com/v21.0';
 
 // Get cached posts (fast)
-router.get('/posts', (_req, res) => {
-  const data = getCachedInstagramPosts();
+router.get('/posts', async (_req, res) => {
+  const data = await getCachedInstagramPosts();
   res.json({ ok: true, ...data });
 });
 

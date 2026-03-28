@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getFacebookPosts, saveFacebookPosts, getApiToken, saveApiToken } from '../db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CACHE_PATH = path.resolve(__dirname, '../../data/facebook-posts.json');
@@ -19,14 +20,14 @@ interface TokenData {
   expiresIn: number;
 }
 
-function readTokenData(): TokenData | null {
-  try {
-    return JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf-8'));
-  } catch { return null; }
+async function readTokenData(): Promise<TokenData | null> {
+  try { const db = await getApiToken('facebook'); if (db) return { token: db.token, refreshedAt: db.refreshedAt, expiresIn: db.expiresIn }; } catch {}
+  try { return JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf-8')); } catch { return null; }
 }
 
-function saveTokenData(data: TokenData) {
-  fs.writeFileSync(TOKEN_PATH, JSON.stringify(data, null, 2), 'utf-8');
+async function saveTokenDataToDB(data: TokenData) {
+  try { await saveApiToken('facebook', data.token, data.refreshedAt, data.expiresIn); } catch {}
+  try { fs.writeFileSync(TOKEN_PATH, JSON.stringify(data, null, 2), 'utf-8'); } catch {}
 }
 
 function updateEnvToken(newToken: string) {
@@ -42,7 +43,7 @@ function updateEnvToken(newToken: string) {
 export async function refreshFacebookTokenIfNeeded() {
   if (!currentToken) return;
 
-  const tokenData = readTokenData();
+  const tokenData = await readTokenData();
   const now = Date.now();
 
   if (tokenData) {
@@ -66,7 +67,7 @@ export async function refreshFacebookTokenIfNeeded() {
         refreshedAt: new Date().toISOString(),
         expiresIn: data.expires_in || 5184000,
       };
-      saveTokenData(tokenInfo);
+      await saveTokenDataToDB(tokenInfo);
       updateEnvToken(data.access_token);
       console.log(`[Facebook] Token refreshed! Expires in ${Math.round((data.expires_in || 5184000) / 86400)} days`);
     } else {
@@ -112,7 +113,8 @@ function writeCache(posts: FacebookPost[]) {
   fs.writeFileSync(CACHE_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-export function getCachedFacebookPosts(): CacheData {
+export async function getCachedFacebookPosts(): Promise<CacheData> {
+  try { const db = await getFacebookPosts(); if (db.posts.length > 0) return db; } catch {}
   const cache = readCache();
   if (cache) return cache;
   return { posts: [], syncedAt: '' };
@@ -152,6 +154,8 @@ export async function fetchFacebookPosts(): Promise<CacheData> {
   }
 
   console.log(`[Facebook] Fetched ${allPosts.length} posts via API`);
+  const syncedAt = new Date().toISOString();
   writeCache(allPosts);
-  return { posts: allPosts, syncedAt: new Date().toISOString() };
+  try { await saveFacebookPosts(allPosts, syncedAt); } catch (e: any) { console.error('[Facebook] DB write error:', e.message); }
+  return { posts: allPosts, syncedAt };
 }

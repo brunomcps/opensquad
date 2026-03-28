@@ -7,6 +7,7 @@ import {
   getCompetitorAllPlatforms,
   getFeed,
   getSyncStatus,
+  getCompetitorHistory,
   isSyncing,
   SUPPORTED_PLATFORMS,
 } from '../services/apifyCompetitors.js';
@@ -54,6 +55,88 @@ router.get('/feed', async (req, res) => {
 
     const feed = await getFeed({ competitorIds, platforms, sortBy, sortOrder, limit });
     res.json({ ok: true, data: feed });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /:id/transcript/:videoId — extract transcript for a specific video
+router.post('/:id/transcript/:videoId', async (req, res) => {
+  const { id, videoId } = req.params;
+  const { url, platform } = req.body; // { url: "https://youtube.com/watch?v=...", platform: "youtube" }
+
+  if (!url) return res.status(400).json({ ok: false, error: 'url is required in body' });
+
+  try {
+    const { extractYouTubeTranscript, extractShortVideoTranscript } = await import('../services/transcriptExtractor.js');
+
+    let result;
+    if (platform === 'youtube') {
+      result = await extractYouTubeTranscript(videoId, id, url);
+    } else {
+      result = await extractShortVideoTranscript(videoId, id, platform || 'tiktok', url);
+    }
+
+    res.json({ ok: true, data: result });
+  } catch (err: any) {
+    console.error(`[transcript error] ${id}/${videoId}:`, err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /:id/transcript/:videoId — get existing transcript
+router.get('/:id/transcript/:videoId', async (req, res) => {
+  try {
+    const { getTranscript } = await import('../services/transcriptExtractor.js');
+    const text = await getTranscript(req.params.id, req.params.videoId);
+    if (!text) return res.json({ ok: true, data: null, message: 'No transcript yet' });
+    res.json({ ok: true, data: { text } });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /:id/comments/:videoId — fetch YouTube comments for a competitor video
+router.post('/:id/comments/:videoId', async (req, res) => {
+  const { id, videoId } = req.params;
+  try {
+    const { fetchVideoComments } = await import('../services/comments.js');
+    const fsP = await import('fs/promises');
+    const pathM = await import('path');
+    const { fileURLToPath } = await import('url');
+    const dir = pathM.default.dirname(fileURLToPath(import.meta.url));
+    const commentsDir = pathM.default.resolve(dir, `../../data/competitors/${id}/comments`);
+    await fsP.default.mkdir(commentsDir, { recursive: true });
+    const comments = await fetchVideoComments(videoId);
+    const data = { videoId, fetchedAt: new Date().toISOString(), totalComments: comments.length, comments: comments.slice(0, 100) };
+    await fsP.default.writeFile(pathM.default.join(commentsDir, `${videoId}.json`), JSON.stringify(data, null, 2), 'utf-8');
+    res.json({ ok: true, data });
+  } catch (err: any) {
+    console.error(`[comments error] ${id}/${videoId}:`, err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /:id/comments/:videoId — get cached comments
+router.get('/:id/comments/:videoId', async (req, res) => {
+  try {
+    const fsP = await import('fs/promises');
+    const pathM = await import('path');
+    const { fileURLToPath } = await import('url');
+    const dir = pathM.default.dirname(fileURLToPath(import.meta.url));
+    const filePath = pathM.default.resolve(dir, `../../data/competitors/${req.params.id}/comments/${req.params.videoId}.json`);
+    const raw = await fsP.default.readFile(filePath, 'utf-8');
+    res.json({ ok: true, data: JSON.parse(raw) });
+  } catch {
+    res.json({ ok: true, data: null, message: 'No comments yet' });
+  }
+});
+
+// GET /:id/:platform/history — historical snapshots
+router.get('/:id/:platform/history', async (req, res) => {
+  try {
+    const history = await getCompetitorHistory(req.params.id, req.params.platform);
+    res.json({ ok: true, data: history });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
   }

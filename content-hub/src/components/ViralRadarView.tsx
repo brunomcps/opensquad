@@ -19,6 +19,10 @@ interface FeedItem {
   likes?: number | null;
   comments?: number | null;
   shares?: number | null;
+  zScore?: number | null;
+  isOutlier?: boolean;
+  isFlop?: boolean;
+  outlierMultiplier?: string | null;
   metrics?: {
     views: number | null;
     likes: number | null;
@@ -43,8 +47,9 @@ interface CompetitorEntry {
 }
 
 type SubTab = 'feed' | 'concorrentes';
-type SortOption = 'date' | 'views' | 'likes' | 'comments';
+type SortOption = 'date' | 'views' | 'likes' | 'comments' | 'zScore';
 type PlatformFilter = 'all' | 'youtube' | 'instagram' | 'tiktok' | 'twitter';
+type CategoryFilter = 'all' | 'outliers' | 'flops';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -69,6 +74,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'views', label: 'Mais views' },
   { value: 'likes', label: 'Mais likes' },
   { value: 'comments', label: 'Mais comentários' },
+  { value: 'zScore', label: 'Maior z-score' },
 ];
 
 const PLATFORM_FILTERS: { value: PlatformFilter; label: string }[] = [
@@ -165,6 +171,23 @@ const styles: Record<string, CSSProperties> = {
     transition: 'var(--transition)',
   },
   platformPillActive: {
+    background: 'var(--accent-gold)',
+    color: '#fff',
+    border: '1px solid var(--accent-gold)',
+  },
+  filterPill: {
+    padding: '6px 14px',
+    borderRadius: 20,
+    border: '1px solid var(--border)',
+    background: 'var(--bg-card)',
+    color: 'var(--text-secondary)',
+    fontFamily: 'var(--font)',
+    fontWeight: 600,
+    fontSize: 12,
+    cursor: 'pointer',
+    transition: 'var(--transition)',
+  },
+  filterPillActive: {
     background: 'var(--accent-gold)',
     color: '#fff',
     border: '1px solid var(--accent-gold)',
@@ -516,6 +539,7 @@ function FeedTab() {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>('date');
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>('all');
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [selectedCompetitors, setSelectedCompetitors] = useState<string[]>([]);
   const [competitors, setCompetitors] = useState<{ id: string; name: string }[]>([]);
   const [lastFetched, setLastFetched] = useState<string | null>(null);
@@ -538,6 +562,11 @@ function FeedTab() {
       const json = await res.json();
       const feed = json.data || json;
       const feedItems = feed.items || feed || [];
+      if (sortBy === 'zScore') {
+        feedItems.sort((a: FeedItem, b: FeedItem) =>
+          ((b.zScore ?? -999) - (a.zScore ?? -999))
+        );
+      }
       setItems(feedItems);
       setLastFetched(new Date().toISOString());
 
@@ -563,6 +592,14 @@ function FeedTab() {
   useEffect(() => { fetchFeed(); }, [fetchFeed]);
 
   const uniqueCompetitorCount = new Set(items.map((i) => i.competitor)).size;
+  const outlierCount = items.filter(i => i.isOutlier).length;
+  const flopCount = items.filter(i => i.isFlop).length;
+
+  const displayedItems = items.filter(item => {
+    if (categoryFilter === 'outliers') return item.isOutlier === true;
+    if (categoryFilter === 'flops') return item.isFlop === true;
+    return true;
+  });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -587,6 +624,21 @@ function FeedTab() {
             </button>
           ))}
         </div>
+        <div style={{ width: 1, height: 20, background: 'var(--border)', margin: '0 8px' }} />
+        {(['all', 'outliers', 'flops'] as const).map((cat) => (
+          <button
+            key={cat}
+            style={{
+              ...styles.filterPill,
+              ...(categoryFilter === cat ? styles.filterPillActive : {}),
+              ...(cat === 'outliers' ? { borderColor: '#F0BA3C' } : {}),
+              ...(cat === 'flops' ? { borderColor: '#FF4444' } : {}),
+            }}
+            onClick={() => setCategoryFilter(cat)}
+          >
+            {cat === 'all' ? 'Todos' : cat === 'outliers' ? '🔥 Outliers' : '📉 Flops'}
+          </button>
+        ))}
         <select
           style={styles.select}
           value={sortBy}
@@ -600,7 +652,7 @@ function FeedTab() {
 
       {/* Stats bar */}
       <div style={styles.statsBar}>
-        {items.length} conteúdos de {uniqueCompetitorCount} concorrentes
+        {items.length} conteúdos de {uniqueCompetitorCount} concorrentes • 🔥 {outlierCount} outliers • 📉 {flopCount} flops
         {lastFetched && <> &bull; Última coleta: {timeAgo(lastFetched)}</>}
       </div>
 
@@ -611,13 +663,15 @@ function FeedTab() {
             <div key={i} style={styles.skeleton} />
           ))}
         </div>
-      ) : items.length === 0 ? (
+      ) : displayedItems.length === 0 ? (
         <div style={styles.emptyState}>
-          Nenhum conteúdo coletado. Vá na aba Concorrentes para sincronizar.
+          {items.length === 0
+            ? 'Nenhum conteúdo coletado. Vá na aba Concorrentes para sincronizar.'
+            : 'Nenhum conteúdo encontrado com esse filtro.'}
         </div>
       ) : (
         <div style={styles.feedGrid}>
-          {items.map((item) => (
+          {displayedItems.map((item) => (
             <FeedCard key={item.id} item={item} />
           ))}
         </div>
@@ -677,6 +731,24 @@ function FeedCard({ item }: { item: FeedItem }) {
         <div style={{ ...styles.platformBadge, backgroundColor: platformColor }}>
           {PLATFORM_LABELS[platformKey] || item.platform}
         </div>
+        {/* Z-score badge */}
+        {item.zScore != null && (item.isOutlier || item.isFlop) && (
+          <div style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            padding: '2px 8px',
+            borderRadius: 4,
+            fontSize: 11,
+            fontWeight: 800,
+            fontFamily: 'var(--font)',
+            color: '#fff',
+            background: item.isOutlier ? '#F0BA3C' : '#FF4444',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+          }}>
+            {item.isOutlier ? `🔥 ${item.outlierMultiplier || 'outlier'}` : `📉 ${item.outlierMultiplier || 'flop'}`}
+          </div>
+        )}
       </div>
 
       {/* Card body */}

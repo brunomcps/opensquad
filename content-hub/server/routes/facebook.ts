@@ -4,8 +4,8 @@ import { getCachedFacebookPosts, fetchFacebookPosts } from '../services/facebook
 const router = Router();
 
 // Get cached posts (fast)
-router.get('/posts', (_req, res) => {
-  const data = getCachedFacebookPosts();
+router.get('/posts', async (_req, res) => {
+  const data = await getCachedFacebookPosts();
   res.json({ ok: true, ...data });
 });
 
