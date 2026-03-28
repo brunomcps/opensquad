@@ -17,6 +17,8 @@ import hotmartRouter from './routes/hotmart.js';
 import analyticsRouter from './routes/analytics.js';
 import fichasRouter from './routes/fichas.js';
 import commentsRouter from './routes/comments.js';
+import viralRadarRouter from './routes/viralRadar.js';
+import syncPushRouter from './routes/syncPush.js';
 import { startBRollWatcher } from './services/brollWatcher.js';
 import { refreshTokenIfNeeded } from './services/instagram.js';
 import { refreshFacebookTokenIfNeeded } from './services/facebook.js';
@@ -29,7 +31,7 @@ const PORT = Number(process.env.PORT) || 3001;
 // B-Roll library path (relative to project root)
 const BROLL_LIBRARY = path.resolve(__dirname, '../../_opensquad/_library/brolls');
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 // In production, serve the built frontend
 if (process.env.NODE_ENV === 'production') {
@@ -52,6 +54,8 @@ app.use('/api/hotmart', hotmartRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/fichas', fichasRouter);
 app.use('/api/comments', commentsRouter);
+app.use('/api/viral-radar', viralRadarRouter);
+app.use('/api/sync-push', syncPushRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, timestamp: new Date().toISOString() });

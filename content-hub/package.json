@@ -10,7 +10,8 @@
     "build": "vite build",
     "typecheck": "tsc -b",
     "start": "NODE_ENV=production tsx server/index.ts",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "push-remote": "tsx --env-file=../.env server/scripts/push-to-remote.ts"
   },
   "dependencies": {
     "chokidar": "^5.0.0",
