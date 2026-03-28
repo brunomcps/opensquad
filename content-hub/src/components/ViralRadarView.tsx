@@ -89,15 +89,16 @@ const PLATFORM_FILTERS: { value: PlatformFilter; label: string }[] = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function timeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}min atrás`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h atrás`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d atrás`;
-  return `${Math.floor(days / 30)}m atrás`;
+function formatDate(dateStr: string): string {
+  if (!dateStr || dateStr.startsWith('1970')) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const day = d.getDate().toString().padStart(2, '0');
+  const month = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'][d.getMonth()];
+  const year = d.getFullYear();
+  const now = new Date();
+  if (year === now.getFullYear()) return `${day} ${month}`;
+  return `${day} ${month} ${year}`;
 }
 
 function formatNum(n: number | null): string {
@@ -552,7 +553,10 @@ function FeedTab() {
       const params = new URLSearchParams();
       params.set('sortBy', sortBy);
       params.set('sortOrder', 'desc');
-      params.set('limit', '200');
+      params.set('limit', '500');
+      if (categoryFilter !== 'all') {
+        params.set('category', categoryFilter);
+      }
       if (selectedCompetitors.length > 0) {
         params.set('competitors', selectedCompetitors.join(','));
       }
@@ -564,11 +568,6 @@ function FeedTab() {
       const json = await res.json();
       const feed = json.data || json;
       const feedItems = feed.items || feed || [];
-      if (sortBy === 'zScore') {
-        feedItems.sort((a: FeedItem, b: FeedItem) =>
-          ((b.zScore ?? -999) - (a.zScore ?? -999))
-        );
-      }
       setItems(feedItems);
       setLastFetched(new Date().toISOString());
 
@@ -589,7 +588,7 @@ function FeedTab() {
     } finally {
       setLoading(false);
     }
-  }, [sortBy, platformFilter, selectedCompetitors, competitors.length]);
+  }, [sortBy, platformFilter, categoryFilter, selectedCompetitors, competitors.length]);
 
   useEffect(() => { fetchFeed(); }, [fetchFeed]);
 
@@ -597,11 +596,8 @@ function FeedTab() {
   const outlierCount = items.filter(i => i.isOutlier).length;
   const flopCount = items.filter(i => i.isFlop).length;
 
-  const displayedItems = items.filter(item => {
-    if (categoryFilter === 'outliers') return item.isOutlier === true;
-    if (categoryFilter === 'flops') return item.isFlop === true;
-    return true;
-  });
+  // Items already filtered server-side
+  const displayedItems = items;
 
   const handleBookmark = async (item: FeedItem) => {
     try {
@@ -781,7 +777,7 @@ function FeedCard({ item, onBookmark }: { item: FeedItem; onBookmark?: (item: Fe
           <span style={styles.metricItem}>💬 {formatNum(item.comments ?? item.metrics?.comments ?? null)}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={styles.cardDate}>{timeAgo(item.publishedAt)}</div>
+          <div style={styles.cardDate}>{formatDate(item.publishedAt)}</div>
           {onBookmark && (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBookmark(item); }}

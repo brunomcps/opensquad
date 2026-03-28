@@ -382,10 +382,11 @@ export async function getCompetitorAllPlatforms(competitorId: string): Promise<R
 export async function getFeed(filters?: {
   competitorIds?: string[];
   platforms?: string[];
-  sortBy?: 'views' | 'likes' | 'comments' | 'date';
+  category?: 'outliers' | 'flops' | 'all';
+  sortBy?: 'views' | 'likes' | 'comments' | 'date' | 'zScore';
   sortOrder?: 'asc' | 'desc';
   limit?: number;
-}): Promise<{ items: (ContentItem & { competitorId: string; competitorName: string; platform: string })[], total: number }> {
+}): Promise<{ items: (ContentItem & { competitorId: string; competitorName: string; platform: string })[], total: number, outlierCount: number, flopCount: number }> {
   const registry = await getRegistry();
   const allItems: (ContentItem & { competitorId: string; competitorName: string; platform: string })[] = [];
 
@@ -407,20 +408,33 @@ export async function getFeed(filters?: {
     }
   }
 
+  // Count before filtering
+  const outlierCount = allItems.filter(i => i.isOutlier).length;
+  const flopCount = allItems.filter(i => i.isFlop).length;
+
+  // Category filter BEFORE sort+limit
+  let filtered = allItems;
+  if (filters?.category === 'outliers') {
+    filtered = allItems.filter(i => i.isOutlier);
+  } else if (filters?.category === 'flops') {
+    filtered = allItems.filter(i => i.isFlop);
+  }
+
   // Sort
   const sortBy = filters?.sortBy || 'date';
   const sortOrder = filters?.sortOrder || 'desc';
   const multiplier = sortOrder === 'desc' ? -1 : 1;
 
-  allItems.sort((a, b) => {
+  filtered.sort((a, b) => {
     if (sortBy === 'date') return multiplier * ((a.publishedAt || '').localeCompare(b.publishedAt || ''));
+    if (sortBy === 'zScore') return multiplier * ((a.zScore ?? -999) - (b.zScore ?? -999));
     const valA = (a as any)[sortBy] ?? 0;
     const valB = (b as any)[sortBy] ?? 0;
     return multiplier * (valA - valB);
   });
 
-  const limit = filters?.limit || 200;
-  return { items: allItems.slice(0, limit), total: allItems.length };
+  const limit = filters?.limit || 500;
+  return { items: filtered.slice(0, limit), total: filtered.length, outlierCount, flopCount };
 }
 
 // Get sync status for all competitors
