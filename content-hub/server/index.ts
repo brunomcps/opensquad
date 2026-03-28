@@ -17,7 +17,9 @@ import hotmartRouter from './routes/hotmart.js';
 import analyticsRouter from './routes/analytics.js';
 import fichasRouter from './routes/fichas.js';
 import commentsRouter from './routes/comments.js';
+import youtubeAnalyticsRouter from './routes/youtubeAnalytics.js';
 import viralRadarRouter from './routes/viralRadar.js';
+import competitorsRouter from './routes/competitors.js';
 import syncPushRouter from './routes/syncPush.js';
 import { startBRollWatcher } from './services/brollWatcher.js';
 import { refreshTokenIfNeeded } from './services/instagram.js';
@@ -32,6 +34,25 @@ const PORT = Number(process.env.PORT) || 3001;
 const BROLL_LIBRARY = path.resolve(__dirname, '../../_opensquad/_library/brolls');
 
 app.use(express.json({ limit: '50mb' }));
+
+// Basic Auth in production (skip for sync-push which uses its own secret)
+if (process.env.NODE_ENV === 'production' && process.env.AUTH_USER && process.env.AUTH_PASS) {
+  app.use((req, res, next) => {
+    // Skip auth for sync-push (has its own secret) and health check
+    if (req.path === '/api/sync-push' || req.path === '/api/health') return next();
+
+    const auth = req.headers.authorization;
+    if (!auth || !auth.startsWith('Basic ')) {
+      res.setHeader('WWW-Authenticate', 'Basic realm="Content Hub"');
+      return res.status(401).send('Authentication required');
+    }
+    const [user, pass] = Buffer.from(auth.split(' ')[1], 'base64').toString().split(':');
+    if (user === process.env.AUTH_USER && pass === process.env.AUTH_PASS) return next();
+
+    res.setHeader('WWW-Authenticate', 'Basic realm="Content Hub"');
+    return res.status(401).send('Invalid credentials');
+  });
+}
 
 // In production, serve the built frontend
 if (process.env.NODE_ENV === 'production') {
@@ -54,7 +75,9 @@ app.use('/api/hotmart', hotmartRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/fichas', fichasRouter);
 app.use('/api/comments', commentsRouter);
+app.use('/api/yt-analytics', youtubeAnalyticsRouter);
 app.use('/api/viral-radar', viralRadarRouter);
+app.use('/api/competitors', competitorsRouter);
 app.use('/api/sync-push', syncPushRouter);
 
 app.get('/api/health', (_req, res) => {
