@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { getBRolls as getBRollsDB, saveBRolls as saveBRollsDB } from '../db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_PATH = path.resolve(__dirname, '../../data/brolls.json');
@@ -32,14 +33,23 @@ interface BRoll {
   usedIn: { videoTitle: string; videoId?: string; timestamp: string; addedAt: string }[];
 }
 
-function readBRolls(): BRoll[] {
+function readBRollsFromFile(): BRoll[] {
   if (!fs.existsSync(DATA_PATH)) return [];
-  const raw = fs.readFileSync(DATA_PATH, 'utf-8');
-  return JSON.parse(raw);
+  try { return JSON.parse(fs.readFileSync(DATA_PATH, 'utf-8')); } catch { return []; }
 }
 
-function writeBRolls(data: BRoll[]) {
-  fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), 'utf-8');
+function writeBRollsToFile(data: BRoll[]) {
+  try { fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2), 'utf-8'); } catch {}
+}
+
+async function readBRolls(): Promise<BRoll[]> {
+  try { const db = await getBRollsDB(); if (db.length > 0) return db as BRoll[]; } catch {}
+  return readBRollsFromFile();
+}
+
+async function writeBRolls(data: BRoll[]) {
+  try { await saveBRollsDB(data); } catch (e: any) { console.error('[BRolls] DB write:', e.message); }
+  writeBRollsToFile(data);
 }
 
 function getNextId(brolls: BRoll[]): string {
@@ -91,9 +101,9 @@ function calcAspectRatio(w: number, h: number): string {
 }
 
 // GET /api/brolls — list all with optional filters
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    let brolls = readBRolls();
+    let brolls = await readBRolls();
     const { source, tag, search } = req.query;
 
     if (source && source !== 'all') {
@@ -120,9 +130,9 @@ router.get('/', (req, res) => {
 });
 
 // POST /api/brolls — add a new b-roll from a file path
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const brolls = readBRolls();
+    const brolls = await readBRolls();
     const { filepath, description, tags, source, prompt } = req.body;
 
     if (!filepath || !fs.existsSync(filepath)) {
@@ -153,7 +163,7 @@ router.post('/', (req, res) => {
     };
 
     brolls.push(entry);
-    writeBRolls(brolls);
+    await writeBRolls(brolls);
     res.status(201).json({ ok: true, broll: entry });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
@@ -161,9 +171,9 @@ router.post('/', (req, res) => {
 });
 
 // PUT /api/brolls/:id — update metadata
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
-    const brolls = readBRolls();
+    const brolls = await readBRolls();
     const idx = brolls.findIndex((b) => b.id === req.params.id);
     if (idx === -1) {
       res.status(404).json({ ok: false, error: 'B-roll not found' });
@@ -177,7 +187,7 @@ router.put('/:id', (req, res) => {
     if (prompt !== undefined) brolls[idx].prompt = prompt;
     if (usedIn !== undefined) brolls[idx].usedIn = usedIn;
 
-    writeBRolls(brolls);
+    await writeBRolls(brolls);
     res.json({ ok: true, broll: brolls[idx] });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
@@ -185,9 +195,9 @@ router.put('/:id', (req, res) => {
 });
 
 // DELETE /api/brolls/:id
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const brolls = readBRolls();
+    const brolls = await readBRolls();
     const idx = brolls.findIndex((b) => b.id === req.params.id);
     if (idx === -1) {
       res.status(404).json({ ok: false, error: 'B-roll not found' });
@@ -201,7 +211,7 @@ router.delete('/:id', (req, res) => {
     }
 
     brolls.splice(idx, 1);
-    writeBRolls(brolls);
+    await writeBRolls(brolls);
     res.json({ ok: true });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
@@ -209,7 +219,7 @@ router.delete('/:id', (req, res) => {
 });
 
 // POST /api/brolls/scan-folder — scan a directory and import all .mp4 files
-router.post('/scan-folder', (req, res) => {
+router.post('/scan-folder', async (req, res) => {
   try {
     const { folderPath, source } = req.body;
     if (!folderPath || !fs.existsSync(folderPath)) {
@@ -217,7 +227,7 @@ router.post('/scan-folder', (req, res) => {
       return;
     }
 
-    const brolls = readBRolls();
+    const brolls = await readBRolls();
     const existingPaths = new Set(brolls.map((b) => b.filepath));
     const files = fs.readdirSync(folderPath).filter((f) => /\.(mp4|webm|mov)$/i.test(f));
     const added: BRoll[] = [];
@@ -251,7 +261,7 @@ router.post('/scan-folder', (req, res) => {
     }
 
     brolls.push(...added);
-    writeBRolls(brolls);
+    await writeBRolls(brolls);
     res.json({ ok: true, imported: added.length, skipped: files.length - added.length, brolls: added });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
@@ -259,7 +269,7 @@ router.post('/scan-folder', (req, res) => {
 });
 
 // POST /api/brolls/import-squad — import from squad library-index.md
-router.post('/import-squad', (req, res) => {
+router.post('/import-squad', async (req, res) => {
   try {
     const { libraryPath, libraryDir } = req.body;
     if (!libraryPath || !fs.existsSync(libraryPath)) {
@@ -268,7 +278,7 @@ router.post('/import-squad', (req, res) => {
     }
 
     const content = fs.readFileSync(libraryPath, 'utf-8');
-    const brolls = readBRolls();
+    const brolls = await readBRolls();
     const existingIds = new Set(brolls.map((b) => b.id));
     const added: BRoll[] = [];
 
@@ -324,7 +334,7 @@ router.post('/import-squad', (req, res) => {
     }
 
     brolls.push(...added);
-    writeBRolls(brolls);
+    await writeBRolls(brolls);
     res.json({ ok: true, imported: added.length, brolls: added });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
@@ -332,9 +342,9 @@ router.post('/import-squad', (req, res) => {
 });
 
 // GET /api/brolls/thumbnail/:id — serve thumbnail image
-router.get('/thumbnail/:id', (req, res) => {
+router.get('/thumbnail/:id', async (req, res) => {
   try {
-    const brolls = readBRolls();
+    const brolls = await readBRolls();
     const broll = brolls.find((b) => b.id === req.params.id);
     if (!broll?.thumbnailPath || !fs.existsSync(broll.thumbnailPath)) {
       res.status(404).json({ ok: false, error: 'Thumbnail not found' });
@@ -347,9 +357,9 @@ router.get('/thumbnail/:id', (req, res) => {
 });
 
 // GET /api/brolls/video/:id — serve video file for preview
-router.get('/video/:id', (req, res) => {
+router.get('/video/:id', async (req, res) => {
   try {
-    const brolls = readBRolls();
+    const brolls = await readBRolls();
     const broll = brolls.find((b) => b.id === req.params.id);
     if (!broll || !fs.existsSync(broll.filepath)) {
       res.status(404).json({ ok: false, error: 'Video file not found' });
