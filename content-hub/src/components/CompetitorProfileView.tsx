@@ -63,7 +63,7 @@ interface CompetitorFicha {
   generatedAt?: string;
 }
 
-type ProfileTab = 'conteudos' | 'fichas' | 'evolucao' | 'produtos';
+type ProfileTab = 'perfil' | 'conteudos' | 'fichas' | 'evolucao' | 'produtos';
 type ContentSort = 'date' | 'views' | 'likes' | 'zScore';
 type ContentFilter = 'all' | 'outliers' | 'flops';
 
@@ -612,6 +612,182 @@ function ProductsTab({ competitorId }: { competitorId: string }) {
   );
 }
 
+// ─── Aggregated Profile Tab ──────────────────────────────────────────────────
+
+const cardStyle: CSSProperties = {
+  background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)',
+  padding: 16, boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', gap: 8,
+};
+
+const sectionTitle: CSSProperties = {
+  fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font)',
+  marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6,
+};
+
+const tagStyle: CSSProperties = {
+  display: 'inline-block', padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600,
+  fontFamily: 'var(--font)', background: 'var(--bg-secondary)', color: 'var(--text-secondary)',
+  border: '1px solid var(--border)',
+};
+
+const metricCard: CSSProperties = {
+  display: 'flex', flexDirection: 'column', gap: 2, padding: '12px 16px',
+  background: 'var(--bg-secondary)', borderRadius: 'var(--radius)', border: '1px solid var(--border)',
+  textAlign: 'center', minWidth: 80,
+};
+
+function AggregatedProfileTab({ competitorId }: { competitorId: string }) {
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`/api/competitors/${competitorId}/profile`);
+        if (res.ok) {
+          const json = await res.json();
+          setProfile(json.data);
+        }
+      } catch {} finally { setLoading(false); }
+    })();
+  }, [competitorId]);
+
+  if (loading) return <div style={s.skeleton} />;
+
+  if (!profile || profile.fichaCount === 0) {
+    return (
+      <div style={s.emptyState}>
+        Nenhuma ficha gerada para este concorrente. O perfil agregado e calculado a partir das fichas de roteiro.
+      </div>
+    );
+  }
+
+  const sp = profile.structurePatterns;
+  const vp = profile.vocabularyPatterns;
+  const cs = profile.contentStats;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Overview metrics */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div style={metricCard}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font)' }}>{profile.fichaCount}</div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Fichas</div>
+        </div>
+        <div style={metricCard}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font)' }}>{cs.totalVideos}</div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Videos</div>
+        </div>
+        <div style={metricCard}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#F0BA3C', fontFamily: 'var(--font)' }}>{cs.totalOutliers}</div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Outliers</div>
+        </div>
+        <div style={metricCard}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font)' }}>{formatNum(cs.avgViews)}</div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Views medio</div>
+        </div>
+        <div style={metricCard}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font)' }}>{Math.round(cs.avgDuration / 60)}min</div>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Duracao media</div>
+        </div>
+      </div>
+
+      {/* Structure Patterns */}
+      <div style={cardStyle}>
+        <div style={sectionTitle}>Padroes de Estrutura</div>
+        <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', lineHeight: 1.6 }}>
+          <div><strong>Tipo mais comum:</strong> {sp.mostCommonType}</div>
+          {sp.types.length > 1 && (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+              {sp.types.map((t: any, i: number) => (
+                <span key={i} style={tagStyle}>{t.type} ({t.count}x)</span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 12, fontFamily: 'var(--font-body)', color: 'var(--text-secondary)' }}>
+          <div>Hook: <strong>{sp.avgHookProportion}%</strong></div>
+          <div>Conteudo: <strong>{sp.avgContentProportion}%</strong></div>
+          <div>Fechamento: <strong>{sp.avgClosingProportion}%</strong></div>
+          <div>Elementos no hook: <strong>{sp.avgHookElements}</strong></div>
+          <div>Blocos: <strong>{sp.avgBlockCount}</strong></div>
+        </div>
+      </div>
+
+      {/* Hook Strategies */}
+      {profile.hookStrategies.length > 0 && (
+        <div style={cardStyle}>
+          <div style={sectionTitle}>Estrategias de Hook</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {profile.hookStrategies.map((h: string, i: number) => (
+              <div key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', padding: '4px 0', borderBottom: i < profile.hookStrategies.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                {h}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* CTA Patterns */}
+      {profile.ctaPatterns.length > 0 && (
+        <div style={cardStyle}>
+          <div style={sectionTitle}>Padroes de CTA</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {profile.ctaPatterns.map((c: string, i: number) => (
+              <span key={i} style={tagStyle}>{c}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Vocabulary */}
+      <div style={cardStyle}>
+        <div style={sectionTitle}>Linguagem e Tom</div>
+        {vp.register && (
+          <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}>
+            <strong>Registro:</strong> {vp.register}
+          </div>
+        )}
+        {vp.bordoes.length > 0 && (
+          <div style={{ marginTop: 6 }}>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font)', fontWeight: 600, marginBottom: 4 }}>Bordoes recorrentes</div>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              {vp.bordoes.map((b: string, i: number) => (
+                <span key={i} style={{ ...tagStyle, background: 'var(--accent-gold)', color: '#fff', border: 'none', fontSize: 12 }}>"{b}"</span>
+              ))}
+            </div>
+          </div>
+        )}
+        {vp.rhetoricalDevices.length > 0 && (
+          <div style={{ marginTop: 8 }}>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font)', fontWeight: 600, marginBottom: 4 }}>Recursos retoricos mais usados</div>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              {vp.rhetoricalDevices.slice(0, 10).map((d: any, i: number) => (
+                <span key={i} style={tagStyle}>{d.device} {d.count > 1 ? `(${d.count}x)` : ''}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Platforms breakdown */}
+      {cs.platforms.length > 0 && (
+        <div style={cardStyle}>
+          <div style={sectionTitle}>Plataformas</div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {cs.platforms.map((p: any) => (
+              <div key={p.platform} style={metricCard}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: PLATFORM_COLORS[p.platform] || '#666', fontFamily: 'var(--font)' }}>{p.count}</div>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font)', textTransform: 'uppercase' }}>{PLATFORM_LABELS[p.platform] || p.platform}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export function CompetitorProfileView({
@@ -625,7 +801,7 @@ export function CompetitorProfileView({
 }) {
   const [platforms, setPlatforms] = useState<Record<string, PlatformData>>({});
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<ProfileTab>('conteudos');
+  const [tab, setTab] = useState<ProfileTab>('perfil');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -655,6 +831,7 @@ export function CompetitorProfileView({
   }
 
   const tabs: { key: ProfileTab; label: string }[] = [
+    { key: 'perfil', label: 'Perfil Agregado' },
     { key: 'conteudos', label: `Conteudos` },
     { key: 'fichas', label: 'Fichas' },
     { key: 'evolucao', label: 'Evolucao' },
@@ -677,6 +854,7 @@ export function CompetitorProfileView({
       </div>
 
       {/* Tab content */}
+      {tab === 'perfil' && <AggregatedProfileTab competitorId={competitorId} />}
       {tab === 'conteudos' && <ContentListTab platforms={platforms} competitorId={competitorId} />}
       {tab === 'fichas' && <FichasTab competitorId={competitorId} competitorName={competitorName} />}
       {tab === 'evolucao' && <EvolutionTab competitorId={competitorId} platforms={platforms} />}

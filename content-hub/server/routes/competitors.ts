@@ -18,6 +18,7 @@ import { syncCompetitorAds, getCompetitorAds } from '../services/adLibrary.js';
 import { extractYouTubeTranscript, extractShortVideoTranscript, getTranscript, hasTranscript } from '../services/transcriptExtractor.js';
 import { fetchVideoComments } from '../services/comments.js';
 import { cacheItemThumbnails } from '../services/thumbnailCache.js';
+import { generateAggregatedProfile } from '../services/competitorProfile.js';
 import {
   getBookmarks,
   saveBookmark,
@@ -275,6 +276,17 @@ router.post('/ads/:competitorId/sync', async (req, res) => {
     const pageName = req.body.pageName || req.params.competitorId;
     const ads = await syncCompetitorAds(req.params.competitorId, pageName);
     res.json({ ok: true, data: ads, message: `Found ${ads.length} ads` });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// --- Aggregated Profile ---
+
+router.get('/:id/profile', async (req, res) => {
+  try {
+    const profile = await generateAggregatedProfile(req.params.id);
+    res.json({ ok: true, data: profile });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
   }
