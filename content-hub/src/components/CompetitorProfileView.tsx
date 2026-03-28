@@ -96,6 +96,12 @@ const PLATFORM_LABELS: Record<string, string> = {
   youtube: 'YouTube', instagram: 'Instagram', tiktok: 'TikTok', twitter: 'X',
 };
 
+function proxyThumb(url: string | null | undefined, platform: string): string | null {
+  if (!url) return null;
+  if (platform === 'youtube' || url.includes('ytimg.com')) return url;
+  return `/api/competitors/img-proxy?url=${encodeURIComponent(url)}`;
+}
+
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
 const s: Record<string, CSSProperties> = {
@@ -189,7 +195,9 @@ const s: Record<string, CSSProperties> = {
 function ProfileHeader({ name, platforms }: { name: string; platforms: Record<string, PlatformData> }) {
   const allProfiles = Object.values(platforms);
   const mainProfile = allProfiles.find(p => p.profile?.profilePicture) || allProfiles[0];
-  const profilePic = mainProfile?.profile?.profilePicture;
+  const rawPic = mainProfile?.profile?.profilePicture;
+  const mainPlatform = mainProfile?.platform || 'youtube';
+  const profilePic = proxyThumb(rawPic, mainPlatform);
   const bio = allProfiles.find(p => p.profile?.bio)?.profile?.bio;
 
   const totalItems = allProfiles.reduce((a, p) => a + (p.items?.length || 0), 0);
@@ -342,7 +350,7 @@ function ContentListTab({ platforms, competitorId }: { platforms: Record<string,
               <a key={`${item.platform}-${item.id}`} href={item.url} target="_blank" rel="noopener noreferrer" style={s.contentCard}>
                 <div style={s.thumbWrap}>
                   {item.thumbnail ? (
-                    <img src={item.thumbnail} alt="" style={s.thumb} loading="lazy" />
+                    <img src={proxyThumb(item.thumbnail, item.platform) || ''} alt="" style={s.thumb} loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; const p = (e.target as HTMLImageElement).parentElement; if (p) p.style.background = `linear-gradient(135deg, ${pColor} 0%, #333 100%)`; }} />
                   ) : (
                     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: `linear-gradient(135deg, ${pColor} 0%, #333 100%)`, color: 'rgba(255,255,255,0.5)', fontSize: 24, fontWeight: 700 }}>
                       {PLATFORM_LABELS[item.platform]?.charAt(0) || '?'}

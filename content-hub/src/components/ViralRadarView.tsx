@@ -633,7 +633,7 @@ function DateRangeFilter({ dateFrom, dateTo, onChangeFrom, onChangeTo }: {
 
 // ─── Feed Sub-Tab ────────────────────────────────────────────────────────────
 
-function FeedTab() {
+function FeedTab({ onSelectCompetitor }: { onSelectCompetitor?: (comp: { id: string; name: string }) => void }) {
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>('date');
@@ -799,7 +799,7 @@ function FeedTab() {
       ) : (
         <div style={styles.feedGrid}>
           {displayedItems.map((item) => (
-            <FeedCard key={item.id} item={item} onBookmark={handleBookmark} />
+            <FeedCard key={item.id} item={item} onBookmark={handleBookmark} onSelectCompetitor={onSelectCompetitor} />
           ))}
         </div>
       )}
@@ -809,7 +809,19 @@ function FeedTab() {
 
 // ─── Feed Card ───────────────────────────────────────────────────────────────
 
-function FeedCard({ item, onBookmark }: { item: FeedItem; onBookmark?: (item: FeedItem) => void }) {
+function proxyThumb(url: string | null | undefined, platform: string): string | null {
+  if (!url) return null;
+  // YouTube thumbnails work fine directly
+  if (platform === 'youtube' || url.includes('ytimg.com')) return url;
+  // Proxy Instagram/TikTok/Twitter thumbnails through our server
+  return `/api/competitors/img-proxy?url=${encodeURIComponent(url)}`;
+}
+
+function FeedCard({ item, onBookmark, onSelectCompetitor }: {
+  item: FeedItem;
+  onBookmark?: (item: FeedItem) => void;
+  onSelectCompetitor?: (comp: { id: string; name: string }) => void;
+}) {
   const platformKey = item.platform.toLowerCase();
   const platformColor = PLATFORM_COLORS[platformKey] || '#666';
 
@@ -821,6 +833,8 @@ function FeedCard({ item, onBookmark }: { item: FeedItem; onBookmark?: (item: Fe
     x: 'linear-gradient(135deg, #1DA1F2 0%, #0D8BD9 100%)',
   };
 
+  const thumbSrc = proxyThumb(item.thumbnail || item.thumbnailUrl, platformKey);
+
   return (
     <a
       href={item.url}
@@ -830,9 +844,9 @@ function FeedCard({ item, onBookmark }: { item: FeedItem; onBookmark?: (item: Fe
     >
       {/* Thumbnail */}
       <div style={styles.thumbnailWrapper}>
-        {(item.thumbnail || item.thumbnailUrl) ? (
+        {thumbSrc ? (
           <img
-            src={(item.thumbnail || item.thumbnailUrl)!}
+            src={thumbSrc}
             alt=""
             style={styles.thumbnail}
             loading="lazy"
@@ -880,7 +894,19 @@ function FeedCard({ item, onBookmark }: { item: FeedItem; onBookmark?: (item: Fe
 
       {/* Card body */}
       <div style={styles.cardBody}>
-        <div style={styles.competitorName}>{item.competitorName}</div>
+        <div
+          style={{ ...styles.competitorName, cursor: 'pointer' }}
+          onClick={(e) => {
+            if (onSelectCompetitor && (item.competitorId || item.competitor)) {
+              e.preventDefault();
+              e.stopPropagation();
+              onSelectCompetitor({ id: item.competitorId || item.competitor || '', name: item.competitorName });
+            }
+          }}
+          title="Ver perfil"
+        >
+          {item.competitorName} <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>→</span>
+        </div>
         <div style={styles.cardTitle}>{item.title || item.description || '(sem título)'}</div>
         <div style={styles.metricsRow}>
           <span style={styles.metricItem}>👁 {formatNum(item.views ?? item.metrics?.views ?? null)}</span>
@@ -1168,7 +1194,7 @@ export function ViralRadarView() {
       </div>
 
       {/* Tab content */}
-      {subTab === 'feed' && <FeedTab />}
+      {subTab === 'feed' && <FeedTab onSelectCompetitor={setSelectedCompetitor} />}
       {subTab === 'concorrentes' && <ConcorrentesTab onSelectCompetitor={setSelectedCompetitor} />}
       {subTab === 'fichas' && <CompetitorFichasTab />}
       {subTab === 'tendencias' && <TrendTab />}

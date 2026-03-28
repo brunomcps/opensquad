@@ -464,4 +464,30 @@ router.post('/:id/:platform/sync', async (req, res) => {
   }
 });
 
+// --- Image Proxy (for Instagram/TikTok thumbnails that block hotlinking) ---
+
+router.get('/img-proxy', async (req, res) => {
+  const url = req.query.url ? String(req.query.url) : '';
+  if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
+    return res.status(400).send('Invalid URL');
+  }
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': new URL(url).origin,
+      },
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) return res.status(response.status).send('Upstream error');
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // cache 24h
+    const buffer = Buffer.from(await response.arrayBuffer());
+    res.send(buffer);
+  } catch {
+    res.status(502).send('Proxy error');
+  }
+});
+
 export default router;
