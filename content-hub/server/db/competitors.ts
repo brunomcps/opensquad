@@ -188,6 +188,7 @@ export async function getCompetitorFicha(competitorId: string, videoId: string) 
     blockCount: data.block_count,
     blocks: data.blocks,
     sections: data.sections,
+    summary: data.summary || null,
     generatedAt: data.generated_at,
   };
 }
