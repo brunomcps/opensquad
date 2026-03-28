@@ -35,10 +35,15 @@ const BROLL_LIBRARY = path.resolve(__dirname, '../../_opensquad/_library/brolls'
 
 app.use(express.json({ limit: '50mb' }));
 
-// Basic Auth in production (skip for sync-push which uses its own secret)
-if (process.env.NODE_ENV === 'production' && process.env.AUTH_USER && process.env.AUTH_PASS) {
+// Basic Auth in production — supports multiple users via AUTH_USERS=user1:pass1,user2:pass2
+if (process.env.NODE_ENV === 'production' && process.env.AUTH_USERS) {
+  const validUsers = new Map(
+    process.env.AUTH_USERS.split(',').map(entry => {
+      const [u, ...p] = entry.split(':');
+      return [u, p.join(':')] as [string, string];
+    })
+  );
   app.use((req, res, next) => {
-    // Skip auth for sync-push (has its own secret) and health check
     if (req.path === '/api/sync-push' || req.path === '/api/health') return next();
 
     const auth = req.headers.authorization;
@@ -46,8 +51,9 @@ if (process.env.NODE_ENV === 'production' && process.env.AUTH_USER && process.en
       res.setHeader('WWW-Authenticate', 'Basic realm="Content Hub"');
       return res.status(401).send('Authentication required');
     }
-    const [user, pass] = Buffer.from(auth.split(' ')[1], 'base64').toString().split(':');
-    if (user === process.env.AUTH_USER && pass === process.env.AUTH_PASS) return next();
+    const [user, ...passParts] = Buffer.from(auth.split(' ')[1], 'base64').toString().split(':');
+    const pass = passParts.join(':');
+    if (validUsers.get(user) === pass) return next();
 
     res.setHeader('WWW-Authenticate', 'Basic realm="Content Hub"');
     return res.status(401).send('Invalid credentials');
