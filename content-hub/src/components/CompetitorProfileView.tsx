@@ -616,18 +616,12 @@ function ProductsTab({ competitorId }: { competitorId: string }) {
 
 const cardStyle: CSSProperties = {
   background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)',
-  padding: 16, boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', gap: 8,
+  padding: 16, boxShadow: 'var(--shadow-sm)', display: 'flex', flexDirection: 'column', gap: 10,
 };
 
 const sectionTitle: CSSProperties = {
-  fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font)',
-  marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6,
-};
-
-const tagStyle: CSSProperties = {
-  display: 'inline-block', padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600,
-  fontFamily: 'var(--font)', background: 'var(--bg-secondary)', color: 'var(--text-secondary)',
-  border: '1px solid var(--border)',
+  fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font)',
+  paddingBottom: 6, borderBottom: '2px solid var(--border)', marginBottom: 2,
 };
 
 const metricCard: CSSProperties = {
@@ -635,6 +629,51 @@ const metricCard: CSSProperties = {
   background: 'var(--bg-secondary)', borderRadius: 'var(--radius)', border: '1px solid var(--border)',
   textAlign: 'center', minWidth: 80,
 };
+
+const evidenceToggle: CSSProperties = {
+  fontSize: 11, color: 'var(--accent-gold-dark)', cursor: 'pointer', fontFamily: 'var(--font)',
+  fontWeight: 600, background: 'none', border: 'none', padding: '2px 0',
+};
+
+const evidenceBox: CSSProperties = {
+  background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 'var(--radius)',
+  padding: '8px 12px', fontSize: 11, fontFamily: 'var(--font-body)', color: 'var(--text-muted)',
+  lineHeight: 1.5, whiteSpace: 'pre-wrap' as const, marginTop: 4,
+};
+
+const insightRow: CSSProperties = {
+  padding: '8px 0', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 4,
+};
+
+/** Expandable insight with evidence from source fichas */
+function InsightCard({ insight }: { insight: any }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={insightRow}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font)' }}>{insight.value}</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-body)', marginTop: 2 }}>
+            {insight.label} — {insight.evidence?.length || 0} video{(insight.evidence?.length || 0) !== 1 ? 's' : ''}
+          </div>
+        </div>
+        {insight.evidence?.length > 0 && (
+          <button style={evidenceToggle} onClick={() => setOpen(!open)}>
+            {open ? '▼ Fechar' : '▶ Ver fonte'}
+          </button>
+        )}
+      </div>
+      {open && insight.evidence?.map((ev: any, i: number) => (
+        <div key={i} style={evidenceBox}>
+          <div style={{ fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4, fontSize: 12 }}>
+            {ev.title}
+          </div>
+          <div>{ev.excerpt}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function AggregatedProfileTab({ competitorId }: { competitorId: string }) {
   const [profile, setProfile] = useState<any>(null);
@@ -662,126 +701,117 @@ function AggregatedProfileTab({ competitorId }: { competitorId: string }) {
     );
   }
 
-  const sp = profile.structurePatterns;
-  const vp = profile.vocabularyPatterns;
+  const p = profile.proportions;
   const cs = profile.contentStats;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Overview metrics */}
+      {/* Quick stats */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <div style={metricCard}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font)' }}>{profile.fichaCount}</div>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Fichas</div>
-        </div>
-        <div style={metricCard}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font)' }}>{cs.totalVideos}</div>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Videos</div>
-        </div>
-        <div style={metricCard}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#F0BA3C', fontFamily: 'var(--font)' }}>{cs.totalOutliers}</div>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Outliers</div>
-        </div>
-        <div style={metricCard}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font)' }}>{formatNum(cs.avgViews)}</div>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Views medio</div>
-        </div>
-        <div style={metricCard}>
-          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font)' }}>{Math.round(cs.avgDuration / 60)}min</div>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Duracao media</div>
-        </div>
+        {[
+          { v: profile.fichaCount, l: 'Fichas analisadas' },
+          { v: cs.totalVideos, l: 'Videos total' },
+          { v: cs.totalOutliers, l: 'Outliers', c: '#F0BA3C' },
+          { v: formatNum(cs.avgViews), l: 'Views medio' },
+        ].map((m, i) => (
+          <div key={i} style={metricCard}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: m.c || 'var(--text-primary)', fontFamily: 'var(--font)' }}>{m.v}</div>
+            <div style={{ fontSize: 9, color: 'var(--text-muted)', fontFamily: 'var(--font)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{m.l}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Structure Patterns */}
-      <div style={cardStyle}>
-        <div style={sectionTitle}>Padroes de Estrutura</div>
-        <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', lineHeight: 1.6 }}>
-          <div><strong>Tipo mais comum:</strong> {sp.mostCommonType}</div>
-          {sp.types.length > 1 && (
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
-              {sp.types.map((t: any, i: number) => (
-                <span key={i} style={tagStyle}>{t.type} ({t.count}x)</span>
+      {/* Proportions bar */}
+      {p.count > 0 && (
+        <div style={cardStyle}>
+          <div style={sectionTitle}>Proporcao media do roteiro</div>
+          <div style={{ display: 'flex', height: 28, borderRadius: 6, overflow: 'hidden', border: '1px solid var(--border)' }}>
+            <div style={{ width: `${p.hook}%`, background: '#F0BA3C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', fontFamily: 'var(--font)' }}>{p.hook}%</div>
+            <div style={{ width: `${p.content}%`, background: 'var(--accent-gold-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', fontFamily: 'var(--font)' }}>{p.content}%</div>
+            <div style={{ width: `${p.closing}%`, background: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff', fontFamily: 'var(--font)' }}>{p.closing}%</div>
+          </div>
+          <div style={{ display: 'flex', gap: 16, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>
+            <span>Hook: {p.hook}%</span>
+            <span>Conteudo: {p.content}%</span>
+            <span>Fechamento: {p.closing}%</span>
+            <span>Media {profile.avgHookElements} elementos no hook</span>
+            <span>Media {profile.avgBlockCount} blocos</span>
+            <span style={{ marginLeft: 'auto', fontStyle: 'italic' }}>Baseado em {p.count} ficha{p.count > 1 ? 's' : ''}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Structure types */}
+      {profile.structures?.length > 0 && (
+        <div style={cardStyle}>
+          <div style={sectionTitle}>Tipos de estrutura</div>
+          {profile.structures.map((st: any, i: number) => (
+            <InsightCard key={i} insight={st} />
+          ))}
+        </div>
+      )}
+
+      {/* Hook strategies */}
+      {profile.hooks?.length > 0 && (
+        <div style={cardStyle}>
+          <div style={sectionTitle}>Estrategias de hook por video</div>
+          {profile.hooks.map((h: any, i: number) => (
+            <InsightCard key={i} insight={h} />
+          ))}
+        </div>
+      )}
+
+      {/* CTA patterns */}
+      {profile.ctas?.length > 0 && (
+        <div style={cardStyle}>
+          <div style={sectionTitle}>Padroes de CTA</div>
+          {profile.ctas.map((c: any, i: number) => (
+            <InsightCard key={i} insight={c} />
+          ))}
+        </div>
+      )}
+
+      {/* Closings */}
+      {profile.closings?.length > 0 && (
+        <div style={cardStyle}>
+          <div style={sectionTitle}>Fechamentos</div>
+          {profile.closings.map((c: any, i: number) => (
+            <InsightCard key={i} insight={c} />
+          ))}
+        </div>
+      )}
+
+      {/* Language */}
+      {(profile.register?.length > 0 || profile.bordoes?.length > 0 || profile.rhetoricalDevices?.length > 0) && (
+        <div style={cardStyle}>
+          <div style={sectionTitle}>Linguagem e tom</div>
+
+          {profile.register?.length > 0 && (
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'var(--font)', marginBottom: 4 }}>Registro por video</div>
+              {profile.register.map((r: any, i: number) => (
+                <InsightCard key={i} insight={r} />
               ))}
             </div>
           )}
-        </div>
-        <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 12, fontFamily: 'var(--font-body)', color: 'var(--text-secondary)' }}>
-          <div>Hook: <strong>{sp.avgHookProportion}%</strong></div>
-          <div>Conteudo: <strong>{sp.avgContentProportion}%</strong></div>
-          <div>Fechamento: <strong>{sp.avgClosingProportion}%</strong></div>
-          <div>Elementos no hook: <strong>{sp.avgHookElements}</strong></div>
-          <div>Blocos: <strong>{sp.avgBlockCount}</strong></div>
-        </div>
-      </div>
 
-      {/* Hook Strategies */}
-      {profile.hookStrategies.length > 0 && (
-        <div style={cardStyle}>
-          <div style={sectionTitle}>Estrategias de Hook</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {profile.hookStrategies.map((h: string, i: number) => (
-              <div key={i} style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', padding: '4px 0', borderBottom: i < profile.hookStrategies.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                {h}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* CTA Patterns */}
-      {profile.ctaPatterns.length > 0 && (
-        <div style={cardStyle}>
-          <div style={sectionTitle}>Padroes de CTA</div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {profile.ctaPatterns.map((c: string, i: number) => (
-              <span key={i} style={tagStyle}>{c}</span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Vocabulary */}
-      <div style={cardStyle}>
-        <div style={sectionTitle}>Linguagem e Tom</div>
-        {vp.register && (
-          <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}>
-            <strong>Registro:</strong> {vp.register}
-          </div>
-        )}
-        {vp.bordoes.length > 0 && (
-          <div style={{ marginTop: 6 }}>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font)', fontWeight: 600, marginBottom: 4 }}>Bordoes recorrentes</div>
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-              {vp.bordoes.map((b: string, i: number) => (
-                <span key={i} style={{ ...tagStyle, background: 'var(--accent-gold)', color: '#fff', border: 'none', fontSize: 12 }}>"{b}"</span>
+          {profile.bordoes?.length > 0 && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'var(--font)', marginBottom: 4 }}>Bordoes recorrentes</div>
+              {profile.bordoes.map((b: any, i: number) => (
+                <InsightCard key={i} insight={b} />
               ))}
             </div>
-          </div>
-        )}
-        {vp.rhetoricalDevices.length > 0 && (
-          <div style={{ marginTop: 8 }}>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font)', fontWeight: 600, marginBottom: 4 }}>Recursos retoricos mais usados</div>
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-              {vp.rhetoricalDevices.slice(0, 10).map((d: any, i: number) => (
-                <span key={i} style={tagStyle}>{d.device} {d.count > 1 ? `(${d.count}x)` : ''}</span>
+          )}
+
+          {profile.rhetoricalDevices?.length > 0 && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'var(--font)', marginBottom: 4 }}>Recursos retoricos ({profile.rhetoricalDevices.length} tipos encontrados)</div>
+              {profile.rhetoricalDevices.slice(0, 12).map((d: any, i: number) => (
+                <InsightCard key={i} insight={d} />
               ))}
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* Platforms breakdown */}
-      {cs.platforms.length > 0 && (
-        <div style={cardStyle}>
-          <div style={sectionTitle}>Plataformas</div>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            {cs.platforms.map((p: any) => (
-              <div key={p.platform} style={metricCard}>
-                <div style={{ fontSize: 16, fontWeight: 800, color: PLATFORM_COLORS[p.platform] || '#666', fontFamily: 'var(--font)' }}>{p.count}</div>
-                <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font)', textTransform: 'uppercase' }}>{PLATFORM_LABELS[p.platform] || p.platform}</div>
-              </div>
-            ))}
-          </div>
+          )}
         </div>
       )}
     </div>

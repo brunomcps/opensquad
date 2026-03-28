@@ -243,6 +243,23 @@ export function CompetitorFichaDetail({
           </div>
         </div>
 
+        {/* Quick summary */}
+        <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '16px', fontSize: '13px', lineHeight: '1.7', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}>
+          <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Resumo</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '8px' }}>
+            {ficha.structureType && <span><strong>Estrutura:</strong> {ficha.structureType}</span>}
+            {ficha.proportions && (
+              <span><strong>Proporcao:</strong> hook {ficha.proportions.hook}% | conteudo {ficha.proportions.content}% | fechamento {ficha.proportions.closing}%</span>
+            )}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+            {ficha.hookElementCount != null && <span><strong>{ficha.hookElementCount}</strong> elementos no hook</span>}
+            {ficha.blockCount != null && <span><strong>{ficha.blockCount}</strong> blocos de conteudo</span>}
+            {ficha.durationText && <span><strong>Duracao:</strong> {ficha.durationText}</span>}
+            <span><strong>{availableKeys.size}</strong> secoes analisadas</span>
+          </div>
+        </div>
+
         {/* Expand/collapse */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
           <button onClick={expandAll} style={{ ...sectionHeaderStyle, flex: 1, justifyContent: 'center', fontSize: '12px', fontWeight: 600, color: 'var(--accent-gold-dark)' }}>
