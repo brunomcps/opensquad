@@ -24,7 +24,10 @@ router.post('/', (req, res) => {
     return res.status(401).json({ ok: false, error: 'Unauthorized' });
   }
 
-  const { files } = req.body as { files: Record<string, any> };
+  const { files, thumbs } = req.body as {
+    files: Record<string, any>;
+    thumbs?: Record<string, string>; // filename → base64
+  };
   if (!files || typeof files !== 'object') {
     return res.status(400).json({ ok: false, error: 'Missing files object' });
   }
@@ -41,8 +44,21 @@ router.post('/', (req, res) => {
     saved.push(filename);
   }
 
-  console.log(`[SyncPush] Received ${saved.length} files: ${saved.join(', ')}`);
-  res.json({ ok: true, saved });
+  // Save thumbnails
+  let thumbCount = 0;
+  if (thumbs && typeof thumbs === 'object') {
+    const thumbDir = path.join(DATA_DIR, 'tiktok-thumbs');
+    if (!fs.existsSync(thumbDir)) fs.mkdirSync(thumbDir, { recursive: true });
+    for (const [filename, base64] of Object.entries(thumbs)) {
+      if (!filename.endsWith('.jpg')) continue;
+      const thumbPath = path.join(thumbDir, filename);
+      fs.writeFileSync(thumbPath, Buffer.from(base64, 'base64'));
+      thumbCount++;
+    }
+  }
+
+  console.log(`[SyncPush] Received ${saved.length} files, ${thumbCount} thumbnails`);
+  res.json({ ok: true, saved, thumbCount });
 });
 
 export default router;

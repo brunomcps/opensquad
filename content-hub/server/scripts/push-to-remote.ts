@@ -21,7 +21,7 @@ const FILES_TO_PUSH = [
 
 async function main() {
   if (!SYNC_SECRET) {
-    console.error('❌ SYNC_PUSH_SECRET not set in .env');
+    console.error('SYNC_PUSH_SECRET not set in .env');
     process.exit(1);
   }
 
@@ -34,9 +34,26 @@ async function main() {
       const raw = fs.readFileSync(filePath, 'utf-8');
       files[filename] = JSON.parse(raw);
       count++;
-      console.log(`📦 ${filename} (${(raw.length / 1024).toFixed(1)} KB)`);
+      console.log(`  ${filename} (${(raw.length / 1024).toFixed(1)} KB)`);
     } else {
-      console.log(`⏭️  ${filename} — not found, skipping`);
+      console.log(`  ${filename} — not found, skipping`);
+    }
+  }
+
+  // Collect TikTok thumbnails
+  const thumbs: Record<string, string> = {};
+  const thumbDir = path.join(DATA_DIR, 'tiktok-thumbs');
+  let thumbCount = 0;
+  if (fs.existsSync(thumbDir)) {
+    const thumbFiles = fs.readdirSync(thumbDir).filter(f => f.endsWith('.jpg'));
+    for (const f of thumbFiles) {
+      const buf = fs.readFileSync(path.join(thumbDir, f));
+      thumbs[f] = buf.toString('base64');
+      thumbCount++;
+    }
+    if (thumbCount > 0) {
+      const totalSize = Object.values(thumbs).reduce((sum, b) => sum + b.length, 0);
+      console.log(`  tiktok-thumbs: ${thumbCount} images (${(totalSize / 1024).toFixed(0)} KB base64)`);
     }
   }
 
@@ -45,7 +62,7 @@ async function main() {
     return;
   }
 
-  console.log(`\n🚀 Pushing ${count} files to ${REMOTE_URL}...`);
+  console.log(`\nPushing ${count} files + ${thumbCount} thumbs to ${REMOTE_URL}...`);
 
   const res = await fetch(`${REMOTE_URL}/api/sync-push`, {
     method: 'POST',
@@ -53,14 +70,14 @@ async function main() {
       'Content-Type': 'application/json',
       'x-sync-secret': SYNC_SECRET,
     },
-    body: JSON.stringify({ files }),
+    body: JSON.stringify({ files, thumbs }),
   });
 
   const data = await res.json();
   if (data.ok) {
-    console.log(`✅ Done! Saved: ${data.saved.join(', ')}`);
+    console.log(`Done! Files: ${data.saved.join(', ')} | Thumbs: ${data.thumbCount}`);
   } else {
-    console.error(`❌ Error: ${data.error}`);
+    console.error(`Error: ${data.error}`);
   }
 }
 
