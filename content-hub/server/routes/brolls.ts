@@ -363,12 +363,27 @@ router.get('/thumbnail/:id', async (req, res) => {
   }
 });
 
+// GET /api/brolls/preview/:id — serve animated WebP preview (redirect to Supabase)
+router.get('/preview/:id', async (req, res) => {
+  try {
+    const brolls = await readBRolls();
+    const broll = brolls.find((b: any) => b.id === req.params.id);
+    if (broll?.previewUrl) return res.redirect(broll.previewUrl);
+    res.status(404).json({ ok: false, error: 'Preview not available' });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // GET /api/brolls/video/:id — serve video file for preview
 router.get('/video/:id', async (req, res) => {
   try {
     const brolls = await readBRolls();
     const broll = brolls.find((b) => b.id === req.params.id);
+
+    // If no local file, try redirect to preview WebP
     if (!broll || !fs.existsSync(broll.filepath)) {
+      if ((broll as any)?.previewUrl) return res.redirect((broll as any).previewUrl);
       res.status(404).json({ ok: false, error: 'Video file not found' });
       return;
     }

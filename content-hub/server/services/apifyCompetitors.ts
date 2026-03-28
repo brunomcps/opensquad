@@ -6,6 +6,7 @@ import {
   addCompetitorHistoryEntry,
   getCompetitorHistory as dbGetCompetitorHistory,
 } from '../db/competitors.js';
+import { cacheItemThumbnails } from './thumbnailCache.js';
 
 const APIFY_TOKEN = process.env.APIFY_TOKEN || '';
 const APIFY_BASE = 'https://api.apify.com/v2';
@@ -348,6 +349,15 @@ export async function syncCompetitorPlatform(competitorId: string, platform: str
       data.itemCount = data.items.length;
       // Recalculate z-scores on merged set
       calculateZScores(data.items, metricKey as any);
+    }
+
+    // Cache thumbnails for non-YouTube platforms (Instagram CDN expires, TikTok has none)
+    if (platform !== 'youtube') {
+      try {
+        await cacheItemThumbnails(competitorId, platform, data.items);
+      } catch (err: any) {
+        console.warn(`[sync] Thumbnail caching failed for ${competitorId}/${platform}:`, err.message);
+      }
     }
 
     // Save to Supabase

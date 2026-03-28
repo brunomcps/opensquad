@@ -195,15 +195,24 @@ export function BRollCard({ broll, onClick }: BRollCardProps) {
           style={{ ...thumbImg, opacity: hovering ? 0 : 1, transition: 'opacity 0.3s' }}
           loading="lazy"
         />
-        <video
-          ref={videoRef}
-          src={`/api/brolls/video/${broll.id}`}
-          style={{ ...videoPreview, opacity: hovering ? 1 : 0, transition: 'opacity 0.3s' }}
-          muted
-          loop
-          playsInline
-          preload="none"
-        />
+        {broll.previewUrl ? (
+          <img
+            src={broll.previewUrl}
+            alt={broll.description}
+            style={{ ...videoPreview, opacity: hovering ? 1 : 0, transition: 'opacity 0.3s' }}
+            loading="lazy"
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            src={`/api/brolls/video/${broll.id}`}
+            style={{ ...videoPreview, opacity: hovering ? 1 : 0, transition: 'opacity 0.3s' }}
+            muted
+            loop
+            playsInline
+            preload="none"
+          />
+        )}
         <span style={durationBadge}>{formatDuration(broll.duration)}</span>
         <span style={sourceBadge(srcColor)}>{SOURCE_LABELS[broll.source] || broll.source}</span>
         {broll.usedIn.length > 0 && (

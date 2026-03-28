@@ -16,6 +16,7 @@ export async function getBRolls() {
   const { data } = await supabase.from('brolls').select('*').order('created_at', { ascending: false });
   return (data || []).map(b => ({
     id: b.id, filename: b.filename, filepath: b.filepath, thumbnailPath: b.thumbnail_url,
+    previewUrl: b.preview_url || null,
     duration: b.duration, resolution: b.resolution, aspectRatio: b.aspect_ratio,
     fileSize: b.file_size, description: b.description, tags: b.tags || [],
     source: b.source, prompt: b.prompt, createdAt: b.created_at, usedIn: b.used_in || [],
