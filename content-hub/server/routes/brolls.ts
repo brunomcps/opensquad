@@ -346,6 +346,13 @@ router.get('/thumbnail/:id', async (req, res) => {
   try {
     const brolls = await readBRolls();
     const broll = brolls.find((b) => b.id === req.params.id);
+
+    // If thumbnail_url is a Supabase URL, redirect
+    if (broll?.thumbnailPath?.startsWith('http')) {
+      return res.redirect(broll.thumbnailPath);
+    }
+
+    // Fallback to local file
     if (!broll?.thumbnailPath || !fs.existsSync(broll.thumbnailPath)) {
       res.status(404).json({ ok: false, error: 'Thumbnail not found' });
       return;
