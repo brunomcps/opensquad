@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { useContentStore } from '../store/useContentStore';
 import { RefreshIcon } from './icons/PlatformIcons';
 
-export type ViewMode = 'home' | 'timeline' | 'calendar' | 'analytics' | 'financial' | 'viral-radar' | 'crosspost' | 'brolls' | 'productions' | 'roteiro-lab';
+export type ViewMode = 'home' | 'timeline' | 'calendar' | 'analytics' | 'financial' | 'audience' | 'viral-radar' | 'crosspost' | 'brolls' | 'productions' | 'roteiro-lab' | 'infoprodutos';
 
 const header: CSSProperties = {
   display: 'flex',
@@ -123,11 +123,13 @@ const tabs: { mode: ViewMode; label: string }[] = [
   { mode: 'calendar', label: 'Calendario' },
   { mode: 'analytics', label: 'Analytics' },
   { mode: 'financial', label: 'Financeiro' },
+  { mode: 'audience', label: 'Audiência' },
   { mode: 'viral-radar', label: 'Viral Radar' },
   { mode: 'crosspost', label: 'Cross-post' },
   { mode: 'productions', label: 'Produções' },
   { mode: 'brolls', label: 'B-Rolls' },
   { mode: 'roteiro-lab', label: 'Roteiro Lab' },
+  { mode: 'infoprodutos', label: 'Infoprodutos' },
 ];
 
 export function Header({ onRefresh, viewMode, onViewChange }: HeaderProps) {

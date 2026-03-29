@@ -21,6 +21,8 @@ import youtubeAnalyticsRouter from './routes/youtubeAnalytics.js';
 import viralRadarRouter from './routes/viralRadar.js';
 import competitorsRouter from './routes/competitors.js';
 import syncPushRouter from './routes/syncPush.js';
+import audienceRouter from './routes/audience.js';
+import infoprodutosRouter from './routes/infoprodutos.js';
 import { startBRollWatcher } from './services/brollWatcher.js';
 import { refreshTokenIfNeeded } from './services/instagram.js';
 import { refreshFacebookTokenIfNeeded } from './services/facebook.js';
@@ -85,6 +87,8 @@ app.use('/api/yt-analytics', youtubeAnalyticsRouter);
 app.use('/api/viral-radar', viralRadarRouter);
 app.use('/api/competitors', competitorsRouter);
 app.use('/api/sync-push', syncPushRouter);
+app.use('/api/audience', audienceRouter);
+app.use('/api/infoprodutos', infoprodutosRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, timestamp: new Date().toISOString() });

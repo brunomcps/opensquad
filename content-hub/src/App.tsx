@@ -13,6 +13,8 @@ import { DashboardHome } from './components/DashboardHome';
 import { RoteiroLab } from './components/RoteiroLab';
 import { FichaDetail } from './components/FichaDetail';
 import { FinancialView } from './components/FinancialView';
+import { AudienceInsightsView } from './components/AudienceInsightsView';
+import { InfoprodutosView } from './components/InfoprodutosView';
 import { VideoDetail } from './components/VideoDetail';
 import { TikTokDetail } from './components/TikTokDetail';
 import { InstagramDetail } from './components/InstagramDetail';
@@ -36,12 +38,14 @@ export default function App() {
       {viewMode === 'calendar' && <CalendarView />}
       {viewMode === 'analytics' && <AnalyticsViewV2 />}
       {viewMode === 'financial' && <FinancialView />}
+      {viewMode === 'audience' && <AudienceInsightsView />}
       {viewMode === 'viral-radar' && <ViralRadarView />}
       {viewMode === 'crosspost' && <CrossPostingView />}
       {viewMode === 'productions' && <ProductionsView />}
       {viewMode === 'brolls' && <BRollLibrary />}
       {viewMode === 'roteiro-lab' && <RoteiroLab />}
-      {!['brolls', 'productions', 'home', 'financial', 'roteiro-lab'].includes(viewMode) && <VideoDetail />}
+      {viewMode === 'infoprodutos' && <InfoprodutosView />}
+      {!['brolls', 'productions', 'home', 'financial', 'audience', 'roteiro-lab', 'infoprodutos'].includes(viewMode) && <VideoDetail />}
       <FichaDetail />
       <TikTokDetail />
       <InstagramDetail />
