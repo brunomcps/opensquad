@@ -46,7 +46,7 @@ if (process.env.NODE_ENV === 'production' && process.env.AUTH_USERS) {
     })
   );
   app.use((req, res, next) => {
-    if (req.path === '/api/sync-push' || req.path === '/api/health') return next();
+    if (req.path === '/api/sync-push' || req.path === '/api/health' || req.path === '/favicon.svg' || req.path === '/favicon.ico') return next();
 
     const auth = req.headers.authorization;
     if (!auth || !auth.startsWith('Basic ')) {
