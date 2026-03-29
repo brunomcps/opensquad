@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAPA | P15 - Footer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-footer: #050505;
+            
+            --gold: #d4a849;
+            --gold-dim: #a07d2e;
+            --gold-border: rgba(212, 168, 73, 0.3);
+            
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --text-footer: #555555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        /* =============================================
+           FOOTER
+           ============================================= */
+        .footer {
+            padding: 60px 0 40px;
+            background: var(--bg-footer);
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+
+        /* Logo/Identidade */
+        .footer-identidade {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .footer-logo {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .footer-logo span {
+            color: var(--gold);
+        }
+
+        .footer-autor {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Links */
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 36px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+        }
+
+        /* Disclaimer Box */
+        .footer-disclaimer {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 24px 28px;
+            margin-bottom: 32px;
+        }
+
+        .footer-disclaimer-titulo {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 12px;
+        }
+
+        .footer-disclaimer p {
+            font-size: 0.8rem;
+            color: var(--text-footer);
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .footer-disclaimer p:last-child {
+            margin-bottom: 0;
+        }
+
+        .footer-disclaimer strong {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Copyright */
+        .footer-copy {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-footer);
+        }
+
+        .footer-copy a {
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        .footer-copy a:hover {
+            color: var(--gold);
+        }
+
+        /* =============================================
+           RESPONSIVO
+           ============================================= */
+        @media (max-width: 768px) {
+            .footer {
+                padding: 50px 0 32px;
+            }
+
+            .container {
+                padding: 0 20px;
+            }
+
+            .footer-links {
+                gap: 16px 20px;
+            }
+
+            .footer-disclaimer {
+                padding: 20px 22px;
+            }
+
+            .footer-disclaimer p {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =============================================
+         P15 - FOOTER
+         ============================================= -->
+    <footer class="footer">
+        <div class="container">
+            
+            <!-- Identidade -->
+            <div class="footer-identidade">
+                <p class="footer-logo"><span>MAPA</span> | Triagem de TDAH</p>
+                <p class="footer-autor">Dr. Bruno Salles, PhD • CRP 05/52904</p>
+            </div>
+
+            <!-- Links -->
+            <div class="footer-links">
+                <a href="#termos">Termos de Uso</a>
+                <a href="#privacidade">Política de Privacidade</a>
+                <a href="#contato">Contato</a>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="footer-disclaimer">
+                <p class="footer-disclaimer-titulo">Aviso Importante</p>
+                <p><strong>Este produto é uma ferramenta de triagem, não um instrumento diagnóstico.</strong> Os resultados do MAPA não substituem avaliação profissional de saúde mental. Diagnóstico de TDAH só pode ser dado por profissional habilitado (psicólogo ou psiquiatra) em avaliação clínica presencial.</p>
+                <p>Os relatórios gerados são baseados em instrumentos validados cientificamente (ASRS-18, critérios DSM-5-TR) e servem como ponto de partida para investigação profissional, não como conclusão definitiva.</p>
+                <p><strong>Este produto não é indicado para menores de 18 anos.</strong> Em caso de crise ou emergência de saúde mental, procure atendimento profissional imediato ou ligue para o CVV: 188.</p>
+            </div>
+
+            <!-- Copyright -->
+            <p class="footer-copy">
+                © 2026 Dr. Bruno Salles. Todos os direitos reservados.<br>
+                <a href="mailto:contato@brunosalles.com.br">contato@brunosalles.com.br</a>
+            </p>
+
+        </div>
+    </footer>
+
+</body>
+</html>

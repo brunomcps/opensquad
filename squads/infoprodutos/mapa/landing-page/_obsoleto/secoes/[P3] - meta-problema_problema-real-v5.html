@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Problema Real - v5</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-card: #141414;
+            --gold: #d4a849;
+            --gold-bright: #f0c96b;
+            --gold-dim: #a07d2e;
+            --red-hot: #e63946;
+            --red-dark: #9d2933;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --border-subtle: rgba(255,255,255,0.08);
+            --gradient-gold: linear-gradient(135deg, var(--gold-dim) 0%, var(--gold) 50%, var(--gold-bright) 100%);
+            --shadow-red: 0 0 40px rgba(230,57,70,0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* =============================================
+           SEÇÃO META-PROBLEMA - CENTRALIZADA
+           ============================================= */
+        .meta-problema {
+            padding: 100px 0;
+            background: linear-gradient(180deg, var(--bg-dark) 0%, #0d0d0d 100%);
+            text-align: center;
+        }
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #d4a849;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            font-weight: 800;
+            margin-bottom: 40px;
+            line-height: 1.2;
+        }
+
+        .meta-content {
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        .meta-content > p {
+            font-size: 1.15rem;
+            line-height: 1.7;
+            margin-bottom: 28px;
+            color: var(--text-secondary);
+        }
+
+        .meta-content > p strong {
+            color: var(--text-primary);
+        }
+
+        /* =============================================
+           BOX DE CUSTOS
+           ============================================= */
+        .custos-box {
+            background: linear-gradient(135deg, rgba(230,57,70,0.12) 0%, rgba(230,57,70,0.04) 100%);
+            border: 2px solid var(--red-hot);
+            border-radius: 16px;
+            padding: 35px;
+            margin: 40px auto;
+            max-width: 600px;
+            box-shadow: var(--shadow-red);
+            text-align: left;
+        }
+
+        .custos-box h3 {
+            color: var(--red-hot);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .custos-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .custo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .custo-item span:first-child {
+            color: var(--text-secondary);
+        }
+
+        .custo-item span:last-child {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .custo-total {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px dashed var(--red-hot);
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .custo-total span:last-child {
+            color: var(--red-hot);
+            font-size: 1.5rem;
+        }
+
+        /* =============================================
+           FECHAMENTO - v5 CENTRALIZADO
+           ============================================= */
+        .meta-fechamento {
+            margin-top: 50px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .fechamento-setup {
+            font-size: 1.15rem;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .fechamento-punch-inicial {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 32px;
+        }
+
+        /* ESCADINHA - CENTRALIZADA */
+        .fechamento-escadinha {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 32px;
+        }
+
+        .escada-1 {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.85);
+            font-weight: 500;
+        }
+
+        .escada-2 {
+            font-size: 1.05rem;
+            color: rgba(255,255,255,0.65);
+        }
+
+        .escada-3 {
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* EYEBROW + PUNCH FINAL */
+        .fechamento-eyebrow {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            letter-spacing: 0.02em;
+        }
+
+        .fechamento-punch-final {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 40px;
+            line-height: 1.3;
+        }
+
+        /* =============================================
+           CTA DA SEÇÃO
+           ============================================= */
+        .section-cta {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+
+        .cta-eyebrow {
+            font-size: 1.1rem;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px 48px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #000;
+            background: var(--gradient-gold);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px rgba(212,168,73,0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(212,168,73,0.5);
+        }
+
+        .cta-subtext {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+        }
+
+        .cta-subtext .garantia {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        /* =============================================
+           RESPONSIVO
+           ============================================= */
+        @media (max-width: 768px) {
+            .meta-problema {
+                padding: 70px 0;
+            }
+
+            .container {
+                padding: 0 20px;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+                margin-bottom: 30px;
+            }
+
+            .meta-content > p {
+                font-size: 1.05rem;
+            }
+
+            .custos-box {
+                padding: 24px 20px;
+            }
+
+            .custos-box h3 {
+                font-size: 1.1rem;
+            }
+
+            .custo-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+                padding: 12px 14px;
+            }
+
+            .custo-item span:last-child {
+                font-size: 1rem;
+            }
+
+            .custo-total {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+
+            .custo-total span:last-child {
+                font-size: 1.4rem;
+            }
+
+            .fechamento-setup {
+                font-size: 1.05rem;
+            }
+
+            .fechamento-punch-inicial {
+                font-size: 1.25rem;
+            }
+
+            .escada-1 {
+                font-size: 1.1rem;
+            }
+
+            .escada-2 {
+                font-size: 1rem;
+            }
+
+            .escada-3 {
+                font-size: 0.9rem;
+            }
+
+            .fechamento-punch-final {
+                font-size: 1.4rem;
+            }
+
+            .cta-eyebrow {
+                font-size: 1rem;
+            }
+
+            .cta-button {
+                padding: 16px 36px;
+                font-size: 1.05rem;
+                width: 100%;
+                max-width: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="meta-problema">
+        <div class="container">
+            <div class="meta-content">
+                
+                <p class="section-label">✦ O PROBLEMA REAL</p>
+                <h2 class="section-title">O problema não é querer.<br>É conseguir.</h2>
+
+                <p>
+                    Você já pensou em investigar TDAH. <strong>Talvez há meses. Talvez há anos.</strong><br>
+                    Mas o caminho tradicional parece feito pra te travar:
+                </p>
+
+                <div class="custos-box">
+                    <h3>💸 Quanto custa descobrir pelo caminho tradicional?</h3>
+                    <div class="custos-lista">
+                        <div class="custo-item">
+                            <span>Psicólogo (3-5 sessões)</span>
+                            <span>R$ 750 - 2.000</span>
+                        </div>
+                        <div class="custo-item">
+                            <span>Psiquiatra</span>
+                            <span>R$ 500 - 800</span>
+                        </div>
+                        <div class="custo-item">
+                            <span>Avaliação neuropsicológica</span>
+                            <span>R$ 1.500 - 3.000</span>
+                        </div>
+                        <div class="custo-item">
+                            <span>Tempo de espera</span>
+                            <span>2 - 6 meses</span>
+                        </div>
+                    </div>
+                    <div class="custo-total">
+                        <span>Total potencial:</span>
+                        <span>R$ 2.750 - 5.800</span>
+                    </div>
+                </div>
+
+                <!-- FECHAMENTO - v5 -->
+                <div class="meta-fechamento">
+                    <p class="fechamento-setup">E o pior...</p>
+                    <p class="fechamento-punch-inicial">Talvez você descubra que nem era TDAH.</p>
+                    
+                    <!-- ESCADINHA CENTRALIZADA -->
+                    <div class="fechamento-escadinha">
+                        <p class="escada-1">Aí você volta pra estaca zero:</p>
+                        <p class="escada-2">Menos R$3.000 no bolso...</p>
+                        <p class="escada-3">Mais um ano perdido...</p>
+                    </div>
+
+                    <!-- EYEBROW + PUNCH FINAL -->
+                    <p class="fechamento-eyebrow">E a mesma pergunta na cabeça:</p>
+                    <p class="fechamento-punch-final">"Então o que é que eu tenho?"</p>
+                </div>
+
+                <!-- CTA -->
+                <div class="section-cta">
+                    <p class="cta-eyebrow">Ou você descobre agora. Em 25 min. Do sofá.</p>
+                    <a href="#comprar" class="cta-button">DESCOBRIR AGORA →</a>
+                    <span class="cta-subtext">Por menos de uma sessão de terapia. <span class="garantia">Garantia de 7 dias.</span></span>
+                </div>
+
+            </div>
+        </div>
+    </section>
+</body>
+</html>

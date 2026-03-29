@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAPA | P10 - Como Funciona</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-card: #141414;
+            
+            --gold: #d4a849;
+            --gold-bright: #f0c96b;
+            --gold-dim: #a07d2e;
+            --gold-glow: rgba(212, 168, 73, 0.15);
+            --gold-border: rgba(212, 168, 73, 0.4);
+            
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            
+            --gradient-gold: linear-gradient(135deg, var(--gold-dim) 0%, var(--gold) 50%, var(--gold-bright) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Textura de noise */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.025;
+            z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        /* =============================================
+           SEÇÃO COMO FUNCIONA
+           ============================================= */
+        .secao-como-funciona {
+            padding: 100px 0;
+            background: var(--bg-dark);
+            text-align: center;
+        }
+
+        /* Eyebrow */
+        .como-funciona-eyebrow {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        /* Headline */
+        .como-funciona-headline {
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 60px;
+        }
+
+        /* Timeline */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            position: relative;
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto 50px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 24px;
+            padding: 24px 0;
+        }
+
+        /* Número do passo */
+        .timeline-number {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #000;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Conteúdo do passo */
+        .timeline-content {
+            padding-top: 8px;
+        }
+
+        .timeline-titulo {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .timeline-descricao {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Rodapé - Frase de impacto */
+        .como-funciona-rodape {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            font-weight: 500;
+        }
+
+        /* CTA */
+        .como-funciona-cta {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 18px 48px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #000;
+            background: var(--gradient-gold);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px rgba(212, 168, 73, 0.25);
+        }
+
+        .como-funciona-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 45px rgba(212, 168, 73, 0.4);
+        }
+
+        .como-funciona-cta .preco {
+            font-size: 0.9rem;
+            opacity: 0.85;
+            font-weight: 600;
+        }
+
+        /* =============================================
+           RESPONSIVO
+           ============================================= */
+        @media (max-width: 768px) {
+            .secao-como-funciona {
+                padding: 70px 0;
+            }
+
+            .container {
+                padding: 0 24px;
+            }
+
+            .como-funciona-eyebrow {
+                font-size: 0.75rem;
+            }
+
+            .como-funciona-headline {
+                font-size: 1.8rem;
+                margin-bottom: 48px;
+            }
+
+            .timeline {
+                margin-bottom: 40px;
+            }
+
+            .timeline-item {
+                gap: 20px;
+                padding: 20px 0;
+            }
+
+            .timeline-number {
+                width: 40px;
+                height: 40px;
+                font-size: 1.1rem;
+            }
+
+            .timeline-content {
+                padding-top: 4px;
+            }
+
+            .timeline-titulo {
+                font-size: 1.05rem;
+            }
+
+            .timeline-descricao {
+                font-size: 0.95rem;
+            }
+
+            .como-funciona-rodape {
+                font-size: 1rem;
+                margin-bottom: 32px;
+            }
+
+            .como-funciona-cta {
+                padding: 16px 32px;
+                font-size: 0.95rem;
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .como-funciona-cta .preco {
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .timeline-number {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+            }
+
+            .timeline-item {
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =============================================
+         P10 - SEÇÃO COMO FUNCIONA
+         ============================================= -->
+    <section class="secao-como-funciona">
+        <div class="container">
+            
+            <p class="como-funciona-eyebrow">Simples Assim</p>
+            <h2 class="como-funciona-headline">Como Funciona</h2>
+
+            <div class="timeline">
+                
+                <!-- Passo 1 -->
+                <div class="timeline-item">
+                    <div class="timeline-number">1</div>
+                    <div class="timeline-content">
+                        <h3 class="timeline-titulo">Você compra e acessa na hora</h3>
+                        <p class="timeline-descricao">Sem esperar email. Sem criar conta complicada. Pagou, entrou.</p>
+                    </div>
+                </div>
+
+                <!-- Passo 2 -->
+                <div class="timeline-item">
+                    <div class="timeline-number">2</div>
+                    <div class="timeline-content">
+                        <h3 class="timeline-titulo">Responde as perguntas (± 25 minutos)</h3>
+                        <p class="timeline-descricao">Perguntas sobre seu dia a dia. Como você funciona, não o que você sabe.</p>
+                    </div>
+                </div>
+
+                <!-- Passo 3 -->
+                <div class="timeline-item">
+                    <div class="timeline-number">3</div>
+                    <div class="timeline-content">
+                        <h3 class="timeline-titulo">Recebe os relatórios</h3>
+                        <p class="timeline-descricao">Relatórios prontos pra ler ou levar ao profissional. Imediatamente.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <p class="como-funciona-rodape">Sem agendar. Sem esperar. Sem depender de ninguém.</p>
+
+            <a href="#comprar" class="como-funciona-cta">
+                <span class="cta-texto">QUERO FAZER O MAPA AGORA</span>
+                <span class="preco">R$147</span>
+            </a>
+
+        </div>
+    </section>
+
+</body>
+</html>

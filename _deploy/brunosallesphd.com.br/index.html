@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dr. Bruno Salles, PhD | TDAH Adulto - Neurociência Prática</title>
+  <meta name="description" content="Psicólogo e neurocientista PhD. Conteúdo e estratégias práticas sobre TDAH adulto. Entenda seu cérebro com ciência de verdade. Conheça o MAPA-7P.">
+  <link rel="canonical" href="https://brunosallesphd.com.br">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230A0E0A'/><text x='50%25' y='52%25' text-anchor='middle' dominant-baseline='central' font-family='serif' font-size='20' font-weight='bold' fill='%23F0BA3C'>B</text></svg>">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Dr. Bruno Salles, PhD | TDAH Adulto">
+  <meta property="og:description" content="Neurociência traduzida pra vida real. Conteúdo gratuito e o programa MAPA-7P para adultos com TDAH.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://brunosallesphd.com.br">
+  <meta property="og:image" content="https://brunosallesphd.com.br/og-image.jpg">
+  <meta property="og:image:alt" content="Dr. Bruno Salles, psicólogo e neurocientista especialista em TDAH adulto">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Dr. Bruno Salles, PhD | TDAH Adulto">
+  <meta name="twitter:description" content="Psicólogo PhD em Neurociências. Conteúdo e estratégias sobre TDAH adulto com ciência e linguagem prática.">
+  <meta name="twitter:image:alt" content="Dr. Bruno Salles, neurocientista e psicólogo clínico especializado em TDAH adulto">
+
+  <!-- Google Analytics (GA4) — TODO: trocar G-XXXXXXXXXX pelo Measurement ID real -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#0A0E0A',
+              surface: '#0F140F',
+              card: '#141A14',
+              border: '#1E2A1E',
+              gold: '#F0BA3C',
+              'gold-dark': '#D4A233',
+              'gold-dim': '#F0BA3C15',
+            }
+          },
+          fontFamily: {
+            sans: ['Montserrat', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Schema: Person -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Dr. Bruno Salles",
+    "honorificPrefix": "Dr.",
+    "jobTitle": "Psicólogo Clínico e Neurocientista",
+    "description": "Psicólogo e neurocientista PhD especialista em TDAH adulto",
+    "alumniOf": { "@type": "CollegeOrUniversity", "name": "PUC-Rio" },
+    "hasCredential": [{
+      "@type": "EducationalOccupationalCredential",
+      "credentialCategory": "PhD",
+      "educationalLevel": "Doctoral",
+      "about": "Psicologia Clínica e Neurociências"
+    }],
+    "knowsAbout": ["TDAH", "TDAH Adulto", "Neurociência", "Psicologia Clínica"],
+    "memberOf": { "@type": "Organization", "name": "Society for Neuroscience" },
+    "sameAs": [
+      "https://youtube.com/@brunosallesphd",
+      "https://instagram.com/brunosallesphd",
+      "https://linkedin.com/in/dr-bruno-m-salles-ph-d-7113b1a6",
+      "https://doctoralia.com.br/bruno-m-salles/psicologo"
+    ],
+    "url": "https://brunosallesphd.com.br"
+  }
+  </script>
+
+  <!-- Schema: WebSite -->
+  <script type="application/ld+json">
+  { "@context": "https://schema.org", "@type": "WebSite", "name": "Dr. Bruno Salles, PhD", "url": "https://brunosallesphd.com.br" }
+  </script>
+
+  <!-- Schema: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "TDAH adulto existe mesmo ou é coisa da internet?", "acceptedAnswer": { "@type": "Answer", "text": "Existe. Tá no DSM-5-TR, na CID-11, e afeta entre 2 a 5% dos adultos." }},
+      { "@type": "Question", "name": "Preciso de diagnóstico formal pra começar?", "acceptedAnswer": { "@type": "Answer", "text": "Não precisa esperar um laudo pra começar a se entender melhor." }},
+      { "@type": "Question", "name": "O MAPA substitui uma consulta com psicólogo?", "acceptedAnswer": { "@type": "Answer", "text": "Nunca. O MAPA é uma triagem baseada em neurociência, não um diagnóstico." }},
+      { "@type": "Question", "name": "O MAPA funciona pra quem já toma medicação?", "acceptedAnswer": { "@type": "Answer", "text": "Sim. O MAPA mapeia padrões dopaminérgicos independente de você estar ou não em tratamento." }}
+    ]
+  }
+  </script>
+
+  <style>
+    html { scroll-behavior: smooth; }
+    .gold-btn { background: linear-gradient(135deg, #F0BA3C, #D4A233); }
+    .gold-btn:hover { filter: brightness(1.1); }
+    .hero-bg {
+      background: radial-gradient(ellipse at 30% 50%, #0F1A0F 0%, #0A0E0A 60%),
+                  linear-gradient(180deg, #0A0E0A 0%, #0D120D 100%);
+    }
+    .section-green {
+      background: linear-gradient(180deg, #0B100B 0%, #0F160F 50%, #0B100B 100%);
+    }
+    .section-dark {
+      background: linear-gradient(180deg, #0A0E0A 0%, #0C0F0C 50%, #0A0E0A 100%);
+    }
+    .section-deep {
+      background: radial-gradient(ellipse at 50% 0%, #101810 0%, #0A0E0A 70%);
+    }
+    .gold-glow {
+      box-shadow: 0 0 50px rgba(240, 186, 60, 0.15), 0 0 100px rgba(240, 186, 60, 0.05);
+    }
+    .card-hover { transition: all 0.3s ease; }
+    .card-hover:hover { border-color: rgba(240, 186, 60, 0.4); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(240, 186, 60, 0.08); }
+    .reveal { opacity: 1; transform: none; }
+    .reveal.js-enabled { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+    .reveal.js-enabled.visible { opacity: 1; transform: none; }
+  </style>
+</head>
+
+<body class="bg-brand-dark text-white font-sans antialiased">
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 w-full z-50 bg-brand-dark/95 backdrop-blur-md border-b border-brand-border/50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <a href="#" class="text-lg font-bold text-white">
+        Dr. Bruno Salles<span class="text-brand-gold">, PhD</span>
+      </a>
+      <div class="hidden md:flex items-center gap-6 text-sm text-white/60">
+        <a href="#conteudo" class="hover:text-white transition">Conteúdo</a>
+        <a href="#sobre" class="hover:text-white transition">Sobre</a>
+        <a href="#mapa" class="hover:text-white transition">MAPA</a>
+        <a href="#faq" class="hover:text-white transition">FAQ</a>
+        <a href="https://pay.hotmart.com/K103806991N?off=vyqym0gx&checkoutMode=10" target="_blank" rel="noopener" class="gold-btn text-brand-dark px-5 py-2 rounded-lg font-bold text-sm">Conhecer o MAPA</a>
+      </div>
+      <button id="menu-toggle" class="md:hidden text-white p-2" aria-label="Menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+    <div id="mobile-menu" class="hidden md:hidden bg-brand-surface border-t border-brand-border">
+      <div class="px-4 py-4 space-y-3">
+        <a href="#conteudo" class="block text-white/70 hover:text-white transition">Conteúdo</a>
+        <a href="#sobre" class="block text-white/70 hover:text-white transition">Sobre</a>
+        <a href="#mapa" class="block text-white/70 hover:text-white transition">MAPA</a>
+        <a href="#faq" class="block text-white/70 hover:text-white transition">FAQ</a>
+        <a href="https://pay.hotmart.com/K103806991N?off=vyqym0gx&checkoutMode=10" target="_blank" rel="noopener" class="block gold-btn text-brand-dark px-4 py-2 rounded-lg font-bold text-center">Conhecer o MAPA</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ═══════════════ HERO ═══════════════ -->
+    <section id="hero" class="min-h-screen flex items-center pt-16 hero-bg">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-16 md:py-20">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+          <div class="order-2 md:order-1">
+            <p class="text-brand-gold font-semibold text-sm uppercase tracking-widest mb-5">Psicólogo Clínico & Neurocientista</p>
+            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.1] mb-6">
+              Dr. Bruno<br>Salles<span class="text-brand-gold">, PhD</span>
+            </h1>
+            <p class="text-xl sm:text-2xl text-white/70 mb-10 leading-relaxed max-w-lg">
+              TDAH adulto.<br>
+              <span class="text-white">Neurociência sem enrolação.</span>
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4">
+              <a href="#mapa" class="gold-btn text-brand-dark px-8 py-4 rounded-xl font-bold text-center text-lg">
+                Conhecer o MAPA
+              </a>
+              <a href="https://youtube.com/@brunosallesphd" target="_blank" rel="noopener" class="border-2 border-brand-gold/50 text-brand-gold px-8 py-4 rounded-xl font-bold text-center text-lg hover:bg-brand-gold hover:text-brand-dark transition">
+                Assistir no YouTube
+              </a>
+            </div>
+          </div>
+          <div class="order-1 md:order-2 flex justify-center">
+            <div class="relative">
+              <div class="absolute inset-0 rounded-2xl gold-glow"></div>
+              <img
+                src="bruno-hero.webp"
+                alt="Dr. Bruno Salles, psicólogo e neurocientista PhD"
+                width="500" height="500"
+                class="relative w-72 h-72 md:w-80 md:h-80 lg:w-[400px] lg:h-[400px] rounded-2xl object-cover object-top border-2 border-brand-gold/30"
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ SOCIAL PROOF BAR ═══════════════ -->
+    <section class="border-y border-brand-gold/10 py-6 bg-brand-surface">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div>
+            <p class="text-3xl md:text-4xl font-black text-brand-gold" data-counter="subscribers">+40k</p>
+            <p class="text-xs text-white/50 mt-1 uppercase tracking-wider">inscritos em 6 meses</p>
+          </div>
+          <div>
+            <p class="text-3xl md:text-4xl font-black text-white" data-counter="views">1.3M+</p>
+            <p class="text-xs text-white/50 mt-1 uppercase tracking-wider">visualizações</p>
+          </div>
+          <div>
+            <p class="text-3xl md:text-4xl font-black text-white" data-counter="sessions">10.000+</p>
+            <p class="text-xs text-white/50 mt-1 uppercase tracking-wider">atendimentos clínicos</p>
+          </div>
+          <div>
+            <div class="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-4 py-1 mb-1">
+              <span class="text-brand-gold text-sm">⭐</span>
+              <span class="text-brand-gold font-black text-lg">#1</span>
+            </div>
+            <p class="text-xs text-white/50 mt-1 uppercase tracking-wider">Psicólogo no Doctoralia</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ CONTENT HUB ═══════════════ -->
+    <section id="conteudo" class="py-16 md:py-24 section-dark">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4">
+            Conteúdo que explica <span class="text-brand-gold">seu cérebro</span>
+          </h2>
+          <p class="text-lg text-white/60 max-w-2xl mx-auto">90+ vídeos sobre TDAH adulto. Neurociência na linguagem do dia a dia. Novo vídeo toda semana.</p>
+        </div>
+
+        <!-- YouTube Video Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <a href="https://www.youtube.com/watch?v=F9dkxmaj4jQ" target="_blank" rel="noopener" class="group rounded-xl overflow-hidden border border-brand-border card-hover">
+            <img src="https://img.youtube.com/vi/F9dkxmaj4jQ/mqdefault.jpg" alt="5 Sinais Ocultos de TDAH em Adultos" loading="lazy" class="w-full aspect-video object-cover">
+            <div class="p-3 bg-brand-card">
+              <p class="text-white text-xs font-semibold leading-tight group-hover:text-brand-gold transition line-clamp-2">5 SINAIS OCULTOS de TDAH em ADULTOS</p>
+              <p class="text-white/40 text-[10px] mt-1">336k views</p>
+            </div>
+          </a>
+          <a href="https://www.youtube.com/watch?v=r4IqfJiglCA" target="_blank" rel="noopener" class="group rounded-xl overflow-hidden border border-brand-border card-hover">
+            <img src="https://img.youtube.com/vi/r4IqfJiglCA/mqdefault.jpg" alt="Por que o TDAH faz você não sentir saudade" loading="lazy" class="w-full aspect-video object-cover">
+            <div class="p-3 bg-brand-card">
+              <p class="text-white text-xs font-semibold leading-tight group-hover:text-brand-gold transition line-clamp-2">Por que o TDAH faz você NÃO sentir SAUDADE?</p>
+              <p class="text-white/40 text-[10px] mt-1">261k views</p>
+            </div>
+          </a>
+          <a href="https://www.youtube.com/watch?v=O598RDHc4gI" target="_blank" rel="noopener" class="group rounded-xl overflow-hidden border border-brand-border card-hover">
+            <img src="https://img.youtube.com/vi/O598RDHc4gI/mqdefault.jpg" alt="Os 2 Motivos da Preguiça no TDAH" loading="lazy" class="w-full aspect-video object-cover">
+            <div class="p-3 bg-brand-card">
+              <p class="text-white text-xs font-semibold leading-tight group-hover:text-brand-gold transition line-clamp-2">Os 2 Motivos da Preguiça no TDAH</p>
+              <p class="text-white/40 text-[10px] mt-1">208k views</p>
+            </div>
+          </a>
+          <a href="https://www.youtube.com/watch?v=sefcoJt0AFg" target="_blank" rel="noopener" class="group rounded-xl overflow-hidden border border-brand-border card-hover">
+            <img src="https://img.youtube.com/vi/sefcoJt0AFg/mqdefault.jpg" alt="7 Padrões de TDAH Adulto Escondidos na Sua Rotina" loading="lazy" class="w-full aspect-video object-cover">
+            <div class="p-3 bg-brand-card">
+              <p class="text-white text-xs font-semibold leading-tight group-hover:text-brand-gold transition line-clamp-2">7 Padrões de TDAH Adulto na Sua Rotina</p>
+              <p class="text-white/40 text-[10px] mt-1">54k views</p>
+            </div>
+          </a>
+        </div>
+
+        <!-- Featured Video Embed -->
+        <div class="max-w-3xl mx-auto mb-10 mt-8">
+          <p class="text-center text-white/50 text-sm mb-4 uppercase tracking-wider font-semibold">Comece por aqui</p>
+          <div class="aspect-video rounded-2xl overflow-hidden border border-brand-border gold-glow">
+            <iframe
+              width="100%" height="100%"
+              src="https://www.youtube.com/embed/sefcoJt0AFg"
+              title="7 Padrões de TDAH Adulto Escondidos na Sua Rotina"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              loading="lazy"
+            ></iframe>
+          </div>
+        </div>
+
+        <div class="text-center mb-14">
+          <a href="https://youtube.com/@brunosallesphd" target="_blank" rel="noopener" class="inline-flex items-center gap-2 gold-btn text-brand-dark px-6 py-3 rounded-xl font-bold text-sm">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            Ver todos os vídeos no YouTube
+          </a>
+        </div>
+
+        <!-- Social Links -->
+        <div class="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+          <a href="https://instagram.com/brunosallesphd" target="_blank" rel="noopener" class="card-hover group flex items-center gap-4 bg-brand-card border border-brand-border rounded-xl p-5">
+            <div class="w-10 h-10 rounded-lg bg-pink-600/10 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-pink-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+            </div>
+            <div>
+              <p class="text-white font-semibold text-sm group-hover:text-brand-gold transition">Instagram</p>
+              <p class="text-white/50 text-xs">@brunosallesphd</p>
+            </div>
+          </a>
+          <a href="https://linkedin.com/in/dr-bruno-m-salles-ph-d-7113b1a6" target="_blank" rel="noopener" class="card-hover group flex items-center gap-4 bg-brand-card border border-brand-border rounded-xl p-5">
+            <div class="w-10 h-10 rounded-lg bg-blue-600/10 flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            </div>
+            <div>
+              <p class="text-white font-semibold text-sm group-hover:text-brand-gold transition">LinkedIn</p>
+              <p class="text-white/50 text-xs">Neurociência e comportamento profissional</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ ABOUT / CREDENTIALS ═══════════════ -->
+    <section id="sobre" class="py-16 md:py-24 section-deep">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6">
+        <div class="grid md:grid-cols-5 gap-12 items-center">
+          <div class="md:col-span-3">
+            <h2 class="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-8">
+              Quem tá <span class="text-brand-gold">falando</span>
+            </h2>
+
+            <p class="text-xl text-white/90 mb-6 leading-relaxed">
+              Depois de uma década estudando o cérebro TDAH no laboratório e no consultório, eu percebi que a ciência sabe muito mais sobre TDAH do que chega até quem realmente precisa. Meu trabalho é mudar isso.
+            </p>
+
+            <p class="text-xl text-white leading-relaxed mb-8">
+              Eu traduzo o que a neurociência sabe sobre TDAH em estratégia prática. Sem jargão. Sem enrolação. <span class="text-brand-gold font-bold">Ciência de bar, com rigor de laboratório.</span>
+            </p>
+
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs text-white/90 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-3 py-1.5">PhD Neurociências (PUC-Rio)</span>
+              <span class="text-xs text-white/90 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-3 py-1.5">U. Michigan</span>
+              <span class="text-xs text-white/90 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-3 py-1.5">King's College London</span>
+              <span class="text-xs text-white/90 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-3 py-1.5">10.000+ atendimentos</span>
+              <span class="text-xs text-white/90 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-3 py-1.5">#1 Doctoralia Brasil</span>
+              <span class="text-xs text-white/90 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-3 py-1.5">Society for Neuroscience</span>
+              <span class="text-xs text-white/90 bg-brand-gold/10 border border-brand-gold/20 rounded-full px-3 py-1.5">FACS (Paul Ekman)</span>
+              <span class="text-xs text-white/50 bg-white/5 border border-white/10 rounded-full px-3 py-1.5">CRP 05/52904</span>
+            </div>
+          </div>
+
+          <div class="md:col-span-2">
+            <div class="relative">
+              <div class="absolute -inset-1 rounded-2xl bg-gradient-to-b from-brand-gold/20 to-transparent blur-sm"></div>
+              <img
+                src="profile-yt.webp"
+                alt="Bruno Salles sorrindo, transmitindo acessibilidade e autoridade profissional"
+                width="400" height="400"
+                loading="lazy"
+                class="relative w-full rounded-2xl object-cover border border-brand-gold/30"
+              >
+            </div>
+            <p class="text-white font-bold text-lg text-center mt-4">Dr. Bruno Salles, PhD</p>
+            <p class="text-brand-gold text-sm text-center">Psicólogo Clínico & Neurocientista</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ MAPA-7P ═══════════════ -->
+    <section id="mapa" class="py-16 md:py-24 section-green">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-10">
+          O primeiro passo que você <span class="text-brand-gold">consegue dar.</span>
+        </h2>
+        <div class="bg-brand-card border border-brand-border rounded-2xl p-8 md:p-12 max-w-2xl mx-auto relative overflow-hidden">
+          <!-- Subtle glow behind card -->
+          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-brand-gold/5 blur-3xl rounded-full"></div>
+
+          <div class="relative">
+            <div class="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/30 rounded-full px-5 py-1.5 mb-6">
+              <span class="text-brand-gold font-bold text-sm tracking-wider">MAPA-7P</span>
+            </div>
+            <img src="reports-mockup.webp" alt="Relatório do MAPA-7P de triagem de TDAH adulto" width="300" height="200" loading="lazy" class="mx-auto mb-8 w-48 md:w-64 rounded-lg">
+            <h3 class="text-2xl md:text-3xl font-black text-white mb-4">Mapeamento de Padrões<br><span class="text-brand-gold">Dopaminérgicos</span></h3>
+            <p class="text-white/70 text-lg mb-8 leading-relaxed max-w-md mx-auto">
+              Triagem de TDAH adulto baseada em neurociência. Em 25 minutos, clareza sobre seus padrões.
+            </p>
+
+            <!-- Benefit Grid -->
+            <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-8 text-left">
+              <div class="flex items-start gap-3">
+                <span class="text-brand-gold text-lg mt-0.5">📊</span>
+                <p class="text-white/80 text-sm">Mapeamento completo dos seus padrões</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-brand-gold text-lg mt-0.5">🧠</span>
+                <p class="text-white/80 text-sm">Baseado em critérios clínicos (DSM-5-TR)</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-brand-gold text-lg mt-0.5">⏱️</span>
+                <p class="text-white/80 text-sm">Resultado em até 24 horas no email</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-brand-gold text-lg mt-0.5">📋</span>
+                <p class="text-white/80 text-sm">Próximos passos claros e personalizados</p>
+              </div>
+            </div>
+
+            <!-- Como Funciona -->
+            <div class="grid grid-cols-3 gap-4 max-w-sm mx-auto mb-8">
+              <div class="text-center">
+                <div class="w-10 h-10 rounded-full gold-btn text-brand-dark font-black text-sm flex items-center justify-center mx-auto mb-2">1</div>
+                <p class="text-white/80 text-xs font-semibold">Responda</p>
+                <p class="text-white/40 text-[10px]">25 minutos online</p>
+              </div>
+              <div class="text-center">
+                <div class="w-10 h-10 rounded-full gold-btn text-brand-dark font-black text-sm flex items-center justify-center mx-auto mb-2">2</div>
+                <p class="text-white/80 text-xs font-semibold">Receba</p>
+                <p class="text-white/40 text-[10px]">Resultado em 24h</p>
+              </div>
+              <div class="text-center">
+                <div class="w-10 h-10 rounded-full gold-btn text-brand-dark font-black text-sm flex items-center justify-center mx-auto mb-2">3</div>
+                <p class="text-white/80 text-xs font-semibold">Entenda</p>
+                <p class="text-white/40 text-[10px]">Seus padrões + próximos passos</p>
+              </div>
+            </div>
+
+            <a href="https://pay.hotmart.com/K103806991N?off=vyqym0gx&checkoutMode=10" target="_blank" rel="noopener" class="inline-block gold-btn text-brand-dark px-12 py-4 rounded-xl font-black text-lg">
+              Fazer meu MAPA →
+            </a>
+            <p class="text-white/40 text-xs mt-4">67% dos compradores ainda não têm diagnóstico formal.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ TESTIMONIALS ═══════════════ -->
+    <section class="py-16 md:py-24 section-dark">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6">
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-black text-white text-center mb-12">
+          Quem já fez, <span class="text-brand-gold">conta.</span>
+        </h2>
+        <!-- Row 1: 3 cards -->
+        <div class="grid md:grid-cols-3 gap-6 mb-6">
+          <div class="bg-brand-card border border-brand-border rounded-2xl p-6 card-hover">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-full bg-brand-gold/15 flex items-center justify-center text-brand-gold font-bold text-sm">G</div>
+              <div>
+                <p class="text-white font-semibold text-sm">Gabrielly</p>
+                <p class="text-white/40 text-xs">Psicóloga · 342 likes</p>
+              </div>
+            </div>
+            <p class="text-white/70 text-sm leading-relaxed">"Eu sou psicóloga e nunca vi alguém explicar TDAH assim. Parabéns."</p>
+            <p class="text-white/30 text-xs mt-3">Via YouTube</p>
+          </div>
+          <div class="bg-brand-card border border-brand-border rounded-2xl p-6 card-hover">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-full bg-brand-gold/15 flex items-center justify-center text-brand-gold font-bold text-sm">M</div>
+              <div>
+                <p class="text-white font-semibold text-sm">Marcelo</p>
+                <p class="text-white/40 text-xs">523 likes</p>
+              </div>
+            </div>
+            <p class="text-white/70 text-sm leading-relaxed">"Minha namorada tem TDAH diagnosticado. Não fazia ideia que essa 'sumida' é reflexo da forma que ela funciona. Esse vídeo me ajudou a ser mais compreensível."</p>
+            <p class="text-white/30 text-xs mt-3">Via YouTube</p>
+          </div>
+          <div class="bg-brand-card border border-brand-border rounded-2xl p-6 card-hover">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-full bg-brand-gold/15 flex items-center justify-center text-brand-gold font-bold text-sm">R</div>
+              <div>
+                <p class="text-white font-semibold text-sm">Raquel</p>
+                <p class="text-white/40 text-xs">224 likes</p>
+              </div>
+            </div>
+            <p class="text-white/70 text-sm leading-relaxed">"Esse é o melhor vídeo sobre os sintomas do TDAH em adultos que já vi."</p>
+            <p class="text-white/30 text-xs mt-3">Via YouTube</p>
+          </div>
+        </div>
+        <!-- Row 2: 2 cards centered -->
+        <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <div class="bg-brand-card border border-brand-border rounded-2xl p-6 card-hover">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-full bg-brand-gold/15 flex items-center justify-center text-brand-gold font-bold text-sm">N</div>
+              <div>
+                <p class="text-white font-semibold text-sm">Neusa</p>
+                <p class="text-white/40 text-xs">68 anos · 150 likes</p>
+              </div>
+            </div>
+            <p class="text-white/70 text-sm leading-relaxed">"Aos 68 anos de idade recebi o diagnóstico de TDAH. Fiquei perplexa, mas entendi o roteiro de minha trajetória na vida."</p>
+            <p class="text-white/30 text-xs mt-3">Via YouTube</p>
+          </div>
+          <div class="bg-brand-card border border-brand-border rounded-2xl p-6 card-hover">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-full bg-brand-gold/15 flex items-center justify-center text-brand-gold font-bold text-sm">R</div>
+              <div>
+                <p class="text-white font-semibold text-sm">Rosana</p>
+                <p class="text-white/40 text-xs">137 likes</p>
+              </div>
+            </div>
+            <p class="text-white/70 text-sm leading-relaxed">"Até me emocionei por saber que não sou uma fracassada. Sempre me senti inferior por não conseguir acompanhar as coisas. Hoje com esse vídeo pude saber o que de fato é tudo isso."</p>
+            <p class="text-white/30 text-xs mt-3">Via YouTube</p>
+          </div>
+        </div>
+        <p class="text-center text-white/30 text-xs mt-6">Comentários reais do canal no YouTube.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════ NEWSLETTER + QUIZ TEASER ═══════════════ -->
+    <section id="newsletter" class="py-16 md:py-24 section-green">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+          <!-- Newsletter -->
+          <div class="text-center md:text-left">
+            <h2 class="text-3xl sm:text-4xl font-black text-white mb-4">
+              Entenda seu cérebro. <span class="text-brand-gold">De graça.</span>
+            </h2>
+            <p class="text-lg text-white/60 mb-3">Toda semana, um insight de neurociência que muda como você vê seu TDAH.</p>
+            <p class="text-sm text-white/40 mb-6">Estratégias práticas, ciência traduzida, zero enrolação.</p>
+            <form id="newsletter-form" action="https://formsubmit.co/brunosallesphd@gmail.com" method="POST" class="flex flex-col sm:flex-row gap-3 mb-3">
+              <input type="hidden" name="_subject" value="Nova inscrição na newsletter - brunosallesphd.com.br">
+              <input type="hidden" name="_captcha" value="false">
+              <input type="hidden" name="_next" value="https://brunosallesphd.com.br/?inscrito=1">
+              <input type="hidden" name="_template" value="table">
+              <input
+                type="email"
+                name="email"
+                placeholder="Seu melhor email"
+                required
+                class="flex-1 px-5 py-3.5 rounded-xl bg-brand-card border border-brand-border text-white placeholder-gray-500 focus:border-brand-gold focus:outline-none transition text-sm"
+              >
+              <button type="submit" id="newsletter-btn" class="gold-btn text-brand-dark px-6 py-3.5 rounded-xl font-bold hover:brightness-110 transition whitespace-nowrap text-sm">
+                Quero receber
+              </button>
+            </form>
+            <p class="text-white/40 text-xs">Sem spam. Cancele quando quiser com um clique.</p>
+          </div>
+
+          <!-- Quiz Teaser -->
+          <a href="https://pay.hotmart.com/K103806991N?off=vyqym0gx&checkoutMode=10" target="_blank" rel="noopener" class="card-hover block bg-brand-card border border-brand-gold/20 rounded-2xl p-8 text-center relative overflow-hidden group">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 bg-brand-gold/5 blur-3xl rounded-full"></div>
+            <div class="relative">
+              <div class="text-4xl mb-4">🧠</div>
+              <p class="text-xl font-black text-white mb-2">Será que você tem <span class="text-brand-gold">TDAH?</span></p>
+              <p class="text-white/60 text-sm mb-4">Triagem baseada em neurociência. 25 minutos. Resultado em 24h.</p>
+              <span class="inline-block gold-btn text-brand-dark px-6 py-2.5 rounded-lg font-bold text-sm group-hover:brightness-110 transition">
+                Fazer o MAPA →
+              </span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ FAQ ═══════════════ -->
+    <section id="faq" class="py-16 md:py-24 section-dark">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6">
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-black text-white text-center mb-12">
+          Perguntas que <span class="text-brand-gold">sempre aparecem</span>
+        </h2>
+        <div class="space-y-3">
+          <div class="faq-item bg-brand-card border border-brand-border rounded-xl overflow-hidden">
+            <button class="faq-toggle w-full px-6 py-5 text-left flex items-center justify-between" aria-expanded="false">
+              <span class="font-semibold text-white pr-4">TDAH adulto existe mesmo ou é coisa da internet?</span>
+              <svg class="faq-chevron w-5 h-5 text-brand-gold flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-content hidden px-6 pb-5">
+              <p class="text-white/70 leading-relaxed">Existe. Tá no DSM-5-TR, na CID-11, e afeta entre 2 a 5% dos adultos. A diferença é que adulto aprendeu a disfarçar. O cérebro continua funcionando do mesmo jeito, só que agora com 30 anos de estratégias de compensação empilhadas.</p>
+            </div>
+          </div>
+
+          <div class="faq-item bg-brand-card border border-brand-border rounded-xl overflow-hidden">
+            <button class="faq-toggle w-full px-6 py-5 text-left flex items-center justify-between" aria-expanded="false">
+              <span class="font-semibold text-white pr-4">Preciso de diagnóstico formal pra começar?</span>
+              <svg class="faq-chevron w-5 h-5 text-brand-gold flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-content hidden px-6 pb-5">
+              <p class="text-white/70 leading-relaxed">Não precisa esperar um laudo pra começar a se entender melhor. Os conteúdos gratuitos no YouTube são um ótimo ponto de partida. Se você quer algo mais estruturado, o MAPA foi feito justamente pra essa fase de "será que é isso?".</p>
+            </div>
+          </div>
+
+          <div class="faq-item bg-brand-card border border-brand-border rounded-xl overflow-hidden">
+            <button class="faq-toggle w-full px-6 py-5 text-left flex items-center justify-between" aria-expanded="false">
+              <span class="font-semibold text-white pr-4">O MAPA substitui uma consulta com psicólogo?</span>
+              <svg class="faq-chevron w-5 h-5 text-brand-gold flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-content hidden px-6 pb-5">
+              <p class="text-white/70 leading-relaxed">Nunca. O MAPA é uma triagem baseada em neurociência, não um diagnóstico. Ele te dá um panorama claro dos seus padrões e te orienta sobre se faz sentido buscar avaliação profissional. Pense nele como o GPS antes da viagem.</p>
+            </div>
+          </div>
+
+          <div class="faq-item bg-brand-card border border-brand-border rounded-xl overflow-hidden">
+            <button class="faq-toggle w-full px-6 py-5 text-left flex items-center justify-between" aria-expanded="false">
+              <span class="font-semibold text-white pr-4">Qual a diferença entre seus conteúdos e os de outros perfis sobre TDAH?</span>
+              <svg class="faq-chevron w-5 h-5 text-brand-gold flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-content hidden px-6 pb-5">
+              <p class="text-white/70 leading-relaxed">Neurociência de verdade, sem romantizar nem assustar. Eu pesquiso isso no laboratório e aplico no consultório. Aqui você não vai ouvir que TDAH é superpoder. Também não vai ouvir que é sentença. Você vai ouvir o que a ciência diz, traduzido pra sua vida real.</p>
+            </div>
+          </div>
+
+          <div class="faq-item bg-brand-card border border-brand-border rounded-xl overflow-hidden">
+            <button class="faq-toggle w-full px-6 py-5 text-left flex items-center justify-between" aria-expanded="false">
+              <span class="font-semibold text-white pr-4">O MAPA funciona pra quem já toma medicação?</span>
+              <svg class="faq-chevron w-5 h-5 text-brand-gold flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-content hidden px-6 pb-5">
+              <p class="text-white/70 leading-relaxed">Sim. O MAPA mapeia padrões dopaminérgicos independente de você estar ou não em tratamento. Muita gente usa pra entender melhor o que a medicação tá fazendo (ou deixando de fazer) e ter uma conversa mais produtiva com o psiquiatra.</p>
+            </div>
+          </div>
+
+          <div class="faq-item bg-brand-card border border-brand-border rounded-xl overflow-hidden">
+            <button class="faq-toggle w-full px-6 py-5 text-left flex items-center justify-between" aria-expanded="false">
+              <span class="font-semibold text-white pr-4">Como acompanho seus conteúdos novos?</span>
+              <svg class="faq-chevron w-5 h-5 text-brand-gold flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="faq-content hidden px-6 pb-5">
+              <p class="text-white/70 leading-relaxed">O YouTube é o canal principal, com vídeos novos toda semana. Se preferir receber direto no email, assine a newsletter mais acima. O LinkedIn tem reflexões mais curtas sobre neurociência e comportamento profissional.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ CTA FINAL ═══════════════ -->
+    <section class="py-16 md:py-24 section-green relative overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-to-b from-brand-gold/5 to-transparent"></div>
+      <div class="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-4">
+          Pronto pra entender <span class="text-brand-gold">seu cérebro?</span>
+        </h2>
+        <p class="text-lg text-white/60 mb-10">Escolha seu caminho. Sem pressa, sem pressão.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="https://pay.hotmart.com/K103806991N?off=vyqym0gx&checkoutMode=10" target="_blank" rel="noopener" class="gold-btn text-brand-dark px-10 py-4 rounded-xl font-black text-lg">
+            Fazer meu MAPA →
+          </a>
+          <a href="https://youtube.com/@brunosallesphd" target="_blank" rel="noopener" class="border-2 border-brand-gold/50 text-brand-gold px-10 py-4 rounded-xl font-bold text-lg hover:bg-brand-gold hover:text-brand-dark transition">
+            Assistir no YouTube
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════ FOOTER ═══════════════ -->
+  <footer class="bg-brand-surface border-t border-brand-border py-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="grid md:grid-cols-3 gap-8 mb-8">
+        <div>
+          <p class="text-white font-bold text-lg mb-2">Dr. Bruno Salles<span class="text-brand-gold">, PhD</span></p>
+          <p class="text-white/50 text-sm mb-4">Neurociência que sai do paper e chega na sua vida.</p>
+          <!-- Social Icons -->
+          <div class="flex gap-3">
+            <a href="https://youtube.com/@brunosallesphd" target="_blank" rel="noopener" class="w-9 h-9 rounded-lg bg-brand-card border border-brand-border flex items-center justify-center text-white/50 hover:text-red-500 hover:border-red-500/30 transition" aria-label="YouTube">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </a>
+            <a href="https://instagram.com/brunosallesphd" target="_blank" rel="noopener" class="w-9 h-9 rounded-lg bg-brand-card border border-brand-border flex items-center justify-center text-white/50 hover:text-pink-500 hover:border-pink-500/30 transition" aria-label="Instagram">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+            </a>
+            <a href="https://linkedin.com/in/dr-bruno-m-salles-ph-d-7113b1a6" target="_blank" rel="noopener" class="w-9 h-9 rounded-lg bg-brand-card border border-brand-border flex items-center justify-center text-white/50 hover:text-blue-500 hover:border-blue-500/30 transition" aria-label="LinkedIn">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            </a>
+          </div>
+        </div>
+        <div>
+          <p class="text-white font-semibold text-sm mb-3">Navegação</p>
+          <div class="space-y-2">
+            <a href="#conteudo" class="block text-white/50 text-sm hover:text-brand-gold transition">Conteúdo</a>
+            <a href="#sobre" class="block text-white/50 text-sm hover:text-brand-gold transition">Sobre</a>
+            <a href="#mapa" class="block text-white/50 text-sm hover:text-brand-gold transition">MAPA-7P</a>
+            <a href="#faq" class="block text-white/50 text-sm hover:text-brand-gold transition">FAQ</a>
+            <a href="https://doctoralia.com.br/bruno-m-salles/psicologo" target="_blank" rel="noopener" class="block text-white/50 text-sm hover:text-brand-gold transition">Doctoralia</a>
+          </div>
+        </div>
+        <div>
+          <p class="text-white font-semibold text-sm mb-3">Contato</p>
+          <a href="https://beacons.ai/brunosallesphd" target="_blank" rel="noopener" class="block text-white/50 text-sm hover:text-brand-gold transition mb-2">beacons.ai/brunosallesphd</a>
+          <p class="text-white/30 text-xs mt-4">CRP 05/52904</p>
+        </div>
+      </div>
+      <div class="border-t border-brand-border pt-6">
+        <p class="text-white/30 text-xs text-center leading-relaxed">
+          Este site tem caráter educativo e informativo. O conteúdo não substitui avaliação, diagnóstico ou tratamento profissional. Em caso de emergência, procure atendimento especializado.
+        </p>
+        <p class="text-white/30 text-xs text-center mt-3">
+          © 2026 Dr. Bruno Salles, PhD. Todos os direitos reservados.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Sticky CTA Mobile -->
+  <div id="sticky-cta" class="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-brand-dark/95 backdrop-blur-md border-t border-brand-gold/20 px-4 py-3 translate-y-full transition-transform duration-300">
+    <a href="https://pay.hotmart.com/K103806991N?off=vyqym0gx&checkoutMode=10" target="_blank" rel="noopener" class="block gold-btn text-brand-dark text-center py-3 rounded-xl font-bold text-sm">
+      Conhecer o MAPA →
+    </a>
+  </div>
+
+  <!-- JavaScript: FAQ Accordion + Mobile Menu -->
+  <script>
+    // FAQ Accordion
+    document.querySelectorAll('.faq-toggle').forEach(button => {
+      button.addEventListener('click', () => {
+        const item = button.closest('.faq-item');
+        const content = item.querySelector('.faq-content');
+        const chevron = item.querySelector('.faq-chevron');
+        const isOpen = !content.classList.contains('hidden');
+
+        document.querySelectorAll('.faq-content').forEach(c => c.classList.add('hidden'));
+        document.querySelectorAll('.faq-chevron').forEach(c => c.style.transform = '');
+        document.querySelectorAll('.faq-toggle').forEach(b => b.setAttribute('aria-expanded', 'false'));
+
+        if (!isOpen) {
+          content.classList.remove('hidden');
+          chevron.style.transform = 'rotate(180deg)';
+          button.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    menuToggle.addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
+    mobileMenu.querySelectorAll('a').forEach(link => { link.addEventListener('click', () => { mobileMenu.classList.add('hidden'); }); });
+
+    // Animated counters
+    function animateCounter(el, target, suffix = '') {
+      const duration = 1500;
+      const start = performance.now();
+      const update = (now) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+        const current = Math.floor(eased * target);
+        el.textContent = (target >= 1000 ? current.toLocaleString('pt-BR') : current) + suffix;
+        if (progress < 1) requestAnimationFrame(update);
+      };
+      requestAnimationFrame(update);
+    }
+
+    const counterMap = [
+      { selector: '[data-counter="subscribers"]', target: 40, suffix: 'k' },
+      { selector: '[data-counter="views"]', target: 1.3, suffix: 'M+', isDecimal: true },
+      { selector: '[data-counter="sessions"]', target: 10000, suffix: '+' },
+    ];
+
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          counterMap.forEach(({ selector, target, suffix, isDecimal }) => {
+            const el = document.querySelector(selector);
+            if (!el || el.dataset.animated) return;
+            el.dataset.animated = 'true';
+            if (isDecimal) {
+              const dur = 1500; const s = performance.now();
+              const up = (now) => {
+                const p = Math.min((now - s) / dur, 1);
+                const e = 1 - Math.pow(1 - p, 3);
+                el.textContent = (e * target).toFixed(1) + suffix;
+                if (p < 1) requestAnimationFrame(up);
+              };
+              requestAnimationFrame(up);
+            } else {
+              animateCounter(el, target, suffix);
+            }
+          });
+          counterObserver.disconnect();
+        }
+      });
+    }, { threshold: 0.3 });
+
+    const proofBar = document.querySelector('[data-counter="subscribers"]');
+    if (proofBar) counterObserver.observe(proofBar.closest('section'));
+
+    // Sticky CTA on mobile — show after scrolling past hero
+    const stickyCta = document.getElementById('sticky-cta');
+    if (stickyCta) {
+      const heroSection = document.getElementById('hero');
+      const stickyObserver = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) {
+          stickyCta.style.transform = 'translateY(0)';
+        } else {
+          stickyCta.style.transform = 'translateY(100%)';
+        }
+      }, { threshold: 0.1 });
+      if (heroSection) stickyObserver.observe(heroSection);
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAPA | P14 - Box de Preço</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-card: #141414;
+            --bg-card-inner: #1a1a1a;
+            
+            --gold: #d4a849;
+            --gold-bright: #f0c96b;
+            --gold-dim: #a07d2e;
+            --gold-border: rgba(212, 168, 73, 0.4);
+            --gold-glow: rgba(212, 168, 73, 0.15);
+            
+            --green-check: #4ade80;
+            
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            
+            --gradient-gold: linear-gradient(135deg, var(--gold-dim) 0%, var(--gold) 50%, var(--gold-bright) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Textura de noise */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.025;
+            z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* =============================================
+           SEÇÃO BOX DE PREÇO
+           ============================================= */
+        .secao-preco {
+            padding: 80px 0 100px;
+            background: var(--bg-dark);
+        }
+
+        /* Card Principal */
+        .preco-card {
+            background: var(--bg-card);
+            border: 2px solid var(--gold-border);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Glow sutil no topo */
+        .preco-card::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 200px;
+            background: radial-gradient(ellipse, var(--gold-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Header do Card */
+        .preco-header {
+            padding: 32px 32px 24px;
+            text-align: center;
+            position: relative;
+        }
+
+        .preco-badge {
+            display: inline-block;
+            background: var(--gradient-gold);
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 6px 14px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+
+        .preco-titulo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .preco-subtitulo {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* Box de Economia (frame do Print 2) */
+        .economia-box {
+            margin: 0 24px 24px;
+            padding: 20px;
+            background: var(--bg-card-inner);
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(74, 222, 128, 0.2);
+        }
+
+        .economia-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .economia-valor {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--green-check);
+            margin-bottom: 4px;
+        }
+
+        .economia-detalhe {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Bloco de Preço */
+        .preco-bloco {
+            padding: 0 32px 28px;
+            text-align: center;
+        }
+
+        .preco-de {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .preco-de span {
+            text-decoration: line-through;
+        }
+
+        .preco-por {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .preco-valor {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .preco-valor small {
+            font-size: 1.3rem;
+            font-weight: 700;
+            vertical-align: top;
+            margin-right: 2px;
+        }
+
+        .preco-off {
+            background: rgba(74, 222, 128, 0.15);
+            color: var(--green-check);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .preco-parcelado {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Separador */
+        .preco-separador {
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+            margin: 0 32px;
+        }
+
+        /* Lista de Entregáveis (4 itens) */
+        .entregaveis {
+            padding: 28px 32px;
+        }
+
+        .entregaveis-lista {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .entregaveis-lista li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .entregaveis-lista li::before {
+            content: '✓';
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .entregaveis-lista li strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* CTA */
+        .preco-cta-wrapper {
+            padding: 0 24px 28px;
+        }
+
+        .preco-cta {
+            display: block;
+            width: 100%;
+            padding: 20px 32px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #000;
+            background: var(--gradient-gold);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 25px rgba(212, 168, 73, 0.35);
+        }
+
+        .preco-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 35px rgba(212, 168, 73, 0.5);
+        }
+
+        /* Garantia */
+        .preco-garantia {
+            padding: 20px 24px;
+            background: var(--bg-card-inner);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .preco-garantia-icon {
+            width: 24px;
+            height: 24px;
+        }
+
+        .preco-garantia-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: var(--gold);
+        }
+
+        .preco-garantia-texto {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .preco-garantia-texto strong {
+            color: var(--text-primary);
+        }
+
+        /* Pagamento */
+        .preco-pagamento {
+            padding: 16px 24px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* =============================================
+           RESPONSIVO
+           ============================================= */
+        @media (max-width: 768px) {
+            .secao-preco {
+                padding: 60px 0 80px;
+            }
+
+            .container {
+                padding: 0 20px;
+            }
+
+            .preco-header {
+                padding: 28px 24px 20px;
+            }
+
+            .preco-titulo {
+                font-size: 1.25rem;
+            }
+
+            .economia-box {
+                margin: 0 20px 20px;
+                padding: 18px 16px;
+            }
+
+            .economia-valor {
+                font-size: 1.05rem;
+            }
+
+            .preco-bloco {
+                padding: 0 24px 24px;
+            }
+
+            .preco-valor {
+                font-size: 3rem;
+            }
+
+            .entregaveis {
+                padding: 24px;
+            }
+
+            .entregaveis-lista li {
+                font-size: 0.9rem;
+            }
+
+            .preco-cta-wrapper {
+                padding: 0 20px 24px;
+            }
+
+            .preco-cta {
+                padding: 18px 28px;
+                font-size: 1.05rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =============================================
+         P14 - SEÇÃO BOX DE PREÇO
+         ============================================= -->
+    <section class="secao-preco" id="preco">
+        <div class="container">
+            
+            <div class="preco-card">
+                
+                <!-- Header -->
+                <div class="preco-header">
+                    <span class="preco-badge">✦ Acesso Imediato</span>
+                    <h2 class="preco-titulo">Triagem Completa MAPA</h2>
+                    <p class="preco-subtitulo">Clareza sobre TDAH em 25 minutos</p>
+                </div>
+
+                <!-- Box de Economia -->
+                <div class="economia-box">
+                    <p class="economia-label">Você economiza</p>
+                    <p class="economia-valor">R$350 + potencialmente R$2.000+</p>
+                    <p class="economia-detalhe">em consultas desnecessárias</p>
+                </div>
+
+                <!-- Bloco de Preço -->
+                <div class="preco-bloco">
+                    <p class="preco-de">De <span>R$497</span> por apenas</p>
+                    <div class="preco-por">
+                        <span class="preco-valor"><small>R$</small>147</span>
+                        <span class="preco-off">70% OFF</span>
+                    </div>
+                    <p class="preco-parcelado">ou 12x de R$14,63</p>
+                </div>
+
+                <div class="preco-separador"></div>
+
+                <!-- Entregáveis (4 itens) -->
+                <div class="entregaveis">
+                    <ul class="entregaveis-lista">
+                        <li><strong>2 Relatórios Personalizados</strong> (~25 páginas total)</li>
+                        <li><strong>Mapeamento dos 7 Padrões Funcionais</strong></li>
+                        <li><strong>Triagem de Comorbidades</strong> (ansiedade, depressão, TEA, sono)</li>
+                        <li><strong>Direção clara do próximo passo</strong> pro seu caso específico</li>
+                    </ul>
+                </div>
+
+                <!-- CTA -->
+                <div class="preco-cta-wrapper">
+                    <a href="#checkout" class="preco-cta">FAZER O MAPA AGORA →</a>
+                </div>
+
+                <!-- Garantia -->
+                <div class="preco-garantia">
+                    <div class="preco-garantia-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <p class="preco-garantia-texto"><strong>Garantia de 7 dias.</strong> Não gostou? Devolvo cada centavo.</p>
+                </div>
+
+                <!-- Pagamento -->
+                <p class="preco-pagamento">Pagamento seguro via cartão, PIX ou boleto • Processado pela Hotmart</p>
+
+            </div>
+
+        </div>
+    </section>
+
+</body>
+</html>

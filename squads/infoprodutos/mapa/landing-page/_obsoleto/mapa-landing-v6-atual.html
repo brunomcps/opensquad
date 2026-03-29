@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAPA - Descubra Se Você Tem TDAH em 25 Minutos | Dr. Bruno Salles</title>
+    <meta name="description" content="Triagem de TDAH adulto em 25 minutos. Sem gastar R$2.000 em consultas. Sem esperar meses. Desenvolvido por psicólogo clínico e PhD em Neurociências.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Cores */
+            --color-bg: #0a0908;
+            --color-bg-elevated: #12110e;
+            --color-bg-card: #1a1814;
+            --color-bg-green: #1a2f2a;
+            
+            /* Dourados */
+            --color-gold: #c9a227;
+            --color-gold-light: #d4af37;
+            --color-gold-bright: #e8c252;
+            --color-gold-pale: #f5dea3;
+            
+            /* Amarelo TDAH */
+            --color-yellow: #f5c518;
+            
+            /* Verdes */
+            --color-green: #4a7c59;
+            --color-green-light: #5a9c6a;
+            
+            /* Vermelho */
+            --color-red: #8b4444;
+            --color-red-light: #a65555;
+            
+            /* Textos */
+            --color-text: #f5f0e8;
+            --color-text-muted: #a69f94;
+            --color-text-dark: #6b6560;
+            
+            /* Bordas */
+            --color-border: rgba(201, 162, 39, 0.15);
+            --color-border-gold: rgba(201, 162, 39, 0.4);
+            
+            /* Fontes */
+            --font-display: 'Libre Baskerville', Georgia, serif;
+            --font-body: 'Source Sans Pro', -apple-system, sans-serif;
+            
+            --max-width: 900px;
+            --section-padding: 80px 24px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.75;
+            font-size: 18px;
+            overflow-x: hidden;
+        }
+
+        /* Textura sutil */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            font-family: var(--font-display);
+            font-weight: 700;
+            line-height: 1.3;
+            color: var(--color-text);
+        }
+
+        h1 {
+            font-size: clamp(2.2rem, 5vw, 3.5rem);
+            letter-spacing: -0.01em;
+        }
+
+        h2 {
+            font-size: clamp(1.6rem, 4vw, 2.4rem);
+            margin-bottom: 1.5rem;
+        }
+
+        h3 {
+            font-size: clamp(1.3rem, 3vw, 1.7rem);
+            margin-bottom: 1rem;
+        }
+
+        p {
+            margin-bottom: 1.25rem;
+        }
+
+        .highlight {
+            color: var(--color-yellow);
+        }
+
+        .highlight-gold {
+            color: var(--color-gold-light);
+        }
+
+        .text-muted {
+            color: var(--color-text-muted);
+        }
+
+        /* Section Label */
+        .section-label {
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            color: var(--color-gold);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* Decorative line */
+        .decorative-line {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .decorative-line::before,
+        .decorative-line::after {
+            content: '';
+            height: 1px;
+            width: 60px;
+            background: linear-gradient(90deg, transparent, var(--color-gold), transparent);
+        }
+
+        .decorative-line .ornament {
+            color: var(--color-gold);
+            font-size: 18px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 20px 48px;
+            font-family: var(--font-body);
+            font-size: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 50%, var(--color-gold) 100%);
+            background-size: 200% 200%;
+            color: #0a0908;
+            box-shadow: 0 4px 24px rgba(201, 162, 39, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+            border: 1px solid var(--color-gold-light);
+        }
+
+        .btn-primary:hover {
+            background-position: 100% 100%;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(201, 162, 39, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .btn-price {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        /* Sections */
+        section {
+            padding: var(--section-padding);
+            position: relative;
+        }
+
+        .section-elevated {
+            background: var(--color-bg-elevated);
+        }
+
+        .section-green {
+            background: linear-gradient(180deg, var(--color-bg-green) 0%, var(--color-bg) 100%);
+        }
+
+        /* Fade in animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ==================== HERO ==================== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 100px 24px 60px;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(ellipse at center, rgba(201, 162, 39, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 850px;
+        }
+
+        .hero h1 {
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-exclusions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px 24px;
+            margin-bottom: 2rem;
+        }
+
+        .hero-exclusions span {
+            color: var(--color-gold-light);
+            font-size: 1.1rem;
+        }
+
+        /* Video Container */
+        .hero-video-container {
+            width: 100%;
+            max-width: 720px;
+            margin: 2rem auto;
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid var(--color-border-gold);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-video-placeholder {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, var(--color-bg-card) 0%, var(--color-bg-elevated) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            color: var(--color-text-muted);
+        }
+
+        .hero-video-placeholder .play-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--color-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--color-bg);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hero-video-placeholder .play-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(201, 162, 39, 0.5);
+        }
+
+        .hero-video-placeholder p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Badges */
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px 32px;
+            margin-top: 1.5rem;
+        }
+
+        .hero-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+        }
+
+        .hero-badge .icon {
+            color: var(--color-green-light);
+        }
+
+        /* ==================== PAIN QUESTIONS ==================== */
+        .pain-questions {
+            text-align: center;
+        }
+
+        .pain-questions h2 {
+            margin-bottom: 2.5rem;
+        }
+
+        .questions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 3rem;
+        }
+
+        .question-card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 24px;
+            text-align: left;
+            transition: border-color 0.3s ease;
+        }
+
+        .question-card:hover {
+            border-color: var(--color-border-gold);
+        }
+
+        .question-card p {
+            margin: 0;
+            color: var(--color-text-muted);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .validation-box {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border-gold);
+            border-radius: 8px;
+            padding: 32px 40px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .validation-box p {
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        .validation-box p:last-child {
+            margin-bottom: 0;
+            color: var(--color-gold-pale);
+            font-style: italic;
+        }
+
+        /* ==================== COST PROBLEM ==================== */
+        .cost-problem h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .cost-problem-content {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .cost-journey {
+            list-style: none;
+            margin: 2rem 0;
+        }
+
+        .cost-journey li {
+            padding: 12px 0;
+            padding-left: 28px;
+            position: relative;
+            color: var(--color-text-muted);
+        }
+
+        .cost-journey li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--color-gold);
+        }
+
+        /* Cost Comparison Box */
+        .cost-comparison {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 32px;
+            margin: 2.5rem 0;
+        }
+
+        .cost-comparison h4 {
+            text-align: center;
+            font-family: var(--font-body);
+            font-weight: 700;
+            color: var(--color-text-muted);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .cost-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .cost-item:last-child {
+            border-bottom: none;
+        }
+
+        .cost-item span:first-child {
+            color: var(--color-text-muted);
+        }
+
+        .cost-item span:last-child {
+            color: var(--color-text-dark);
+            text-decoration: line-through;
+        }
+
+        .cost-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 16px;
+            border-top: 2px solid var(--color-red);
+            margin-top: 8px;
+        }
+
+        .cost-total span:first-child {
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        .cost-total span:last-child {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-red-light);
+        }
+
+        .cost-extras {
+            text-align: center;
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            margin-top: 1rem;
+        }
+
+        /* ==================== SOLUTION INTRO ==================== */
+        .solution-intro {
+            text-align: center;
+            background: linear-gradient(180deg, var(--color-bg-green) 0%, var(--color-bg) 100%);
+        }
+
+        .solution-intro h2 {
+            margin-bottom: 2rem;
+        }
+
+        .solution-benefits {
+            list-style: none;
+            margin: 2rem 0;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .solution-benefits li {
+            padding: 8px 0;
+            color: var(--color-gold-pale);
+            font-size: 1.15rem;
+        }
+
+        .mapa-reveal {
+            margin-top: 2.5rem;
+        }
+
+        .mapa-name {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: var(--color-gold-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .mapa-full-name {
+            color: var(--color-text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* ==================== 7 PATTERNS ==================== */
+        .patterns {
+            text-align: center;
+        }
+
+        .patterns h2 {
+            margin-bottom: 1rem;
+        }
+
+        .patterns-intro {
+            max-width: 650px;
+            margin: 0 auto 3rem;
+            color: var(--color-text-muted);
+        }
+
+        .patterns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 2.5rem;
+        }
+
+        .pattern-card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 28px;
+            text-align: left;
+            transition: border-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .pattern-card:hover {
+            border-color: var(--color-border-gold);
+            transform: translateY(-4px);
+        }
+
+        .pattern-number {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--color-bg);
+            margin-bottom: 12px;
+        }
+
+        .pattern-title {
+            font-family: var(--font-body);
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--color-text);
+            margin-bottom: 8px;
+        }
+
+        .pattern-quote {
+            font-family: var(--font-display);
+            font-style: italic;
+            color: var(--color-gold-pale);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .pattern-description {
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .patterns-footer {
+            background: var(--color-bg-elevated);
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        .patterns-footer p {
+            margin: 0;
+            color: var(--color-text-muted);
+        }
+
+        .patterns-footer strong {
+            color: var(--color-gold-pale);
+        }
+
+        /* ==================== WHAT YOU GET ==================== */
+        .what-you-get h2 {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .what-you-get-intro {
+            text-align: center;
+            color: var(--color-text-muted);
+            margin-bottom: 2.5rem;
+        }
+
+        /* Report Cards */
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 2.5rem;
+        }
+
+        .report-card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .report-card-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .report-card.personal .report-card-header {
+            background: linear-gradient(135deg, rgba(74, 124, 89, 0.2) 0%, rgba(74, 124, 89, 0.05) 100%);
+        }
+
+        .report-card.clinical .report-card-header {
+            background: linear-gradient(135deg, rgba(201, 162, 39, 0.2) 0%, rgba(201, 162, 39, 0.05) 100%);
+        }
+
+        .report-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .report-card h4 {
+            font-family: var(--font-body);
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        .report-meta {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+        }
+
+        .report-card-body {
+            padding: 24px;
+        }
+
+        .report-card-body ul {
+            list-style: none;
+        }
+
+        .report-card-body li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+        }
+
+        .report-card-body li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--color-green-light);
+            font-weight: 700;
+        }
+
+        .report-card-footer {
+            padding: 16px 24px;
+            background: var(--color-bg-elevated);
+            color: var(--color-gold-pale);
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        /* Mockup Placeholder */
+        .mockup-placeholder {
+            background: var(--color-bg-card);
+            border: 2px dashed var(--color-border-gold);
+            border-radius: 12px;
+            padding: 48px;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .mockup-placeholder p {
+            color: var(--color-text-muted);
+            margin: 0;
+        }
+
+        .mockup-placeholder .icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        /* ==================== PROCESS ==================== */
+        .process {
+            text-align: center;
+        }
+
+        .process h2 {
+            margin-bottom: 2.5rem;
+        }
+
+        .process-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+        }
+
+        .process-step {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            text-align: left;
+        }
+
+        .step-number {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--color-bg);
+            flex-shrink: 0;
+        }
+
+        .step-content h4 {
+            font-family: var(--font-body);
+            font-weight: 700;
+            font-size: 1.15rem;
+            margin-bottom: 6px;
+        }
+
+        .step-content p {
+            margin-bottom: 0;
+            color: var(--color-text-muted);
+        }
+
+        .process-summary {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            flex-wrap: wrap;
+            margin-bottom: 2.5rem;
+        }
+
+        .process-stat {
+            text-align: center;
+        }
+
+        .process-stat .number {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-gold-light);
+        }
+
+        .process-stat .label {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* ==================== AUTHORITY ==================== */
+        .authority {
+            text-align: center;
+        }
+
+        .authority h2 {
+            margin-bottom: 2.5rem;
+        }
+
+        .authority-card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border-gold);
+            border-radius: 12px;
+            padding: 48px 40px;
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        .authority-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 600px) {
+            .authority-header {
+                flex-direction: row;
+                text-align: left;
+            }
+        }
+
+        /* Photo Placeholder */
+        .authority-photo {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--color-bg);
+            border: 3px solid var(--color-gold);
+            flex-shrink: 0;
+            text-align: center;
+            padding: 16px;
+        }
+
+        .authority-info h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+
+        .authority-title {
+            color: var(--color-gold-light);
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .authority-crp {
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Credentials */
+        .authority-credentials {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .authority-credentials li {
+            padding: 10px 0;
+            padding-left: 28px;
+            position: relative;
+            color: var(--color-text-muted);
+        }
+
+        .authority-credentials li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--color-gold);
+        }
+
+        /* Stats */
+        .authority-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            padding: 24px 0;
+            border-top: 1px solid var(--color-border);
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 2rem;
+        }
+
+        .authority-stat {
+            text-align: center;
+        }
+
+        .authority-stat .number {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--color-gold-light);
+        }
+
+        .authority-stat .label {
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Institution Logos Placeholder */
+        .institutions-placeholder {
+            background: var(--color-bg-elevated);
+            border: 1px dashed var(--color-border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 2rem;
+        }
+
+        .institutions-placeholder p {
+            margin: 0;
+            color: var(--color-text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Quote */
+        .authority-quote {
+            font-family: var(--font-display);
+            font-style: italic;
+            color: var(--color-text-muted);
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .authority-quote::before {
+            content: '"';
+            color: var(--color-gold);
+            font-size: 2rem;
+            line-height: 0;
+            vertical-align: -0.3em;
+            margin-right: 4px;
+        }
+
+        /* ==================== SOCIAL PROOF ==================== */
+        .social-proof {
+            text-align: center;
+        }
+
+        .social-proof h2 {
+            margin-bottom: 0.75rem;
+        }
+
+        .social-proof-intro {
+            color: var(--color-text-muted);
+            margin-bottom: 2.5rem;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+
+        .testimonial-card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 24px;
+            text-align: left;
+        }
+
+        /* Screenshot Placeholder */
+        .testimonial-screenshot {
+            background: var(--color-bg-elevated);
+            border: 1px dashed var(--color-border);
+            border-radius: 4px;
+            padding: 16px;
+            margin-bottom: 12px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .testimonial-screenshot p {
+            margin: 0;
+            color: var(--color-text-dark);
+            font-size: 0.85rem;
+        }
+
+        .testimonial-card blockquote {
+            font-family: var(--font-display);
+            font-style: italic;
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0 0 12px 0;
+        }
+
+        .testimonial-likes {
+            color: var(--color-text-dark);
+            font-size: 0.85rem;
+        }
+
+        .social-proof-note {
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* ==================== FOR WHO ==================== */
+        .for-who h2 {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .for-who-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 700px) {
+            .for-who-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .for-who-card {
+            background: var(--color-bg-card);
+            border-radius: 8px;
+            padding: 32px;
+        }
+
+        .for-who-card.yes {
+            border: 1px solid rgba(74, 124, 89, 0.4);
+        }
+
+        .for-who-card.no {
+            border: 1px solid rgba(139, 68, 68, 0.4);
+        }
+
+        .for-who-card h4 {
+            font-family: var(--font-body);
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .for-who-card.yes h4 {
+            color: var(--color-green-light);
+        }
+
+        .for-who-card.no h4 {
+            color: var(--color-red-light);
+        }
+
+        .for-who-card ul {
+            list-style: none;
+        }
+
+        .for-who-card li {
+            padding: 10px 0;
+            padding-left: 28px;
+            position: relative;
+            color: var(--color-text-muted);
+            font-size: 1rem;
+        }
+
+        .for-who-card.yes li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--color-green-light);
+            font-weight: 700;
+        }
+
+        .for-who-card.no li::before {
+            content: '✗';
+            position: absolute;
+            left: 0;
+            color: var(--color-red-light);
+            font-weight: 700;
+        }
+
+        /* ==================== PRICING ==================== */
+        .pricing {
+            text-align: center;
+        }
+
+        .pricing h2 {
+            margin-bottom: 2.5rem;
+        }
+
+        /* Anchor Pricing */
+        .pricing-anchor {
+            max-width: 450px;
+            margin: 0 auto 3rem;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 24px 32px;
+        }
+
+        .pricing-anchor h4 {
+            font-family: var(--font-body);
+            font-weight: 700;
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 16px;
+        }
+
+        .pricing-anchor-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+        }
+
+        .pricing-anchor-item:last-child {
+            border-bottom: none;
+        }
+
+        .pricing-anchor-item span:last-child {
+            color: var(--color-text-dark);
+            text-decoration: line-through;
+        }
+
+        /* Pricing Card */
+        .pricing-card {
+            background: var(--color-bg-card);
+            border: 2px solid var(--color-gold);
+            border-radius: 12px;
+            padding: 48px 40px;
+            max-width: 550px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-light) 50%, var(--color-gold) 100%);
+            border-radius: 12px;
+            z-index: -1;
+            opacity: 0.15;
+        }
+
+        .pricing-value {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 8vw, 4rem);
+            font-weight: 700;
+            color: var(--color-gold-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-value span {
+            font-size: 0.5em;
+            vertical-align: super;
+        }
+
+        .pricing-installment {
+            color: var(--color-text-muted);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pricing-tagline {
+            color: var(--color-text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        /* Stack */
+        .pricing-stack {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-stack li {
+            padding: 10px 0;
+            padding-left: 28px;
+            position: relative;
+            color: var(--color-text);
+        }
+
+        .pricing-stack li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--color-gold);
+        }
+
+        .pricing .btn {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Payment Badges */
+        .payment-badges {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .payment-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+        }
+
+        .payment-badge .icon {
+            color: var(--color-green-light);
+        }
+
+        /* ==================== GUARANTEE ==================== */
+        .guarantee {
+            text-align: center;
+            background: linear-gradient(180deg, var(--color-bg-green) 0%, var(--color-bg) 100%);
+        }
+
+        .guarantee h2 {
+            margin-bottom: 2rem;
+        }
+
+        .guarantee-content {
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        .guarantee-content p {
+            color: var(--color-text-muted);
+        }
+
+        .guarantee-quote {
+            font-family: var(--font-display);
+            font-style: italic;
+            font-size: 1.2rem;
+            color: var(--color-gold-pale);
+            padding: 24px;
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border-gold);
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .guarantee-badge {
+            background: var(--color-bg-card);
+            border: 1px dashed var(--color-border-gold);
+            border-radius: 8px;
+            padding: 24px;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .guarantee-badge .icon {
+            font-size: 2.5rem;
+        }
+
+        .guarantee-badge p {
+            margin: 0;
+            color: var(--color-gold-pale);
+            font-weight: 600;
+        }
+
+        /* ==================== FAQ ==================== */
+        .faq h2 {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .faq-list {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .faq-question {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            text-align: left;
+            font-family: var(--font-body);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--color-text);
+            transition: color 0.3s ease;
+        }
+
+        .faq-question:hover {
+            color: var(--color-gold-light);
+        }
+
+        .faq-icon {
+            font-size: 1.5rem;
+            color: var(--color-gold);
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-icon {
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+        }
+
+        .faq-answer-content {
+            padding: 0 0 24px;
+            color: var(--color-text-muted);
+            line-height: 1.7;
+        }
+
+        /* ==================== FINAL CTA ==================== */
+        .final-cta {
+            text-align: center;
+            padding: 100px 24px;
+            background: var(--color-bg-elevated);
+        }
+
+        .final-cta h2 {
+            margin-bottom: 1.5rem;
+        }
+
+        .final-cta-subtitle {
+            color: var(--color-text-muted);
+            font-size: 1.15rem;
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .final-price {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--color-gold-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .final-installment {
+            color: var(--color-text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .final-guarantee {
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            margin-top: 1.5rem;
+        }
+
+        .final-closing {
+            margin-top: 3rem;
+            color: var(--color-gold-pale);
+            font-size: 1.1rem;
+        }
+
+        /* ==================== FOOTER ==================== */
+        footer {
+            background: var(--color-bg);
+            padding: 48px 24px;
+            text-align: center;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .footer-logo {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            color: var(--color-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-tagline {
+            color: var(--color-gold);
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-disclaimer {
+            color: var(--color-text-dark);
+            font-size: 0.85rem;
+            max-width: 600px;
+            margin: 0 auto 1.5rem;
+            line-height: 1.6;
+        }
+
+        .footer-info {
+            color: var(--color-text-dark);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--color-text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--color-gold);
+        }
+
+        /* ==================== WHATSAPP FLOAT ==================== */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            background: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+            z-index: 999;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 28px rgba(37, 211, 102, 0.5);
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 600px) {
+            :root {
+                --section-padding: 60px 20px;
+            }
+
+            body {
+                font-size: 16px;
+            }
+
+            .btn {
+                padding: 18px 32px;
+                font-size: 14px;
+            }
+
+            .hero-exclusions {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .authority-card {
+                padding: 32px 24px;
+            }
+
+            .pricing-card {
+                padding: 32px 24px;
+            }
+
+            .patterns-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== HERO ==================== -->
+    <section class="hero">
+        <div class="hero-content">
+            <span class="section-label fade-in">Triagem de TDAH para Adultos</span>
+            
+            <h1 class="fade-in">Descubra Se Você Tem TDAH <br>em 25 Minutos</h1>
+            
+            <div class="hero-exclusions fade-in">
+                <span>Sem gastar R$2.000 em consultas</span>
+                <span>•</span>
+                <span>Sem esperar meses</span>
+                <span>•</span>
+                <span>Sem sair de casa</span>
+            </div>
+
+            <!-- VIDEO PLACEHOLDER -->
+            <div class="hero-video-container fade-in">
+                <div class="hero-video-placeholder">
+                    <div class="play-icon">▶</div>
+                    <p>📹 INSERIR VÍDEO DO BRUNO (~2 min)<br>Explicando o MAPA e pra quem é</p>
+                </div>
+                <!-- 
+                    SUBSTITUIR POR:
+                    <iframe 
+                        width="100%" 
+                        height="100%" 
+                        src="URL_DO_VIDEO" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                    </iframe>
+                -->
+            </div>
+
+            <a href="#pricing" class="btn btn-primary fade-in">
+                Quero Descobrir Agora <span class="btn-price">— R$147</span>
+            </a>
+
+            <div class="hero-badges fade-in">
+                <div class="hero-badge">
+                    <span class="icon">✓</span>
+                    <span>100% Online</span>
+                </div>
+                <div class="hero-badge">
+                    <span class="icon">✓</span>
+                    <span>Resultado Imediato</span>
+                </div>
+                <div class="hero-badge">
+                    <span class="icon">✓</span>
+                    <span>Garantia 7 Dias</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PAIN QUESTIONS ==================== -->
+    <section class="pain-questions section-elevated">
+        <div class="container">
+            <span class="section-label fade-in">Você se reconhece?</span>
+            <h2 class="fade-in">Se alguma dessas situações parece familiar, <br>esse mapeamento foi feito pra você</h2>
+
+            <div class="questions-grid">
+                <div class="question-card fade-in">
+                    <p>Você sabe exatamente o que precisa fazer, mas seu corpo simplesmente não obedece?</p>
+                </div>
+                <div class="question-card fade-in">
+                    <p>Já perdeu oportunidades, relacionamentos ou empregos por "erros bobos" que você não consegue parar de cometer?</p>
+                </div>
+                <div class="question-card fade-in">
+                    <p>Passa o dia inteiro cansado, mesmo sem fazer nada de especial, e não consegue explicar por quê?</p>
+                </div>
+                <div class="question-card fade-in">
+                    <p>Assiste vídeos sobre TDAH, se identifica com tudo, mas fica na dúvida se "é isso mesmo" ou se está exagerando?</p>
+                </div>
+                <div class="question-card fade-in">
+                    <p>Já gastou dinheiro com consultas, terapias e medicações que não resolveram nada porque ninguém acertou o diagnóstico?</p>
+                </div>
+                <div class="question-card fade-in">
+                    <p>Vive ouvindo que você é "inteligente, mas não se aplica" — e no fundo concorda, mas não sabe por quê?</p>
+                </div>
+            </div>
+
+            <div class="validation-box fade-in">
+                <p>Se você respondeu "sim" para pelo menos uma dessas perguntas, você está no lugar certo.</p>
+                <p>E não, você não está exagerando.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== COST PROBLEM ==================== -->
+    <section class="cost-problem">
+        <div class="container">
+            <span class="section-label fade-in">O preço da dúvida</span>
+            <h2 class="fade-in">Enquanto você fica na dúvida, <br>sua vida continua pagando o preço</h2>
+
+            <div class="cost-problem-content fade-in">
+                <p>Toda semana, adultos com suspeita de TDAH enfrentam o mesmo dilema:</p>
+                <p style="font-style: italic; color: var(--color-gold-pale);">"Será que eu tenho TDAH... ou é só preguiça mesmo?"</p>
+                
+                <p>O que acontece na prática:</p>
+
+                <ul class="cost-journey">
+                    <li>Você assiste vídeos no YouTube e se identifica com alguns sintomas</li>
+                    <li>Fica na dúvida se "é TDAH mesmo" ou se está exagerando</li>
+                    <li>Pensa em marcar consulta... mas adia</li>
+                    <li>Quando finalmente resolve ir, gasta R$500, R$800, às vezes mais de R$1.000</li>
+                    <li>E meses depois, ainda não tem resposta clara</li>
+                </ul>
+
+                <div class="cost-comparison">
+                    <h4>Quanto custa investigar TDAH hoje?</h4>
+                    <div class="cost-items">
+                        <div class="cost-item">
+                            <span>Consulta com psicólogo</span>
+                            <span>R$ 350</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>Consulta com psiquiatra</span>
+                            <span>R$ 500</span>
+                        </div>
+                        <div class="cost-item">
+                            <span>Avaliação neuropsicológica</span>
+                            <span>R$ 2.000+</span>
+                        </div>
+                    </div>
+                    <div class="cost-total">
+                        <span>TOTAL:</span>
+                        <span>R$ 2.850+</span>
+                    </div>
+                    <p class="cost-extras">+ semanas ou meses de espera<br>+ risco de diagnóstico errado</p>
+                </div>
+
+                <p>Enquanto isso, a autoculpa continua. Os relacionamentos continuam sofrendo. O potencial continua desperdiçado.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SOLUTION INTRO ==================== -->
+    <section class="solution-intro">
+        <div class="container">
+            <span class="section-label fade-in">A saída</span>
+            <h2 class="fade-in">Existe um jeito de sair da dúvida</h2>
+
+            <ul class="solution-benefits fade-in">
+                <li>Sem gastar uma fortuna</li>
+                <li>Sem esperar meses por uma consulta</li>
+                <li>Sem precisar explicar sua vida inteira pra um estranho</li>
+            </ul>
+
+            <p class="fade-in">Um primeiro passo que você consegue dar agora. Do sofá. Em 25 minutos.</p>
+
+            <div class="mapa-reveal fade-in">
+                <p class="mapa-name"><strong>MAPA</strong></p>
+                <p class="mapa-full-name">Mapeamento de Atenção e Padrões de Ação</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== 7 PATTERNS ==================== -->
+    <section class="patterns section-elevated">
+        <div class="container">
+            <span class="section-label fade-in">Exclusivo</span>
+            <h2 class="fade-in">Os 7 Padrões Funcionais do TDAH</h2>
+            <p class="patterns-intro fade-in">O MAPA não analisa apenas sintomas genéricos. Ele mapeia 7 padrões funcionais específicos que explicam POR QUE você trava, POR QUE você procrastina, e POR QUE as soluções "normais" nunca funcionaram pra você.</p>
+
+            <div class="patterns-grid">
+                <div class="pattern-card fade-in">
+                    <div class="pattern-number">1</div>
+                    <div class="pattern-title">Inércia Inicial</div>
+                    <div class="pattern-quote">"Travo e não consigo começar"</div>
+                    <p class="pattern-description">Seu cérebro precisa de um "empurrão" maior que o normal para iniciar qualquer tarefa. Não é preguiça. É química.</p>
+                </div>
+
+                <div class="pattern-card fade-in">
+                    <div class="pattern-number">2</div>
+                    <div class="pattern-title">Caça ao Prazer</div>
+                    <div class="pattern-quote">"Só funciono na pressão"</div>
+                    <p class="pattern-description">Seu sistema de recompensa precisa de urgência ou novidade para liberar dopamina suficiente. Deadline vira combustível.</p>
+                </div>
+
+                <div class="pattern-card fade-in">
+                    <div class="pattern-number">3</div>
+                    <div class="pattern-title">Cegueira Temporal</div>
+                    <div class="pattern-quote">"O tempo escapa"</div>
+                    <p class="pattern-description">Sua percepção de tempo é diferente. 5 minutos viram 2 horas. 2 horas parecem 5 minutos. Não é desorganização. É neurologia.</p>
+                </div>
+
+                <div class="pattern-card fade-in">
+                    <div class="pattern-number">4</div>
+                    <div class="pattern-title">Montanha-Russa Emocional</div>
+                    <div class="pattern-quote">"Minha raiva sai do zero ao cem"</div>
+                    <p class="pattern-description">Suas emoções são mais intensas e mudam mais rápido. Você sente TUDO com mais força — e isso cansa.</p>
+                </div>
+
+                <div class="pattern-card fade-in">
+                    <div class="pattern-number">5</div>
+                    <div class="pattern-title">Oscilação de Energia</div>
+                    <div class="pattern-quote">"Alguns dias ligo, outros apago"</div>
+                    <p class="pattern-description">Seu nível de energia varia de forma imprevisível. Não depende de quanto você dormiu. Depende de dopamina.</p>
+                </div>
+
+                <div class="pattern-card fade-in">
+                    <div class="pattern-number">6</div>
+                    <div class="pattern-title">Hiperfoco</div>
+                    <div class="pattern-quote">"Mergulho e esqueço do mundo"</div>
+                    <p class="pattern-description">Quando algo te interessa, você se perde por horas. O problema é que seu cérebro escolhe por você.</p>
+                </div>
+
+                <div class="pattern-card fade-in">
+                    <div class="pattern-number">7</div>
+                    <div class="pattern-title">Neblina Mental</div>
+                    <div class="pattern-quote">"Minha mente parece embaralhada"</div>
+                    <p class="pattern-description">Pensamentos desorganizados, dificuldade de lembrar, sensação de "processamento lento". Não é burrice. É sobrecarga.</p>
+                </div>
+            </div>
+
+            <div class="patterns-footer fade-in">
+                <p>Cada pessoa tem uma <strong>combinação única</strong> desses padrões. O MAPA identifica quais estão mais presentes na SUA vida e te mostra estratégias específicas para cada um.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== WHAT YOU GET ==================== -->
+    <section class="what-you-get">
+        <div class="container">
+            <span class="section-label fade-in">O que está incluído</span>
+            <h2 class="fade-in">2 Relatórios Personalizados</h2>
+            <p class="what-you-get-intro fade-in">Que vão mudar como você entende sua própria mente</p>
+
+            <div class="reports-grid">
+                <div class="report-card personal fade-in">
+                    <div class="report-card-header">
+                        <div class="report-icon">📘</div>
+                        <h4>Relatório Pessoal</h4>
+                        <p class="report-meta">~15-20 páginas • Linguagem acessível</p>
+                    </div>
+                    <div class="report-card-body">
+                        <ul>
+                            <li>Explicação detalhada dos seus padrões</li>
+                            <li>Validação das suas dificuldades com base em neurociência</li>
+                            <li>Estratégias práticas para cada padrão identificado</li>
+                            <li>Compreensão de possíveis comorbidades</li>
+                            <li>Direção clara do que fazer a seguir</li>
+                        </ul>
+                    </div>
+                    <div class="report-card-footer">
+                        → Para você finalmente entender o que está acontecendo
+                    </div>
+                </div>
+
+                <div class="report-card clinical fade-in">
+                    <div class="report-card-header">
+                        <div class="report-icon">📗</div>
+                        <h4>Relatório Clínico</h4>
+                        <p class="report-meta">~5-8 páginas • Linguagem técnica</p>
+                    </div>
+                    <div class="report-card-body">
+                        <ul>
+                            <li>Dados estruturados para profissionais</li>
+                            <li>Escores das escalas utilizadas</li>
+                            <li>Padrões identificados em formato clínico</li>
+                            <li>Recomendações para investigação</li>
+                            <li>Pronto para levar na consulta</li>
+                        </ul>
+                    </div>
+                    <div class="report-card-footer">
+                        → Para o profissional não começar do zero
+                    </div>
+                </div>
+            </div>
+
+            <!-- MOCKUP PLACEHOLDER -->
+            <div class="mockup-placeholder fade-in">
+                <div class="icon">📄</div>
+                <p>🖼️ INSERIR MOCKUP 3D DOS RELATÓRIOS<br>
+                (Imagem dos 2 PDFs em formato de "produto físico")</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PROCESS ==================== -->
+    <section class="process section-elevated">
+        <div class="container">
+            <span class="section-label fade-in">Simples assim</span>
+            <h2 class="fade-in">Como Funciona</h2>
+
+            <div class="process-steps">
+                <div class="process-step fade-in">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Você compra e acessa na hora</h4>
+                        <p>Sem esperar email. Sem criar conta complicada. Pagou, entrou.</p>
+                    </div>
+                </div>
+
+                <div class="process-step fade-in">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Responde as perguntas</h4>
+                        <p>88 itens sobre seu dia a dia. Como você funciona, não o que você sabe.</p>
+                    </div>
+                </div>
+
+                <div class="process-step fade-in">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Recebe o mapeamento completo</h4>
+                        <p>Relatórios prontos pra ler ou levar ao profissional. Imediatamente.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-summary fade-in">
+                <div class="process-stat">
+                    <div class="number">25</div>
+                    <div class="label">minutos</div>
+                </div>
+                <div class="process-stat">
+                    <div class="number">88</div>
+                    <div class="label">itens</div>
+                </div>
+                <div class="process-stat">
+                    <div class="number">2</div>
+                    <div class="label">relatórios</div>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="#pricing" class="btn btn-primary fade-in">
+                    Quero Fazer o MAPA Agora <span class="btn-price">— R$147</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== AUTHORITY ==================== -->
+    <section class="authority">
+        <div class="container">
+            <span class="section-label fade-in">Quem está por trás</span>
+            <h2 class="fade-in">Apresento Seu Especialista</h2>
+
+            <div class="authority-card fade-in">
+                <div class="authority-header">
+                    <!-- PHOTO PLACEHOLDER -->
+                    <div class="authority-photo">
+                        📷<br>INSERIR<br>FOTO
+                    </div>
+                    <div class="authority-info">
+                        <h3>Dr. Bruno Salles, PhD</h3>
+                        <p class="authority-title">Psicólogo Clínico · Neurocientista</p>
+                        <p class="authority-crp">CRP 05/52904</p>
+                    </div>
+                </div>
+
+                <ul class="authority-credentials">
+                    <li>PhD em Neurociências pela PUC-Rio</li>
+                    <li>Colaborações de pesquisa com King's College London e University of Birmingham</li>
+                    <li>Mais de uma década atendendo adultos com TDAH</li>
+                    <li>Psicólogo mais bem avaliado do Doctoralia Brasil</li>
+                </ul>
+
+                <div class="authority-stats">
+                    <div class="authority-stat">
+                        <div class="number">+10.000</div>
+                        <div class="label">sessões clínicas</div>
+                    </div>
+                    <div class="authority-stat">
+                        <div class="number">+15</div>
+                        <div class="label">anos pesquisando TDAH</div>
+                    </div>
+                    <div class="authority-stat">
+                        <div class="number">22.000+</div>
+                        <div class="label">inscritos no canal</div>
+                    </div>
+                </div>
+
+                <!-- INSTITUTIONS PLACEHOLDER -->
+                <div class="institutions-placeholder">
+                    <p>🏛️ INSERIR LOGOS: PUC-Rio • King's College London • University of Birmingham</p>
+                </div>
+
+                <p class="authority-quote">Criei o MAPA porque cansei de ver adultos gastando fortunas em consultas sem conseguir uma resposta clara. Você merece saber o que está acontecendo com você — sem precisar entrar numa fila de 6 meses.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SOCIAL PROOF ==================== -->
+    <section class="social-proof section-elevated">
+        <div class="container">
+            <span class="section-label fade-in">O que dizem</span>
+            <h2 class="fade-in">Milhares Já Encontraram Clareza</h2>
+            <p class="social-proof-intro fade-in">Comentários reais do canal do Dr. Bruno:</p>
+
+            <div class="testimonials-grid">
+                <div class="testimonial-card fade-in">
+                    <!-- SCREENSHOT PLACEHOLDER -->
+                    <div class="testimonial-screenshot">
+                        <p>📷 Screenshot do comentário</p>
+                    </div>
+                    <blockquote>Descobri aos 45 anos que não era preguiçoso. Era TDAH. Perdi décadas me culpando.</blockquote>
+                    <p class="testimonial-likes">👍 342 curtidas</p>
+                </div>
+
+                <div class="testimonial-card fade-in">
+                    <div class="testimonial-screenshot">
+                        <p>📷 Screenshot do comentário</p>
+                    </div>
+                    <blockquote>Parece que ele estava ao meu lado a minha vida inteira. Como conseguiu resumir uma vida inteira em um vídeo?</blockquote>
+                    <p class="testimonial-likes">👍 891 curtidas</p>
+                </div>
+
+                <div class="testimonial-card fade-in">
+                    <div class="testimonial-screenshot">
+                        <p>📷 Screenshot do comentário</p>
+                    </div>
+                    <blockquote>Sou presente na presença e totalmente ausente na ausência.</blockquote>
+                    <p class="testimonial-likes">👍 2.662 curtidas</p>
+                </div>
+
+                <div class="testimonial-card fade-in">
+                    <div class="testimonial-screenshot">
+                        <p>📷 Screenshot do comentário</p>
+                    </div>
+                    <blockquote>Gastei mais de mil reais em consultas. Saí sem diagnóstico claro e mais confuso do que entrei.</blockquote>
+                    <p class="testimonial-likes">👍 156 curtidas</p>
+                </div>
+            </div>
+
+            <p class="social-proof-note fade-in">O MAPA foi criado pra quem se identifica mas ainda não conseguiu dar o próximo passo.</p>
+        </div>
+    </section>
+
+    <!-- ==================== FOR WHO ==================== -->
+    <section class="for-who">
+        <div class="container">
+            <span class="section-label fade-in">Pra quem é</span>
+            <h2 class="fade-in">O MAPA é (e não é) pra você?</h2>
+
+            <div class="for-who-grid">
+                <div class="for-who-card yes fade-in">
+                    <h4>✓ O MAPA é pra você se:</h4>
+                    <ul>
+                        <li>Você suspeita de TDAH mas nunca investigou</li>
+                        <li>Você se identifica com os sintomas mas fica na dúvida se é "real"</li>
+                        <li>Você quer saber se vale a pena procurar um profissional</li>
+                        <li>Você foi diagnosticado na infância e quer entender como está agora</li>
+                        <li>Seu filho foi diagnosticado e você suspeita ter também</li>
+                    </ul>
+                </div>
+
+                <div class="for-who-card no fade-in">
+                    <h4>✗ O MAPA não é pra você se:</h4>
+                    <ul>
+                        <li>Você precisa de laudo formal pra trabalho, INSS ou processo</li>
+                        <li>Você já está em tratamento e quer mudar medicação</li>
+                        <li>Você só quer validação, sem intenção de fazer nada com o resultado</li>
+                        <li>Você tem menos de 18 anos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PRICING ==================== -->
+    <section class="pricing section-elevated" id="pricing">
+        <div class="container">
+            <span class="section-label fade-in">Investimento</span>
+            <h2 class="fade-in">Quanto Vale Sair da Dúvida?</h2>
+
+            <div class="pricing-anchor fade-in">
+                <h4>Caminho tradicional:</h4>
+                <div class="pricing-anchor-item">
+                    <span>Consulta psicólogo</span>
+                    <span>R$ 350</span>
+                </div>
+                <div class="pricing-anchor-item">
+                    <span>Consulta psiquiatra</span>
+                    <span>R$ 500</span>
+                </div>
+                <div class="pricing-anchor-item">
+                    <span>Avaliação neuropsicológica</span>
+                    <span>R$ 2.000+</span>
+                </div>
+            </div>
+
+            <div class="pricing-card fade-in">
+                <div class="pricing-value"><span>R$</span>147</div>
+                <p class="pricing-installment">ou 12x de R$ 14,70</p>
+                
+                <p class="pricing-tagline">Menos que uma única consulta. E te dá clareza pra saber se vale a pena investir em avaliação profissional.</p>
+
+                <ul class="pricing-stack">
+                    <li>Assessment completo (88 itens)</li>
+                    <li>Relatório Pessoal (~20 páginas)</li>
+                    <li>Relatório Clínico (~8 páginas)</li>
+                    <li>Mapeamento dos 7 Padrões Funcionais</li>
+                    <li>Análise de comorbidades</li>
+                    <li>Direcionamento personalizado</li>
+                    <li>Resultado imediato</li>
+                </ul>
+
+                <a href="#" class="btn btn-primary">
+                    Quero Descobrir Agora <span class="btn-price">— R$147</span>
+                </a>
+
+                <div class="payment-badges">
+                    <div class="payment-badge">
+                        <span class="icon">🔒</span>
+                        <span>Compra 100% Segura</span>
+                    </div>
+                    <div class="payment-badge">
+                        <span class="icon">⚡</span>
+                        <span>Acesso Imediato</span>
+                    </div>
+                    <div class="payment-badge">
+                        <span class="icon">💳</span>
+                        <span>Parcele em até 12x</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== GUARANTEE ==================== -->
+    <section class="guarantee">
+        <div class="container">
+            <span class="section-label fade-in">Zero risco</span>
+            <h2 class="fade-in">Experimente por 7 Dias Sem Riscos</h2>
+
+            <div class="guarantee-content fade-in">
+                <p>Eu entendo que você pode estar pensando em tomar essa decisão agora. Por isso, quero facilitar pra você.</p>
+                
+                <p>Você tem 7 dias para fazer o MAPA, ler seus relatórios e decidir se valeu a pena.</p>
+                
+                <p>Se, por qualquer motivo, você achar que o MAPA não te deu a clareza prometida, é só mandar uma mensagem que eu devolvo cada centavo. Sem perguntas, sem burocracia.</p>
+
+                <div class="guarantee-quote">
+                    "Se o MAPA não te der clareza sobre seu próximo passo, você não deveria ter pago por isso."
+                </div>
+
+                <div class="guarantee-badge">
+                    <div class="icon">🛡️</div>
+                    <p>Garantia de 7 dias</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FAQ ==================== -->
+    <section class="faq section-elevated">
+        <div class="container">
+            <span class="section-label fade-in">Dúvidas frequentes</span>
+            <h2 class="fade-in">Perguntas Que Você Pode Ter</h2>
+
+            <div class="faq-list">
+                <div class="faq-item fade-in">
+                    <button class="faq-question">
+                        <span>O MAPA dá diagnóstico de TDAH?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Não. Diagnóstico formal só pode ser dado por profissional de saúde mental (psicólogo ou psiquiatra). O MAPA é uma triagem baseada em critérios do DSM-5-TR que te mostra se seus sintomas são compatíveis com TDAH, qual o nível de compatibilidade, e qual o próximo passo recomendado pro seu caso.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item fade-in">
+                    <button class="faq-question">
+                        <span>Quanto tempo demora pra responder?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Cerca de 25 minutos. São 88 perguntas estratégicas que mapeiam não só sintomas, mas padrões funcionais do seu dia a dia.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item fade-in">
+                    <button class="faq-question">
+                        <span>Quando recebo os relatórios?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Imediatamente após finalizar o assessment. Você recebe por email os dois PDFs (Pessoal e Clínico) prontos para download.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item fade-in">
+                    <button class="faq-question">
+                        <span>Posso levar o relatório pro meu psicólogo ou psiquiatra?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Sim, foi feito exatamente pra isso. O Relatório Clínico usa linguagem técnica e estrutura os dados de forma que o profissional entenda rapidamente seu caso.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item fade-in">
+                    <button class="faq-question">
+                        <span>E se eu descobrir que não é TDAH?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Isso também é clareza. O MAPA te mostra se os sintomas são mais compatíveis com outras condições (ansiedade, depressão, problemas de sono, trauma) e te dá direção de onde investigar.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item fade-in">
+                    <button class="faq-question">
+                        <span>Já fiz testes de TDAH na internet. Por que esse seria diferente?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Testes gratuitos de internet são genéricos e não te dão direcionamento. O MAPA foi desenvolvido por um psicólogo clínico com PhD em Neurociências, baseado no DSM-5-TR, em escalas validadas e em mais de uma década de experiência clínica. Você não recebe só "provável TDAH". Recebe um mapeamento completo dos seus padrões e sabe o que fazer com essa informação.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item fade-in">
+                    <button class="faq-question">
+                        <span>Funciona em celular?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Sim. O assessment é 100% online e funciona em qualquer dispositivo com navegador.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="faq-item fade-in">
+                    <button class="faq-question">
+                        <span>E se eu não ficar satisfeito?</span>
+                        <span class="faq-icon">+</span>
+                    </button>
+                    <div class="faq-answer">
+                        <div class="faq-answer-content">
+                            Garantia de 7 dias. Se você completar o MAPA e sair mais confuso do que entrou, devolvemos seu dinheiro. Sem burocracia.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FINAL CTA ==================== -->
+    <section class="final-cta">
+        <div class="container">
+            <h2 class="fade-in">Você Não Precisa Continuar na Dúvida</h2>
+            <p class="final-cta-subtitle fade-in">Você chegou até aqui por um motivo. A dúvida não vai embora sozinha. Mas você pode resolver isso agora.</p>
+
+            <div class="final-price fade-in">R$147</div>
+            <p class="final-installment fade-in">ou 12x de R$ 14,70</p>
+
+            <a href="#" class="btn btn-primary fade-in">
+                Quero Descobrir Agora
+            </a>
+
+            <p class="final-guarantee fade-in">Garantia de 7 dias. Se não te der clareza, devolvemos seu dinheiro.</p>
+
+            <p class="final-closing fade-in">Em 25 minutos, você pode sair da dúvida que carrega há anos.</p>
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer>
+        <div class="footer-logo">MAPA</div>
+        <p class="footer-tagline">Mapeamento de Atenção e Padrões de Ação</p>
+        
+        <p class="footer-disclaimer">
+            Este produto é uma triagem e não substitui avaliação profissional.<br>
+            Diagnóstico de TDAH só pode ser feito por profissional de saúde mental qualificado.
+        </p>
+
+        <p class="footer-info">
+            © 2026 Dr. Bruno Salles. Todos os direitos reservados.<br>
+            CRP 05/52904
+        </p>
+        
+        <div class="footer-links">
+            <a href="#">Termos de Uso</a>
+            <a href="#">Política de Privacidade</a>
+            <a href="#">Contato</a>
+        </div>
+    </footer>
+
+    <!-- WHATSAPP FLOAT -->
+    <a href="https://wa.me/5521XXXXXXXXX" target="_blank" class="whatsapp-float" title="Fale conosco no WhatsApp">
+        💬
+    </a>
+
+    <script>
+        // FAQ Accordion
+        document.querySelectorAll('.faq-question').forEach(button => {
+            button.addEventListener('click', () => {
+                const item = button.parentElement;
+                const isActive = item.classList.contains('active');
+                
+                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+                
+                if (!isActive) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // Scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

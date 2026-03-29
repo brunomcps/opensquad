@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAPA | P7 - Stack de Valor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-card: #141414;
+            --bg-card-destaque: #1a1814;
+            
+            --gold: #d4a849;
+            --gold-bright: #f0c96b;
+            --gold-dim: #a07d2e;
+            --gold-border: rgba(212, 168, 73, 0.4);
+            
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            
+            --gradient-gold: linear-gradient(135deg, var(--gold-dim) 0%, var(--gold) 50%, var(--gold-bright) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Textura de noise */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.025;
+            z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        /* =============================================
+           SEÇÃO STACK DE VALOR
+           ============================================= */
+        .secao-stack {
+            padding: 100px 0;
+            background: var(--bg-dark);
+            text-align: center;
+        }
+
+        .stack-headline {
+            font-size: clamp(1.8rem, 4vw, 2.4rem);
+            font-weight: 800;
+            margin-bottom: 50px;
+        }
+
+        /* Lista de Itens */
+        .stack-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stack-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 24px;
+            background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            text-align: left;
+            transition: all 0.2s ease;
+        }
+
+        .stack-item:hover {
+            background: #181818;
+        }
+
+        /* Item Destacado (primeiro) */
+        .stack-item.destaque {
+            border: 2px solid var(--gold-border);
+            background: linear-gradient(135deg, rgba(212,168,73,0.08) 0%, var(--bg-card) 100%);
+        }
+
+        .stack-item.destaque:hover {
+            border-color: var(--gold);
+        }
+
+        /* Ícone do Item */
+        .item-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.3rem;
+        }
+
+        /* Cor única para ícones */
+        .item-icon {
+            background: #1f1f1f;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Conteúdo do Item */
+        .item-content {
+            flex: 1;
+        }
+
+        .item-titulo {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .item-descricao {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Preço do Item */
+        .item-preco {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .preco-riscado {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+
+        .preco-incluso {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        /* Linha de Total */
+        .stack-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 28px;
+            background: linear-gradient(135deg, rgba(212,168,73,0.12) 0%, rgba(212,168,73,0.04) 100%);
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .total-label {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .total-valores {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .total-riscado {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+
+        .total-final {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+        .total-desconto {
+            background: var(--gradient-gold);
+            color: #000;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+
+        /* =============================================
+           RESPONSIVO
+           ============================================= */
+        @media (max-width: 768px) {
+            .secao-stack {
+                padding: 70px 0;
+            }
+
+            .container {
+                padding: 0 20px;
+            }
+
+            .stack-headline {
+                font-size: 1.6rem;
+                margin-bottom: 36px;
+            }
+
+            .stack-item {
+                flex-wrap: wrap;
+                padding: 18px 20px;
+                gap: 12px;
+            }
+
+            .item-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.1rem;
+            }
+
+            .item-content {
+                flex: 1 1 calc(100% - 56px);
+            }
+
+            .item-titulo {
+                font-size: 0.95rem;
+            }
+
+            .item-descricao {
+                font-size: 0.85rem;
+            }
+
+            .item-preco {
+                width: 100%;
+                text-align: left;
+                padding-left: 56px;
+                margin-top: -4px;
+            }
+
+            .stack-total {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+                padding: 22px 20px;
+            }
+
+            .total-valores {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .total-final {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =============================================
+         P7 - SEÇÃO STACK DE VALOR
+         ============================================= -->
+    <section class="secao-stack">
+        <div class="container">
+            
+            <h2 class="stack-headline">O que você recebe:</h2>
+
+            <div class="stack-lista">
+                
+                <!-- Item 1 - Relatório Pessoal (DESTAQUE) -->
+                <div class="stack-item destaque">
+                    <div class="item-icon">📄</div>
+                    <div class="item-content">
+                        <h3 class="item-titulo">Relatório Pessoal Completo (~15-20 páginas)</h3>
+                        <p class="item-descricao">Análise detalhada dos seus padrões, explicações em neurociência, estratégias personalizadas</p>
+                    </div>
+                    <div class="item-preco">
+                        <span class="preco-riscado">R$197</span>
+                        <span class="preco-incluso">INCLUSO</span>
+                    </div>
+                </div>
+
+                <!-- Item 2 - Relatório Clínico -->
+                <div class="stack-item">
+                    <div class="item-icon">🏥</div>
+                    <div class="item-content">
+                        <h3 class="item-titulo">Relatório Clínico (~5-8 páginas)</h3>
+                        <p class="item-descricao">Documento técnico formatado para levar ao psicólogo ou psiquiatra</p>
+                    </div>
+                    <div class="item-preco">
+                        <span class="preco-riscado">R$97</span>
+                        <span class="preco-incluso">INCLUSO</span>
+                    </div>
+                </div>
+
+                <!-- Item 3 - 7 Padrões Funcionais -->
+                <div class="stack-item">
+                    <div class="item-icon">🎯</div>
+                    <div class="item-content">
+                        <h3 class="item-titulo">Mapeamento dos 7 Padrões Funcionais</h3>
+                        <p class="item-descricao">Inércia Inicial, Caça ao Prazer, Cegueira Temporal, Montanha-Russa Emocional, e mais</p>
+                    </div>
+                    <div class="item-preco">
+                        <span class="preco-riscado">R$147</span>
+                        <span class="preco-incluso">INCLUSO</span>
+                    </div>
+                </div>
+
+                <!-- Item 4 - Triagem de Comorbidades -->
+                <div class="stack-item">
+                    <div class="item-icon">⚠️</div>
+                    <div class="item-content">
+                        <h3 class="item-titulo">Triagem de Comorbidades</h3>
+                        <p class="item-descricao">Sinais de ansiedade, depressão, problemas de sono, trauma</p>
+                    </div>
+                    <div class="item-preco">
+                        <span class="preco-riscado">R$97</span>
+                        <span class="preco-incluso">INCLUSO</span>
+                    </div>
+                </div>
+
+                <!-- Item 5 - Direção do Próximo Passo -->
+                <div class="stack-item">
+                    <div class="item-icon">🧭</div>
+                    <div class="item-content">
+                        <h3 class="item-titulo">Direção do Próximo Passo</h3>
+                        <p class="item-descricao">Recomendação personalizada do que fazer depois, baseada no seu resultado</p>
+                    </div>
+                    <div class="item-preco">
+                        <span class="preco-riscado">R$47</span>
+                        <span class="preco-incluso">INCLUSO</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Linha de Total -->
+            <div class="stack-total">
+                <span class="total-label">Valor total:</span>
+                <div class="total-valores">
+                    <span class="total-riscado">R$585</span>
+                    <span class="total-final">R$147</span>
+                    <span class="total-desconto">75% OFF</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+</body>
+</html>

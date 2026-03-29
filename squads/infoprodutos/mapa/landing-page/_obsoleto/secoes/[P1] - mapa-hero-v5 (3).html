@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAPA | Hero v5 - Dr. Bruno Salles</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Crimson+Pro:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-card: #141414;
+            --gold: #d4a849;
+            --gold-bright: #f0c96b;
+            --gold-dim: #a07d2e;
+            --red-hot: #e63946;
+            --red-dark: #9d2933;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --border-subtle: rgba(255,255,255,0.08);
+            --border-gold: rgba(212,168,73,0.3);
+            --gradient-gold: linear-gradient(135deg, var(--gold-dim) 0%, var(--gold) 50%, var(--gold-bright) 100%);
+            --gradient-red: linear-gradient(135deg, var(--red-dark) 0%, var(--red-hot) 100%);
+            --shadow-glow: 0 0 66px rgba(212,168,73,0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* =============================================
+           BARRA DE LANÇAMENTO
+           ============================================= */
+        .launch-banner {
+            background: linear-gradient(135deg, #3d1a1a 0%, #4a2020 100%);
+            border-bottom: 1px solid rgba(212,168,73,0.2);
+            padding: 11px 22px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .launch-banner p {
+            font-weight: 600;
+            font-size: 1.045rem;
+            letter-spacing: 0.02em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            flex-wrap: wrap;
+        }
+        
+        .launch-banner .mobile-break {
+            display: none;
+        }
+
+        .launch-banner .icon {
+            font-size: 1.21rem;
+        }
+
+        .launch-banner .highlight {
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        .launch-banner .free-tag {
+            background: var(--gradient-red);
+            padding: 3.3px 11px;
+            border-radius: 4.4px;
+            font-weight: 800;
+            font-size: 0.935rem;
+        }
+
+        /* =============================================
+           CONTAINER
+           ============================================= */
+        .container {
+            max-width: 1210px;
+            margin: 0 auto;
+            padding: 0 26.4px;
+        }
+
+        /* =============================================
+           HERO SECTION - VERSÃO COMPACTA
+           ============================================= */
+        .hero {
+            padding: 33px 0 22px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            min-height: calc(100vh - 48.4px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 30%, rgba(212,168,73,0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Eyebrow / Gancho de curiosidade */
+        .hero-eyebrow {
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 18px;
+            letter-spacing: 0.03em;
+        }
+
+        /* Headline */
+        .hero h1 {
+            font-size: clamp(2.8rem, 7vw, 4.5rem);
+            font-weight: 900;
+            line-height: 1.05;
+            margin-bottom: 18px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 span {
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+            font-size: 1.1em;
+        }
+
+        /* Subheadline - mais larga */
+        .hero-subheadline {
+            font-size: clamp(1.1rem, 2.2vw, 1.32rem);
+            color: var(--text-secondary);
+            max-width: 880px;
+            margin: 0 auto 13.2px;
+            line-height: 1.5;
+        }
+
+        .hero-subheadline strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Exclusões em linha */
+        .hero-exclusions {
+            display: flex;
+            justify-content: center;
+            gap: 22px;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+
+        .hero-exclusions span {
+            font-size: 0.99rem;
+            color: var(--gold);
+            font-weight: 500;
+        }
+
+        .hero-exclusions span::before {
+            content: '✓';
+            margin-right: 6.6px;
+            font-weight: 700;
+        }
+
+        /* =============================================
+           VÍDEO - ALTURA FIXA PARA GARANTIR
+           ============================================= */
+        .video-container {
+            max-width: 682px;
+            width: 100%;
+            margin: 0 auto 22px;
+        }
+
+        .video-wrapper {
+            position: relative;
+            background: #141414;
+            border: 1px solid rgba(212,168,73,0.3);
+            border-radius: 13.2px;
+            overflow: hidden;
+            width: 100%;
+            min-height: 308px;
+            height: 385px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .video-wrapper:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 66px rgba(212,168,73,0.15);
+        }
+
+        .video-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(20,20,20,0.9) 0%, rgba(10,10,10,0.98) 100%);
+        }
+
+        .video-play-btn {
+            width: 70.4px;
+            height: 70.4px;
+            background: var(--gradient-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 11px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 33px rgba(212,168,73,0.3);
+        }
+
+        .video-wrapper:hover .video-play-btn {
+            transform: scale(1.1);
+        }
+
+        .video-play-btn svg {
+            width: 28.6px;
+            height: 28.6px;
+            fill: #000;
+            margin-left: 3.3px;
+        }
+
+        .video-label {
+            font-size: 0.935rem;
+            color: var(--text-secondary);
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* =============================================
+           PREÇO + CTA - COMPACTO
+           ============================================= */
+        .hero-cta-area {
+            margin-bottom: 17.6px;
+        }
+
+        .price-anchor {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 17.6px;
+            margin-bottom: 13.2px;
+        }
+
+        .price-old {
+            font-size: 1.43rem;
+            color: var(--text-muted);
+            text-decoration: line-through;
+            text-decoration-color: var(--red-hot);
+            text-decoration-thickness: 2.2px;
+            opacity: 0.7;
+        }
+
+        .price-new {
+            font-size: 2.64rem;
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+        .price-savings {
+            background: var(--gradient-red);
+            padding: 6.6px 13.2px;
+            border-radius: 5.5px;
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .cta-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 11px;
+            background: var(--gradient-gold);
+            color: #000;
+            font-size: 1.32rem;
+            font-weight: 700;
+            padding: 19.8px 48.4px;
+            border-radius: 11px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-glow);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .cta-primary:hover {
+            transform: translateY(-2.2px) scale(1.02);
+            box-shadow: 0 0 77px rgba(212,168,73,0.35);
+        }
+
+        .cta-subtext {
+            display: block;
+            font-size: 0.935rem;
+            color: var(--text-muted);
+            margin-top: 11px;
+        }
+
+        /* Garantias */
+        .hero-guarantees {
+            display: flex;
+            justify-content: center;
+            gap: 26.4px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .hero-guarantees span {
+            display: flex;
+            align-items: center;
+            gap: 6.6px;
+            font-size: 0.935rem;
+            color: var(--text-secondary);
+        }
+
+        .hero-guarantees span::before {
+            content: '✓';
+            color: var(--gold);
+            font-weight: 700;
+        }
+
+        /* =============================================
+           CREDENCIAIS - LINHA ÚNICA FORÇADA
+           ============================================= */
+        .credentials-bar {
+            background: rgba(212,168,73,0.04);
+            border-top: 1px solid var(--border-gold);
+            padding: 17.6px 0;
+            margin-top: auto;
+        }
+
+        .credentials-grid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0;
+            flex-wrap: nowrap;
+        }
+
+        .credential-item {
+            text-align: center;
+            padding: 0 26.4px;
+            border-right: 1px solid var(--border-gold);
+            white-space: nowrap;
+        }
+
+        .credential-item:last-child {
+            border-right: none;
+        }
+
+        .credential-number {
+            font-size: 1.43rem;
+            font-weight: 800;
+            color: var(--gold);
+            line-height: 1.2;
+        }
+
+        .credential-label {
+            font-size: 0.715rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-top: 2.2px;
+        }
+
+        /* =============================================
+           MOBILE RESPONSIVE
+           ============================================= */
+        @media (max-width: 990px) {
+            .credentials-grid {
+                flex-wrap: wrap;
+                gap: 13.2px 0;
+            }
+            
+            .credential-item {
+                padding: 0 17.6px;
+                flex: 0 0 33.33%;
+                border-right: none;
+            }
+            
+            .credential-item:nth-child(3) {
+                border-right: none;
+            }
+        }
+
+        @media (max-width: 845px) {
+            .container {
+                padding: 0 20px;
+            }
+
+            /* Barra de lançamento compacta no mobile */
+            .launch-banner {
+                padding: 8px 16px;
+            }
+
+            .launch-banner p {
+                font-size: 0.8rem;
+                gap: 6px;
+                flex-wrap: nowrap;
+            }
+            
+            .launch-banner .highlight {
+                display: inline;
+            }
+            
+            .launch-banner .free-tag {
+                padding: 2px 8px;
+                font-size: 0.75rem;
+            }
+
+            .hero {
+                padding: 24px 0 20px;
+                min-height: auto;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+                margin-bottom: 14px;
+                text-align: center;
+            }
+
+            .hero-eyebrow {
+                font-size: 0.85rem;
+                margin-bottom: 10px;
+            }
+            
+            .hero h1 span {
+                display: inline;
+            }
+
+            .hero-subheadline {
+                font-size: 1rem;
+                margin-bottom: 12px;
+                text-align: center;
+            }
+
+            /* Bullets em linha no mobile */
+            .hero-exclusions {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 6px 16px;
+                margin-bottom: 18px;
+            }
+
+            .hero-exclusions span {
+                font-size: 0.85rem;
+            }
+            
+            .hero-exclusions span::before {
+                content: '✓';
+                display: inline;
+            }
+
+            .video-container {
+                margin-bottom: 20px;
+            }
+
+            .video-wrapper {
+                height: 280px;
+                min-height: 200px;
+            }
+
+            .video-play-btn {
+                width: 56px;
+                height: 56px;
+            }
+
+            .video-play-btn svg {
+                width: 22px;
+                height: 22px;
+            }
+
+            .price-anchor {
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .price-old {
+                font-size: 1.15rem;
+            }
+
+            .price-new {
+                font-size: 2.1rem;
+            }
+
+            .price-savings {
+                font-size: 0.8rem;
+                padding: 5px 10px;
+            }
+
+            .cta-primary {
+                font-size: 1.05rem;
+                padding: 16px 32px;
+            }
+
+            .cta-subtext {
+                font-size: 0.85rem;
+            }
+
+            .hero-guarantees {
+                gap: 12px 20px;
+                margin-bottom: 24px;
+            }
+
+            .hero-guarantees span {
+                font-size: 0.85rem;
+            }
+
+            .credentials-bar {
+                padding: 14px 0;
+            }
+
+            .credential-item {
+                flex: 0 0 50%;
+                padding: 8px 12px;
+            }
+
+            .credential-number {
+                font-size: 1.15rem;
+            }
+
+            .credential-label {
+                font-size: 0.62rem;
+            }
+        }
+
+        @media (max-width: 528px) {
+            .launch-banner p {
+                font-size: 0.72rem;
+            }
+            
+            .launch-banner .free-tag {
+                padding: 2px 6px;
+                font-size: 0.7rem;
+            }
+            
+            .hero h1 {
+                font-size: 1.85rem;
+            }
+
+            .hero-eyebrow {
+                font-size: 0.8rem;
+            }
+            
+            .hero-exclusions {
+                gap: 4px 12px;
+            }
+            
+            .hero-exclusions span {
+                font-size: 0.8rem;
+            }
+
+            .credential-item {
+                flex: 0 0 50%;
+            }
+        }
+
+        /* =============================================
+           TELAS GRANDES - TUDO VISÍVEL
+           ============================================= */
+        @media (min-width: 990px) and (min-height: 770px) {
+            .hero {
+                min-height: calc(100vh - 48.4px);
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA DE LANÇAMENTO -->
+    <div class="launch-banner">
+        <p>
+            <span class="icon">⚡</span>
+            <span class="free-tag">RESTAM 34</span>
+            Primeiros 100 compradores ganham o <span class="highlight">Guia de Próximos Passos (R$47)</span>
+            <span class="free-tag">GRÁTIS</span>
+        </p>
+    </div>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+
+                <!-- Headline -->
+                <h1>TDAH ou só mais uma<br><span>desculpa?</span></h1>
+
+                <!-- Subheadline -->
+                <p class="hero-subheadline">
+                    Descubra em 25 minutos se a preguiça que te persegue tem outro nome <strong>(e uma solução…)</strong><br>
+                    <strong>Sem gastar R$2.000+ em consultas.</strong> Sem esperar meses. Do sofá. Agora.
+                </p>
+
+                <!-- Garantias em linha -->
+                <div class="hero-exclusions">
+                    <span>100% Online</span>
+                    <span>Resultado Imediato</span>
+                    <span>Garantia 7 Dias</span>
+                </div>
+
+                <!-- VÍDEO -->
+                <div class="video-container">
+                    <div class="video-wrapper" id="video-wrapper" onclick="loadVideo()">
+                        <div class="video-placeholder" id="video-placeholder">
+                            <div class="video-play-btn">
+                                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                            <div class="video-label">🎬 Assista: O que é o MAPA? (~2 min)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preço + CTA -->
+                <div class="hero-cta-area">
+                    <div class="price-anchor">
+                        <span class="price-old">R$ 497</span>
+                        <span class="price-new">R$ 147</span>
+                        <span class="price-savings">70% OFF</span>
+                    </div>
+
+                    <a href="#comprar" class="cta-primary">
+                        FAZER O MAPA AGORA →
+                    </a>
+                    <span class="cta-subtext">Em 25 minutos você tem sua resposta. Garantia de 7 dias.</span>
+                </div>
+
+
+            </div>
+        </div>
+
+        <!-- CREDENCIAIS - LINHA ÚNICA -->
+        <div class="credentials-bar">
+            <div class="container">
+                <div class="credentials-grid">
+                    <div class="credential-item">
+                        <div class="credential-number">+10.000</div>
+                        <div class="credential-label">Sessões Clínicas</div>
+                    </div>
+                    <div class="credential-item">
+                        <div class="credential-number">PhD</div>
+                        <div class="credential-label">Neurociências PUC-Rio</div>
+                    </div>
+                    <div class="credential-item">
+                        <div class="credential-number">+500</div>
+                        <div class="credential-label">Avaliações 5★ Doctoralia</div>
+                    </div>
+                    <div class="credential-item">
+                        <div class="credential-number">King's</div>
+                        <div class="credential-label">College London</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function loadVideo() {
+            const wrapper = document.getElementById('video-wrapper');
+            const placeholder = document.getElementById('video-placeholder');
+            
+            // SUBSTITUA pelo ID real do vídeo
+            const videoId = 'VIDEO_ID';
+            
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            iframe.allowFullscreen = true;
+            
+            placeholder.style.display = 'none';
+            wrapper.appendChild(iframe);
+        }
+    </script>
+
+</body>
+</html>

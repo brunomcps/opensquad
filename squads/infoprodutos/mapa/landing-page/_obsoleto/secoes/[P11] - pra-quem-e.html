@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAPA | P11 - Pra Quem É</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-card: #141414;
+            --bg-green: #1a2f2a;
+            --bg-green-dark: #0f1f1a;
+            
+            --gold: #d4a849;
+            --gold-bright: #f0c96b;
+            --gold-dim: #a07d2e;
+            --gold-border: rgba(212, 168, 73, 0.3);
+            
+            --green-check: #4ade80;
+            --red-x: #f87171;
+            
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            
+            --gradient-gold: linear-gradient(135deg, var(--gold-dim) 0%, var(--gold) 50%, var(--gold-bright) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Textura de noise */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.025;
+            z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        /* =============================================
+           SEÇÃO PRA QUEM É
+           ============================================= */
+        .secao-pra-quem {
+            padding: 100px 0;
+            background: var(--bg-dark);
+        }
+
+        .pra-quem-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .pra-quem-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .pra-quem-headline {
+            font-size: clamp(1.8rem, 4vw, 2.4rem);
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        /* Grid de 2 colunas */
+        .pra-quem-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* Card Base */
+        .pra-quem-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 32px 28px;
+        }
+
+        /* Card É PRA VOCÊ */
+        .card-sim {
+            border: 2px solid rgba(74, 222, 128, 0.3);
+            background: linear-gradient(135deg, rgba(74, 222, 128, 0.08) 0%, var(--bg-card) 100%);
+        }
+
+        /* Card NÃO É PRA VOCÊ */
+        .card-nao {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .card-titulo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .card-sim .card-titulo {
+            color: var(--green-check);
+        }
+
+        .card-nao .card-titulo {
+            color: var(--text-muted);
+        }
+
+        .card-titulo-icon {
+            font-size: 1.3rem;
+        }
+
+        /* Lista de itens */
+        .pra-quem-lista {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .pra-quem-lista li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .card-sim .pra-quem-lista li {
+            color: var(--text-secondary);
+        }
+
+        .card-nao .pra-quem-lista li {
+            color: var(--text-muted);
+        }
+
+        .lista-icon {
+            flex-shrink: 0;
+            margin-top: 2px;
+            font-size: 1rem;
+        }
+
+        .card-sim .lista-icon {
+            color: var(--green-check);
+        }
+
+        .card-nao .lista-icon {
+            color: var(--red-x);
+            opacity: 0.7;
+        }
+
+        .pra-quem-lista li strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .card-nao .pra-quem-lista li strong {
+            color: var(--text-secondary);
+        }
+
+        /* =============================================
+           RESPONSIVO
+           ============================================= */
+        @media (max-width: 768px) {
+            .secao-pra-quem {
+                padding: 70px 0;
+            }
+
+            .container {
+                padding: 0 20px;
+            }
+
+            .pra-quem-headline {
+                font-size: 1.6rem;
+            }
+
+            .pra-quem-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .pra-quem-card {
+                padding: 26px 22px;
+            }
+
+            .card-titulo {
+                font-size: 1rem;
+            }
+
+            .pra-quem-lista li {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =============================================
+         P11 - SEÇÃO PRA QUEM É
+         ============================================= -->
+    <section class="secao-pra-quem">
+        <div class="container">
+            
+            <div class="pra-quem-header">
+                <p class="pra-quem-badge">✦ ANTES DE DECIDIR</p>
+                <h2 class="pra-quem-headline">O MAPA é pra você?</h2>
+            </div>
+
+            <div class="pra-quem-grid">
+                
+                <!-- Card É PRA VOCÊ -->
+                <div class="pra-quem-card card-sim">
+                    <h3 class="card-titulo">
+                        <span class="card-titulo-icon">✓</span>
+                        É pra você se...
+                    </h3>
+                    <ul class="pra-quem-lista">
+                        <li>
+                            <span class="lista-icon">✓</span>
+                            <span>Você <strong>suspeita de TDAH</strong> mas nunca investigou formalmente</span>
+                        </li>
+                        <li>
+                            <span class="lista-icon">✓</span>
+                            <span>Você se identifica com sintomas mas <strong>fica na dúvida</strong> se é "real" ou exagero</span>
+                        </li>
+                        <li>
+                            <span class="lista-icon">✓</span>
+                            <span>Você quer <strong>clareza antes de gastar</strong> uma fortuna em consultas</span>
+                        </li>
+                        <li>
+                            <span class="lista-icon">✓</span>
+                            <span>Seu <strong>filho foi diagnosticado</strong> e você suspeita ter também</span>
+                        </li>
+                        <li>
+                            <span class="lista-icon">✓</span>
+                            <span>Você foi avaliado há anos mas <strong>quer entender como o TDAH se manifesta agora</strong></span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Card NÃO É PRA VOCÊ -->
+                <div class="pra-quem-card card-nao">
+                    <h3 class="card-titulo">
+                        <span class="card-titulo-icon">✕</span>
+                        Não é pra você se...
+                    </h3>
+                    <ul class="pra-quem-lista">
+                        <li>
+                            <span class="lista-icon">✕</span>
+                            <span>Você <strong>tem menos de 18 anos</strong></span>
+                        </li>
+                        <li>
+                            <span class="lista-icon">✕</span>
+                            <span>Você quer um <strong>laudo formal ou diagnóstico oficial</strong></span>
+                        </li>
+                        <li>
+                            <span class="lista-icon">✕</span>
+                            <span>Você já está em <strong>tratamento e quer trocar de protocolo</strong></span>
+                        </li>
+                        <li>
+                            <span class="lista-icon">✕</span>
+                            <span>Você busca <strong>só validação</strong>, sem intenção de agir depois</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+</body>
+</html>

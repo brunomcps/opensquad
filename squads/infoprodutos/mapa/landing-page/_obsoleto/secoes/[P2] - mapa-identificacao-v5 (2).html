@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAPA | Seção Identificação v5 - Dr. Bruno Salles</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Cores base */
+            --bg-dark: #0a0908;
+            --bg-card: #1a1814;
+            --bg-green: #1a2f2a;
+            --bg-green-light: #223d36;
+            --bg-green-dark: #0f1f1a;
+            
+            /* Dourado */
+            --gold: #d4a849;
+            --gold-bright: #f0c96b;
+            --gold-dim: #a07d2e;
+            --gold-border: rgba(212,168,73,0.25);
+            --gold-border-hover: rgba(212,168,73,0.5);
+            --gold-border-active: rgba(212,168,73,0.9);
+            
+            /* Texto */
+            --text-white: #f5f3ed;
+            --text-cream: #e8e4d9;
+            --text-muted: #9a9588;
+            
+            /* Gradientes */
+            --gradient-gold: linear-gradient(135deg, var(--gold-dim) 0%, var(--gold) 50%, var(--gold-bright) 100%);
+            --gradient-green: linear-gradient(180deg, #1a2f2a 0%, #0a0908 100%);
+            --glow-gold: 0 0 20px rgba(212,168,73,0.2);
+            --glow-gold-strong: 0 0 25px rgba(212,168,73,0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-cream);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* =============================================
+           SEÇÃO DE IDENTIFICAÇÃO - FUNDO VERDE GRADIENT
+           ============================================= */
+        .identification {
+            padding: 80px 0;
+            background: var(--gradient-green);
+            position: relative;
+        }
+
+        /* =============================================
+           HEADER PRINCIPAL
+           ============================================= */
+        .identification-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        /* Eyebrow dourado */
+        .section-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 0.08em;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .identification-headline {
+            font-size: clamp(2rem, 4.5vw, 2.8rem);
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 14px;
+            color: var(--text-white);
+        }
+
+        .identification-headline .highlight {
+            color: var(--gold);
+        }
+
+        .identification-subhead {
+            font-size: clamp(1.05rem, 2vw, 1.15rem);
+            color: var(--text-muted);
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        .identification-subhead strong {
+            color: var(--text-cream);
+            font-weight: 600;
+        }
+
+        /* =============================================
+           CARROSSEL DE SCREENSHOTS
+           ============================================= */
+        .screenshots-section {
+            margin: 40px 0 50px;
+        }
+
+        .screenshots-wrapper {
+            position: relative;
+            overflow: hidden;
+            padding: 10px 0;
+        }
+
+        .screenshots-track {
+            display: flex;
+            gap: 16px;
+            animation: scroll 35s linear infinite;
+        }
+
+        .screenshots-track:hover {
+            animation-play-state: paused;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .screenshot-card {
+            flex-shrink: 0;
+            width: 320px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 8px;
+            padding: 16px;
+            opacity: 0.85;
+            transition: all 0.3s ease;
+        }
+
+        .screenshot-card:hover {
+            opacity: 1;
+            transform: scale(1.02);
+        }
+
+        .screenshot-placeholder {
+            background: rgba(255,255,255,0.03);
+            border: 1px dashed rgba(255,255,255,0.12);
+            border-radius: 6px;
+            padding: 24px 16px;
+            text-align: center;
+        }
+
+        .screenshot-placeholder-icon {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+        .screenshot-placeholder-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .screenshot-placeholder-hint {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.4);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        /* =============================================
+           SINTOMAS HEADER
+           ============================================= */
+        .symptoms-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .symptoms-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 0.08em;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+        }
+
+        .symptoms-headline {
+            font-size: clamp(1.5rem, 3.5vw, 2rem);
+            font-weight: 700;
+            color: var(--text-white);
+        }
+
+        .symptoms-headline .highlight {
+            color: var(--gold);
+        }
+
+        /* Instrução de clique */
+        .click-instruction {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 12px;
+            opacity: 0.8;
+        }
+
+        .click-instruction span {
+            color: var(--gold);
+        }
+
+        /* =============================================
+           GRID DE SINTOMAS - CARDS CLICÁVEIS
+           ============================================= */
+        .symptoms-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 50px;
+        }
+
+        .symptom-card {
+            background: var(--bg-green-light);
+            border: 2px solid var(--gold-border);
+            border-radius: 8px;
+            padding: 32px 28px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+        }
+
+        .symptom-card:hover {
+            border-color: var(--gold-border-hover);
+            box-shadow: var(--glow-gold);
+            transform: translateY(-3px);
+        }
+
+        /* Estado SELECIONADO */
+        .symptom-card.selected {
+            border-color: var(--gold);
+            box-shadow: var(--glow-gold-strong);
+            background: linear-gradient(135deg, var(--bg-green-light) 0%, rgba(212,168,73,0.08) 100%);
+        }
+
+        /* Check de seleção */
+        .symptom-check {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 28px;
+            height: 28px;
+            border: 2px solid var(--gold-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .symptom-card.selected .symptom-check {
+            background: var(--gold);
+            border-color: var(--gold);
+        }
+
+        .symptom-check svg {
+            width: 14px;
+            height: 14px;
+            stroke: transparent;
+            stroke-width: 3;
+            fill: none;
+            transition: all 0.3s ease;
+        }
+
+        .symptom-card.selected .symptom-check svg {
+            stroke: #000;
+        }
+
+        /* Ícone em caixinha */
+        .symptom-icon-box {
+            width: 52px;
+            height: 52px;
+            background: var(--bg-green-dark);
+            border: 1px solid var(--gold-border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .symptom-card.selected .symptom-icon-box {
+            border-color: var(--gold);
+            background: rgba(212,168,73,0.1);
+        }
+
+        .symptom-icon-box svg {
+            width: 26px;
+            height: 26px;
+            stroke: var(--gold);
+            stroke-width: 1.8;
+            fill: none;
+        }
+
+        .symptom-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-white);
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .symptom-description {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.65;
+        }
+
+        .symptom-description strong {
+            color: var(--gold);
+            font-weight: 400;
+        }
+
+        .symptom-description em {
+            color: var(--gold);
+            font-style: italic;
+        }
+
+        /* =============================================
+           FECHAMENTO
+           ============================================= */
+        .identification-close {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .close-text {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .close-text strong {
+            color: var(--text-white);
+            font-weight: 600;
+        }
+
+        .close-question {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        /* Mensagem dinâmica quando marca todos */
+        .all-selected-message {
+            display: none;
+            margin-bottom: 20px;
+            padding: 16px 24px;
+            background: rgba(212,168,73,0.1);
+            border: 1px solid var(--gold);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .all-selected-message.show {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .all-selected-message p {
+            font-size: 1.1rem;
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        /* =============================================
+           CTA
+           ============================================= */
+        .section-cta {
+            text-align: center;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--gradient-gold);
+            color: #000;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 18px 44px;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px rgba(212,168,73,0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(212,168,73,0.5);
+        }
+
+        /* CTA pulsando quando todos selecionados */
+        .cta-button.pulse {
+            animation: pulse 1.5s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(212,168,73,0.3); }
+            50% { box-shadow: 0 0 50px rgba(212,168,73,0.6); }
+        }
+
+        .cta-subtext {
+            display: block;
+            margin-top: 12px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* =============================================
+           RESPONSIVO
+           ============================================= */
+        @media (max-width: 900px) {
+            .symptoms-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                max-width: 480px;
+                margin: 0 auto 50px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .identification {
+                padding: 60px 0;
+            }
+
+            .identification-headline {
+                font-size: 1.8rem;
+            }
+
+            .screenshot-card {
+                width: 280px;
+            }
+
+            .symptoms-headline {
+                font-size: 1.35rem;
+            }
+
+            .symptom-card {
+                padding: 26px 22px;
+            }
+
+            .symptom-icon-box {
+                width: 46px;
+                height: 46px;
+            }
+
+            .symptom-icon-box svg {
+                width: 22px;
+                height: 22px;
+            }
+
+            .close-text {
+                font-size: 1.05rem;
+            }
+
+            .close-question {
+                font-size: 1.2rem;
+            }
+
+            .cta-button {
+                font-size: 1rem;
+                padding: 16px 32px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SEÇÃO DE IDENTIFICAÇÃO -->
+    <section class="identification">
+        <div class="container">
+            
+            <!-- Header Principal -->
+            <div class="identification-header">
+                <p class="section-eyebrow">◆ O problema que ninguém fala</p>
+                <h2 class="identification-headline">"Será que eu tenho <span class="highlight">TDAH</span>?"</h2>
+                <p class="identification-subhead">
+                    Se você já se perguntou isso <strong>assistindo vídeos no YouTube às 3h da manhã</strong>, você não está sozinho(a)...
+                </p>
+            </div>
+
+            <!-- Carrossel de Screenshots -->
+            <div class="screenshots-section">
+                <div class="screenshots-wrapper">
+                    <div class="screenshots-track">
+                        
+                        <div class="screenshot-card">
+                            <div class="screenshot-placeholder">
+                                <div class="screenshot-placeholder-icon">💬</div>
+                                <div class="screenshot-placeholder-text">Comentário do YouTube</div>
+                                <div class="screenshot-placeholder-hint">"A dúvida está sempre presente..."</div>
+                            </div>
+                        </div>
+
+                        <div class="screenshot-card">
+                            <div class="screenshot-placeholder">
+                                <div class="screenshot-placeholder-icon">💬</div>
+                                <div class="screenshot-placeholder-text">Comentário do YouTube</div>
+                                <div class="screenshot-placeholder-hint">"Será que sou eu ou estou exagerando?"</div>
+                            </div>
+                        </div>
+
+                        <div class="screenshot-card">
+                            <div class="screenshot-placeholder">
+                                <div class="screenshot-placeholder-icon">💬</div>
+                                <div class="screenshot-placeholder-text">Comentário do YouTube</div>
+                                <div class="screenshot-placeholder-hint">"Me identifico mas não sei se é TDAH..."</div>
+                            </div>
+                        </div>
+
+                        <div class="screenshot-card">
+                            <div class="screenshot-placeholder">
+                                <div class="screenshot-placeholder-icon">💬</div>
+                                <div class="screenshot-placeholder-text">Comentário do YouTube</div>
+                                <div class="screenshot-placeholder-hint">"Passei a vida achando que era preguiça..."</div>
+                            </div>
+                        </div>
+
+                        <!-- Duplicados para loop -->
+                        <div class="screenshot-card">
+                            <div class="screenshot-placeholder">
+                                <div class="screenshot-placeholder-icon">💬</div>
+                                <div class="screenshot-placeholder-text">Comentário do YouTube</div>
+                                <div class="screenshot-placeholder-hint">"A dúvida está sempre presente..."</div>
+                            </div>
+                        </div>
+
+                        <div class="screenshot-card">
+                            <div class="screenshot-placeholder">
+                                <div class="screenshot-placeholder-icon">💬</div>
+                                <div class="screenshot-placeholder-text">Comentário do YouTube</div>
+                                <div class="screenshot-placeholder-hint">"Será que sou eu ou estou exagerando?"</div>
+                            </div>
+                        </div>
+
+                        <div class="screenshot-card">
+                            <div class="screenshot-placeholder">
+                                <div class="screenshot-placeholder-icon">💬</div>
+                                <div class="screenshot-placeholder-text">Comentário do YouTube</div>
+                                <div class="screenshot-placeholder-hint">"Me identifico mas não sei se é TDAH..."</div>
+                            </div>
+                        </div>
+
+                        <div class="screenshot-card">
+                            <div class="screenshot-placeholder">
+                                <div class="screenshot-placeholder-icon">💬</div>
+                                <div class="screenshot-placeholder-text">Comentário do YouTube</div>
+                                <div class="screenshot-placeholder-hint">"Passei a vida achando que era preguiça..."</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Header dos Sintomas -->
+            <div class="symptoms-header">
+                <p class="symptoms-eyebrow">✦ Isso é você?</p>
+                <h3 class="symptoms-headline">Marque cada sintoma que <span class="highlight">te descreve:</span></h3>
+                <p class="click-instruction"><span>👇</span> Clique nos cards abaixo</p>
+            </div>
+
+            <!-- Grid de 3 Sintomas - CLICÁVEIS -->
+            <div class="symptoms-grid" id="symptoms-grid">
+                
+                <!-- Sintoma 1 -->
+                <div class="symptom-card" data-symptom="1">
+                    <div class="symptom-check">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                    <div class="symptom-icon-box">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                    <h4 class="symptom-title">A Inércia Inicial</h4>
+                    <p class="symptom-description">
+                        Você sabe o que precisa fazer. Sabe até como fazer. <strong>Mas trava na hora de começar.</strong> E não sabe explicar por quê.
+                    </p>
+                </div>
+
+                <!-- Sintoma 2 -->
+                <div class="symptom-card" data-symptom="2">
+                    <div class="symptom-check">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                    <div class="symptom-icon-box">
+                        <svg viewBox="0 0 24 24">
+                            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                            <polyline points="2 17 12 22 22 17"/>
+                            <polyline points="2 12 12 17 22 12"/>
+                        </svg>
+                    </div>
+                    <h4 class="symptom-title">Projetos Abandonados</h4>
+                    <p class="symptom-description">
+                        Começa mil coisas com empolgação. <strong>Não termina nenhuma.</strong> A gaveta tá cheia de "um dia eu volto nisso".
+                    </p>
+                </div>
+
+                <!-- Sintoma 3 -->
+                <div class="symptom-card" data-symptom="3">
+                    <div class="symptom-check">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                    <div class="symptom-icon-box">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <h4 class="symptom-title">Inteligente, Mas...</h4>
+                    <p class="symptom-description">
+                        Todo mundo diz que você é capaz. <strong>Você só se sente uma fraude</strong> esperando ser descoberta.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Mensagem quando marca todos -->
+            <div class="all-selected-message" id="all-selected-message">
+                <p>✓ Você marcou todos. Isso diz alguma coisa, não acha?</p>
+            </div>
+
+            <!-- Fechamento -->
+            <div class="identification-close">
+                <p class="close-text">
+                    Se você leu essa lista e sentiu um nó na garganta, <strong>você sabe que tem algo errado.</strong>
+                </p>
+                <p class="close-question">A pergunta é: vai continuar fingindo que não?</p>
+            </div>
+
+            <!-- CTA -->
+            <div class="section-cta" id="section-cta">
+                <a href="#comprar" class="cta-button" id="cta-button">QUERO DESCOBRIR AGORA →</a>
+                <span class="cta-subtext">25 minutos. R$147. Garantia de 7 dias.</span>
+            </div>
+
+        </div>
+    </section>
+
+    <script>
+        // Seleção de cards
+        const cards = document.querySelectorAll('.symptom-card');
+        const message = document.getElementById('all-selected-message');
+        const ctaButton = document.getElementById('cta-button');
+        const ctaSection = document.getElementById('section-cta');
+        
+        let selectedCount = 0;
+        const totalCards = cards.length;
+
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                card.classList.toggle('selected');
+                
+                // Conta quantos estão selecionados
+                selectedCount = document.querySelectorAll('.symptom-card.selected').length;
+                
+                // Se todos selecionados
+                if (selectedCount === totalCards) {
+                    // Mostra mensagem
+                    message.classList.add('show');
+                    
+                    // Adiciona pulse no CTA
+                    ctaButton.classList.add('pulse');
+                    
+                    // Scroll suave para o CTA após 800ms
+                    setTimeout(() => {
+                        ctaSection.scrollIntoView({ 
+                            behavior: 'smooth',
+                            block: 'center'
+                        });
+                    }, 800);
+                } else {
+                    message.classList.remove('show');
+                    ctaButton.classList.remove('pulse');
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
