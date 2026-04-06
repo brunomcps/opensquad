@@ -1,0 +1,37 @@
+filters:
+  and:
+    - type == "tarefa"
+    - status != "concluido"
+    - status != "arquivado"
+    - 'date(due) >= today()'
+    - 'date(due) < today() + "7d"'
+
+formulas:
+  dias_restantes: 'if(due, (date(due) - today()).days, "")'
+
+properties:
+  title:
+    displayName: Tarefa
+  pillar:
+    displayName: Area
+  prioridade:
+    displayName: Prioridade
+  due:
+    displayName: Prazo
+  formula.dias_restantes:
+    displayName: Em
+
+views:
+  - type: table
+    name: Esta Semana
+    order:
+      - title
+      - pillar
+      - prioridade
+      - due
+      - formula.dias_restantes
+    sort:
+      - property: due
+        direction: ASC
+    summaries:
+      title: Filled

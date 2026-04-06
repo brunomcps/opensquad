@@ -1,0 +1,27 @@
+filters:
+  and:
+    - type == "tarefa"
+    - status != "concluido"
+    - status != "arquivado"
+    - 'date(due) == today()'
+
+properties:
+  title:
+    displayName: Tarefa
+  pillar:
+    displayName: Area
+  prioridade:
+    displayName: Prioridade
+
+views:
+  - type: table
+    name: Hoje
+    order:
+      - title
+      - pillar
+      - prioridade
+    sort:
+      - property: prioridade
+        direction: ASC
+    summaries:
+      title: Filled

@@ -1,0 +1,69 @@
+filters:
+  and:
+    - type == "consulta"
+
+properties:
+  paciente:
+    displayName: Paciente
+  data:
+    displayName: Data
+  horario:
+    displayName: Horario
+  status:
+    displayName: Status
+  tem_transcricao:
+    displayName: Transcricao
+  duracao:
+    displayName: Min
+
+views:
+  - type: table
+    name: Todas
+    order:
+      - paciente
+      - data
+      - horario
+      - status
+      - tem_transcricao
+    sort:
+      - property: data
+        direction: DESC
+    summaries:
+      paciente: Filled
+
+  - type: table
+    name: Por Paciente
+    order:
+      - data
+      - horario
+      - status
+      - tem_transcricao
+    groupBy:
+      property: paciente
+      direction: ASC
+    sort:
+      - property: data
+        direction: DESC
+
+  - type: table
+    name: Com Transcricao
+    filters:
+      and:
+        - tem_transcricao == true
+    order:
+      - paciente
+      - data
+      - horario
+
+  - type: table
+    name: Agendadas
+    filters:
+      and:
+        - status == "agendada"
+    order:
+      - paciente
+      - data
+      - horario
+    sort:
+      - property: data
+        direction: ASC

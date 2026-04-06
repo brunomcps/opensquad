@@ -1,0 +1,48 @@
+pipeline:
+  name: "Recomposição Corporal — Pipeline de Programação"
+  version: "1.0.0"
+  performance_mode: alta_performance
+
+  steps:
+    - id: step-01
+      name: "Análise de Métricas"
+      agent: analista
+      execution: inline
+      file: pipeline/steps/step-01-analise-metricas.md
+
+    - id: step-02
+      name: "Programação do Mesociclo"
+      agent: coach
+      execution: inline
+      file: pipeline/steps/step-02-programacao.md
+
+    - id: step-03
+      name: "Plano Alimentar"
+      agent: nutricionista
+      execution: inline
+      file: pipeline/steps/step-03-nutricao.md
+
+    - id: step-04
+      name: "Aprovar Plano"
+      type: checkpoint
+      file: pipeline/steps/step-04-aprovacao.md
+
+    - id: step-05
+      name: "Revisão de Coerência"
+      agent: reviewer
+      execution: inline
+      file: pipeline/steps/step-05-review.md
+
+    - id: step-06
+      name: "Gerar Outputs"
+      agent: coach
+      execution: inline
+      file: pipeline/steps/step-06-output.md
+
+  checkpoints:
+    - step-04
+
+  on_reject:
+    step-04:
+      go_to: step-02
+      message: "Bruno rejeitou o plano. Voltando para reprogramação."

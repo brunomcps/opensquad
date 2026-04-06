@@ -1,0 +1,33 @@
+filters:
+  and:
+    - type == "treino-semana"
+
+properties:
+  title:
+    displayName: Semana
+  semana:
+    displayName: Num
+  meta_sessoes:
+    displayName: Meta
+  concluidos:
+    displayName: Feitos
+  treino_1:
+    displayName: Sessao 1
+  treino_2:
+    displayName: Sessao 2
+  treino_3:
+    displayName: Sessao 3
+
+views:
+  - type: table
+    name: Treinos
+    order:
+      - title
+      - meta_sessoes
+      - concluidos
+      - treino_1
+      - treino_2
+      - treino_3
+    sort:
+      - property: semana
+        direction: DESC

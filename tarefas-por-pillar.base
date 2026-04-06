@@ -1,0 +1,69 @@
+filters:
+  and:
+    - type == "tarefa"
+    - status != "concluido"
+    - status != "arquivado"
+
+formulas:
+  dias_atraso: 'if(due, if(date(due) < today(), (today() - date(due)).days, ""), "")'
+
+properties:
+  title:
+    displayName: Tarefa
+  pillar:
+    displayName: Area
+  prioridade:
+    displayName: Prioridade
+  status:
+    displayName: Status
+  due:
+    displayName: Prazo
+  formula.dias_atraso:
+    displayName: Atraso
+
+views:
+  - type: table
+    name: Por Area
+    order:
+      - title
+      - prioridade
+      - status
+      - due
+      - formula.dias_atraso
+    groupBy:
+      property: pillar
+      direction: ASC
+    sort:
+      - property: due
+        direction: ASC
+    summaries:
+      title: Filled
+
+  - type: table
+    name: Todas
+    order:
+      - title
+      - pillar
+      - prioridade
+      - status
+      - due
+    sort:
+      - property: pillar
+        direction: ASC
+      - property: due
+        direction: ASC
+    summaries:
+      title: Filled
+
+  - type: table
+    name: Concluidas
+    filters:
+      or:
+        - status == "concluido"
+    order:
+      - title
+      - pillar
+      - due
+    sort:
+      - property: due
+        direction: DESC

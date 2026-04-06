@@ -194,6 +194,60 @@ Apply to every path that was transformed in Step 1:
 
 Apply this transformation consistently for every write in this step.
 
+### Output Metadata Injection
+
+After determining the final output path (post-transformation), inject metadata into the output content BEFORE writing the file. This enables rastreabilidade (provenance tracking) and Obsidian compatibility.
+
+#### For `.md` output files
+
+Prepend YAML frontmatter to the content. If the agent's output already contains frontmatter (`---` at line 1), merge the metadata fields into the existing frontmatter instead of adding a second block.
+
+```yaml
+---
+title: "{human-readable title derived from the content or step name}"
+type: "{output type from the type table in CLAUDE.md, e.g. carousel-draft, insights-brief}"
+status: draft
+created: "{YYYY-MM-DD}"
+version: "{version number extracted from the version folder, e.g. 1 for v1}"
+squad: "{squad code from squad.yaml}"
+pipeline_step: "{step id, e.g. step-05-copywriter}"
+agent: "{agent id that produced this output}"
+model_tier: "{fast or powerful, from step frontmatter}"
+run_id: "{run_id}"
+derived_from: "{filename of the primary input file for this step, if any}"
+tags: ["{squad code}", "{agent id}", "{output type}"]
+---
+```
+
+After the frontmatter, add a Provenance callout:
+
+```markdown
+> [!info] Provenance
+> Gerado por **{agent name}** no squad [[{squad-name}]]
+> Run: {run_id} | Step: {step id}
+```
+
+#### For `.yaml` output files
+
+Add a `_meta:` field at the TOP of the YAML content (before any existing keys). Do NOT use `---` frontmatter separators — this would break YAML parsing.
+
+```yaml
+_meta:
+  type: "{output type}"
+  created: "{YYYY-MM-DD}"
+  squad: "{squad code}"
+  pipeline_step: "{step id}"
+  agent: "{agent id}"
+  run_id: "{run_id}"
+  version: "{version number}"
+
+# ... rest of the agent's YAML output below
+```
+
+#### For other file types (`.html`, `.json`, etc.)
+
+Do not inject metadata — these formats don't support it cleanly. The metadata is still captured in the run's `_index.md` (see Post-Completion below).
+
 ### For each pipeline step:
 
 0. **Update dashboard** — MANDATORY. Write `squads/{name}/state.json` using the Write tool. Always write — it is never wrong to update the dashboard. Use this content:
@@ -358,7 +412,21 @@ After writing the final "completed" state to `squads/{name}/state.json`:
 
 This archives the run state for the `runs` command while keeping the squad root clean.
 
-2. Update squad memory (`squads/{name}/_memory/memories.md`) with:
+2. **Generate run index** — Create `squads/{name}/output/{run_id}/_index.md` summarizing all outputs:
+   ```yaml
+   ---
+   title: "Run Index — {squad name}"
+   type: run-index
+   squad: "{squad code}"
+   run_id: "{run_id}"
+   created: "{YYYY-MM-DD}"
+   status: completed
+   tags: [index, run-log, "{squad code}"]
+   ---
+   ```
+   After the frontmatter, add a table listing all output files in this run with their type, version, and agent. Also include a Mermaid flowchart showing the derivation chain (which file was derived from which).
+
+3. Update squad memory (`squads/{name}/_memory/memories.md`) with:
    - What the user approved/rejected
    - Any new preferences detected
    - Review cycle count and outcome

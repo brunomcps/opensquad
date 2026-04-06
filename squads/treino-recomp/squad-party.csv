@@ -1,0 +1,5 @@
+id,name,title,icon,squad,execution,path
+coach,Rafa Coach,Personal Trainer & Programador de Treino,🏋️,treino-recomp,inline,./agents/coach.agent.md
+nutricionista,Nina Nutri,Nutricionista Esportiva,🥗,treino-recomp,inline,./agents/nutricionista.agent.md
+analista,Dan Data,Analista de Métricas Corporais,📊,treino-recomp,inline,./agents/analista.agent.md
+reviewer,Val Validação,Revisor de Coerência,🔍,treino-recomp,inline,./agents/reviewer.agent.md

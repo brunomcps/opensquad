@@ -8,6 +8,7 @@ Type `/opensquad` to open the main menu, or use any of these commands:
 - `/opensquad create` — Create a new squad
 - `/opensquad run <name>` — Run a squad
 - `/opensquad help` — See all commands
+- `/roteiro` — Pipeline completo de roteiro YouTube (tema → documento final)
 
 ## Directory Structure
 

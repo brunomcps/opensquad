@@ -1,0 +1,35 @@
+filters:
+  and:
+    - type == "tarefa"
+    - status == "pendente"
+    - 'date(due) < today()'
+
+formulas:
+  dias_atraso: 'if(due, (today() - date(due)).days, "")'
+
+properties:
+  title:
+    displayName: Tarefa
+  pillar:
+    displayName: Area
+  prioridade:
+    displayName: Prioridade
+  due:
+    displayName: Prazo
+  formula.dias_atraso:
+    displayName: Dias Atrasado
+
+views:
+  - type: table
+    name: Atrasadas
+    order:
+      - title
+      - pillar
+      - prioridade
+      - due
+      - formula.dias_atraso
+    sort:
+      - property: formula.dias_atraso
+        direction: DESC
+    summaries:
+      title: Filled
