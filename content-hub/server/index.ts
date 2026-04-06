@@ -47,7 +47,7 @@ if (process.env.NODE_ENV === 'production' && process.env.AUTH_USERS) {
     })
   );
   app.use((req, res, next) => {
-    if (req.path === '/api/sync-push' || req.path === '/api/health' || req.path.startsWith('/api/telegram/webhook') || req.path.startsWith('/favicon')) return next();
+    if (req.path === '/api/sync-push' || req.path === '/api/health' || req.path.startsWith('/api/telegram/') || req.path.startsWith('/favicon')) return next();
 
     const auth = req.headers.authorization;
     if (!auth || !auth.startsWith('Basic ')) {
