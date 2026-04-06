@@ -144,3 +144,19 @@ export async function updateProductionField(slug: string, field: string, value: 
     .update({ [field]: value, updated_at: new Date().toISOString() })
     .eq('slug', slug);
 }
+
+// ===========================================
+// TELEGRAM HISTORY
+// ===========================================
+
+export async function saveTelegramHistory(entry: {
+  source: 'railway' | 'daily' | 'listener';
+  user_message?: string | null;
+  assistant_response?: string | null;
+  callback_data?: string | null;
+  metadata?: Record<string, any> | null;
+}): Promise<void> {
+  await supabase
+    .from('telegram_history')
+    .insert({ ...entry, timestamp: new Date().toISOString() });
+}

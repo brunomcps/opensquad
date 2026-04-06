@@ -540,6 +540,13 @@ export async function sendDaily(): Promise<{ ok: boolean; messageCount: number; 
       await sendMessage(messages[i], kb);
     }
 
+    // 5. Save to history
+    const { saveTelegramHistory } = await import('../db/bot.js');
+    saveTelegramHistory({
+      source: 'daily',
+      assistant_response: messages.join('\n\n---\n\n'),
+    }).catch(() => {});
+
     console.log(`[ChefeBruno] Sent ${messages.length} messages`);
     return { ok: true, messageCount: messages.length };
   } catch (err: any) {

@@ -10,7 +10,7 @@
 import { Router } from 'express';
 import { sendDaily, processCallbacks } from '../services/chefeBruno.js';
 import { answerCallbackQuery, sendMessage } from '../services/telegram.js';
-import { updateTarefaStatus, updateTarefaDue, updateProductionField } from '../db/bot.js';
+import { updateTarefaStatus, updateTarefaDue, updateProductionField, saveTelegramHistory } from '../db/bot.js';
 import { supabase } from '../db/client.js';
 
 const router = Router();
@@ -22,6 +22,8 @@ function checkSecret(req: any, res: any): boolean {
   if (!SYNC_SECRET) return true; // no secret configured = allow all
   const auth = req.headers.authorization;
   if (auth === `Bearer ${SYNC_SECRET}`) return true;
+  // Also check x-sync-secret header (used by Make.com cron)
+  if (req.headers['x-sync-secret'] === SYNC_SECRET) return true;
   // Also check query param
   if (req.query.secret === SYNC_SECRET) return true;
   res.status(401).json({ ok: false, error: 'unauthorized' });
@@ -85,9 +87,11 @@ router.post('/webhook', async (req, res) => {
       }
       const title = tarefaData[0].title;
 
+      let responseText = '';
       if (action === 'd') {
         await updateTarefaStatus(slug, 'concluido');
         await answerCallbackQuery(cb.id, '✅ Tarefa concluída!');
+        responseText = `✅ ${title.slice(0, 40)} concluída!`;
         await sendMessage(`✅ <b>${title.slice(0, 40)}</b> concluída!`);
       } else if (action === 'r') {
         const now = new Date();
@@ -97,12 +101,15 @@ router.post('/webhook', async (req, res) => {
         const formatted = `${String(newDate.getDate()).padStart(2, '0')}/${String(newDate.getMonth() + 1).padStart(2, '0')}`;
         await updateTarefaDue(slug, newDateStr);
         await answerCallbackQuery(cb.id, `📅 Reagendada pra ${formatted}`);
+        responseText = `📅 ${title.slice(0, 35)} → ${formatted}`;
         await sendMessage(`📅 <b>${title.slice(0, 35)}</b> → ${formatted}.\nMas não vira hábito.`);
       } else if (action === 'x') {
         await updateTarefaStatus(slug, 'arquivado');
         await answerCallbackQuery(cb.id, '🗑️ Tarefa descartada');
+        responseText = `🗑️ ${title.slice(0, 40)} descartada.`;
         await sendMessage(`🗑️ <b>${title.slice(0, 40)}</b> descartada. Menos peso.`);
       }
+      if (responseText) saveTelegramHistory({ source: 'railway', callback_data: data, assistant_response: responseText }).catch(() => {});
       return res.json({ ok: true });
     }
 
@@ -128,11 +135,13 @@ router.post('/webhook', async (req, res) => {
     }
     const fi = FIELD_INFO[field] || { emoji: '❓', verb: field };
 
+    let vidResponse = '';
     if (action === 'd') {
       const now = new Date();
       const brt = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) - 3 * 3600000);
       await updateProductionField(slug, field, `✅ ${brt.toISOString().slice(0, 10)}`);
       await answerCallbackQuery(cb.id, `✅ ${fi.verb} concluído!`);
+      vidResponse = `✅ ${fi.verb} de ${prodData[0].title.slice(0, 35)} concluído!`;
       await sendMessage(`✅ <b>${fi.verb}</b> de <b>${prodData[0].title.slice(0, 35)}</b> concluído!`);
     } else if (action === 'r') {
       const now = new Date();
@@ -142,8 +151,10 @@ router.post('/webhook', async (req, res) => {
       const formatted = `${String(newDate.getDate()).padStart(2, '0')}/${String(newDate.getMonth() + 1).padStart(2, '0')}`;
       await updateProductionField(slug, field, `📅 ${newDateStr}`);
       await answerCallbackQuery(cb.id, `📅 Reagendado pra ${formatted}`);
+      vidResponse = `📅 ${fi.verb} de ${prodData[0].title.slice(0, 30)} → ${formatted}`;
       await sendMessage(`📅 ${fi.emoji} ${fi.verb} de <b>${prodData[0].title.slice(0, 30)}</b> → ${formatted}`);
     }
+    if (vidResponse) saveTelegramHistory({ source: 'railway', callback_data: data, assistant_response: vidResponse }).catch(() => {});
 
     res.json({ ok: true });
   } catch (err: any) {
