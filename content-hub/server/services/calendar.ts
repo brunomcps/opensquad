@@ -60,8 +60,15 @@ function mapEvent(e: any): CalendarEvent {
 }
 
 export async function getTodayEvents(): Promise<CalendarEvent[]> {
+  // Use BRT (UTC-3) to define "today", not server UTC
   const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const brtNow = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+  const year = brtNow.getUTCFullYear();
+  const month = brtNow.getUTCMonth();
+  const day = brtNow.getUTCDate();
+
+  // BRT midnight = 03:00 UTC
+  const startOfDay = new Date(Date.UTC(year, month, day, 3, 0, 0));
   const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
 
   const res = await calendar.events.list({
@@ -71,6 +78,7 @@ export async function getTodayEvents(): Promise<CalendarEvent[]> {
     singleEvents: true,
     orderBy: 'startTime',
     maxResults: 20,
+    timeZone: 'America/Sao_Paulo',
   });
 
   return (res.data.items || []).map(mapEvent);
