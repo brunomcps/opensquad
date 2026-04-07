@@ -93,6 +93,11 @@ function connect(): void {
   ws.on('close', (code, reason) => {
     console.log(`[Listener] Disconnected (code=${code}, reason=${reason.toString()})`);
     ws = null;
+    // 4002 = replaced by another listener instance — stop to avoid reconnect loop
+    if (code === 4002) {
+      console.log('[Listener] Replaced by another instance. Exiting.');
+      process.exit(0);
+    }
     scheduleReconnect();
   });
 

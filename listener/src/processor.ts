@@ -87,18 +87,15 @@ export async function processWithClaude(batch: MessageBatch): Promise<string> {
   try {
     const { stdout } = await execFileAsync(CLAUDE_BIN, [
       '-p', userPrompt,
-      '--model', 'opus',
       '--output-format', 'text',
       '--max-turns', '10',
-      '--verbose',
     ], {
       cwd: VAULT_PATH,
       maxBuffer: 5 * 1024 * 1024, // 5MB
       timeout: 120_000, // 2 min
+      shell: CLAUDE_BIN.endsWith('.cmd'), // Windows .cmd needs shell
       env: {
         ...process.env,
-        // Ensure Claude CLI has access to the vault
-        CLAUDE_MODEL: 'opus',
       },
     });
 
