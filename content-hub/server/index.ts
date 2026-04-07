@@ -33,6 +33,7 @@ import { refreshThreadsTokenIfNeeded } from './services/threads.js';
 import { setupRcloneConfig } from './services/onedrive.js';
 import { loadCatalog } from './services/catalogo.js';
 import { setupWebSocket } from './services/wsServer.js';
+import { loadAgents } from './services/agentLoader.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -118,6 +119,7 @@ const server = app.listen(PORT, async () => {
   await refreshThreadsTokenIfNeeded();
   await setupRcloneConfig();
   loadCatalog().catch(e => console.error('[Catalogo] Initial load failed:', e.message));
+  loadAgents().catch(e => console.error('[AgentLoader] Initial load failed:', e.message));
 });
 
 // Attach WebSocket server to the HTTP server (same port)

@@ -8,6 +8,8 @@
 
 import { sendToListener, isListenerConnected } from './wsServer.js';
 import { sendMessage } from './telegram.js';
+import { processWithHaiku } from './haikuConversation.js';
+import { transcribeVoice } from './groqWhisper.js';
 
 // --- Types ---
 
@@ -94,22 +96,28 @@ async function flushBuffer(chatId: number): Promise<void> {
 }
 
 async function handleOffline(messages: BufferedMessage[]): Promise<void> {
-  // Phase 3 will add Haiku fallback here.
-  // For now, just acknowledge receipt.
-  const textParts = messages
-    .filter(m => m.type === 'text' && m.text)
-    .map(m => m.text);
-
-  const hasVoice = messages.some(m => m.type === 'voice');
-  const hasPhoto = messages.some(m => m.type === 'photo');
-
-  let ack = '💤 PC desligado.';
-  if (textParts.length > 0) {
-    ack += ` Recebi: "${textParts.join(' / ').slice(0, 100)}"`;
+  // Transcribe voice messages via Groq Whisper
+  for (const msg of messages) {
+    if (msg.type === 'voice' && msg.fileId && !msg.text) {
+      console.log('[Buffer] Transcribing voice message...');
+      const text = await transcribeVoice(msg.fileId);
+      msg.text = text;
+      msg.type = 'text'; // promote to text after transcription
+    }
   }
-  if (hasVoice) ack += ' + audio';
-  if (hasPhoto) ack += ' + foto';
-  ack += '\nQuando ligar, processo tudo.';
 
-  await sendMessage(ack);
+  // Process with Haiku (PC offline fallback)
+  try {
+    const response = await processWithHaiku(messages);
+    await sendMessage(response);
+  } catch (err: any) {
+    console.error('[Buffer] Haiku fallback error:', err.message);
+    // Last resort: acknowledge receipt
+    const textParts = messages.filter(m => m.text).map(m => m.text);
+    let ack = '⚠️ PC desligado e Haiku indisponivel.';
+    if (textParts.length > 0) {
+      ack += ` Recebi: "${textParts.join(' / ').slice(0, 100)}"`;
+    }
+    await sendMessage(ack);
+  }
 }
