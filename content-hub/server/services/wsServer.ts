@@ -143,10 +143,22 @@ export function setupWebSocket(server: Server): void {
       console.error('[WS] Listener error:', err.message);
     });
 
-    // --- Heartbeat: ping every 30s ---
+    // --- Heartbeat: WebSocket-level ping every 30s ---
+    // Detects stale/dead connections that text-level pings miss
+    let isAlive = true;
+
+    ws.on('pong', () => { isAlive = true; }); // WebSocket-level pong
+
     const pingInterval = setInterval(() => {
+      if (!isAlive) {
+        console.log('[WS] Listener failed pong check — terminating stale connection');
+        clearInterval(pingInterval);
+        ws.terminate(); // force close (triggers 'close' event)
+        return;
+      }
+      isAlive = false;
       if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'ping' }));
+        ws.ping(); // WebSocket-level ping (not text message)
       } else {
         clearInterval(pingInterval);
       }
