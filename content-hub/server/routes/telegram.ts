@@ -13,7 +13,7 @@ import { answerCallbackQuery, sendMessage } from '../services/telegram.js';
 import { updateTarefaStatus, updateTarefaDue, updateProductionField, saveTelegramHistory } from '../db/bot.js';
 import { supabase } from '../db/client.js';
 import { bufferMessage } from '../services/messageBuffer.js';
-import { getListenerStatus } from '../services/wsServer.js';
+import { getListenerStatus, forceDisconnectListener } from '../services/wsServer.js';
 
 const router = Router();
 
@@ -219,6 +219,13 @@ router.get('/status', (_req, res) => {
     hasChatId: !!process.env.TELEGRAM_CHAT_ID,
     listener: getListenerStatus(),
   });
+});
+
+// Force disconnect listener (for debugging stale connections)
+router.post('/disconnect-listener', (req, res) => {
+  if (!checkSecret(req, res)) return;
+  const disconnected = forceDisconnectListener();
+  res.json({ ok: true, disconnected });
 });
 
 export default router;

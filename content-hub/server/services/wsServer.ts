@@ -41,6 +41,18 @@ export function getListenerStatus() {
   };
 }
 
+/** Force disconnect the listener (for debugging/testing) */
+export function forceDisconnectListener(): boolean {
+  if (listenerWs) {
+    listenerWs.terminate();
+    listenerWs = null;
+    connectedAt = null;
+    console.log('[WS] Listener force-disconnected');
+    return true;
+  }
+  return false;
+}
+
 /**
  * Send a message batch to the listener and wait for the response.
  * Rejects if listener is offline or times out.
