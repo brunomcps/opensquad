@@ -32,6 +32,7 @@ import { refreshFacebookTokenIfNeeded } from './services/facebook.js';
 import { refreshThreadsTokenIfNeeded } from './services/threads.js';
 import { setupRcloneConfig } from './services/onedrive.js';
 import { loadCatalog } from './services/catalogo.js';
+import { setupWebSocket } from './services/wsServer.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -109,13 +110,15 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-app.listen(PORT, async () => {
+const server = app.listen(PORT, async () => {
   console.log(`Content Hub API running on http://localhost:${PORT}`);
   startBRollWatcher(BROLL_LIBRARY);
   await refreshTokenIfNeeded();
   await refreshFacebookTokenIfNeeded();
   await refreshThreadsTokenIfNeeded();
   await setupRcloneConfig();
-  // Load catalog after OneDrive is configured
   loadCatalog().catch(e => console.error('[Catalogo] Initial load failed:', e.message));
 });
+
+// Attach WebSocket server to the HTTP server (same port)
+setupWebSocket(server);

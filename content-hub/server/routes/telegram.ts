@@ -1,10 +1,10 @@
 /**
- * Telegram bot routes — daily message + callback processing.
+ * Telegram bot routes — daily message + callback processing + Diario Inteligente.
  *
  * POST /api/telegram/send-daily  — trigger daily message (called by cron)
  * POST /api/telegram/poll        — process button callbacks
- * POST /api/telegram/webhook     — Telegram webhook for callbacks
- * GET  /api/telegram/status      — health check
+ * POST /api/telegram/webhook     — Telegram webhook (callbacks + messages)
+ * GET  /api/telegram/status      — health check (includes listener status)
  */
 
 import { Router } from 'express';
@@ -12,6 +12,8 @@ import { sendDaily, processCallbacks } from '../services/chefeBruno.js';
 import { answerCallbackQuery, sendMessage } from '../services/telegram.js';
 import { updateTarefaStatus, updateTarefaDue, updateProductionField, saveTelegramHistory } from '../db/bot.js';
 import { supabase } from '../db/client.js';
+import { bufferMessage } from '../services/messageBuffer.js';
+import { getListenerStatus } from '../services/wsServer.js';
 
 const router = Router();
 
@@ -70,6 +72,47 @@ router.post('/webhook', async (req, res) => {
     const update = req.body;
     if (!update) return res.json({ ok: true });
 
+    // === INCOMING MESSAGES (text, voice, photo) → Diario Inteligente ===
+    const msg = update.message;
+    if (msg) {
+      const chatId = msg.chat?.id;
+      const expectedChat = process.env.TELEGRAM_CHAT_ID;
+
+      // Only process messages from Bruno's chat
+      if (chatId && (!expectedChat || String(chatId) === expectedChat)) {
+        if (msg.text && !msg.text.startsWith('/')) {
+          // Text message (ignore commands like /start)
+          bufferMessage(chatId, {
+            type: 'text',
+            text: msg.text,
+            timestamp: new Date(msg.date * 1000).toISOString(),
+          });
+          saveTelegramHistory({
+            source: 'listener',
+            user_message: msg.text,
+          }).catch(() => {});
+        } else if (msg.voice) {
+          // Voice message → Phase 3 will add Groq Whisper
+          bufferMessage(chatId, {
+            type: 'voice',
+            fileId: msg.voice.file_id,
+            timestamp: new Date(msg.date * 1000).toISOString(),
+          });
+        } else if (msg.photo) {
+          // Photo → send largest version
+          const photo = msg.photo[msg.photo.length - 1];
+          bufferMessage(chatId, {
+            type: 'photo',
+            fileId: photo.file_id,
+            caption: msg.caption,
+            timestamp: new Date(msg.date * 1000).toISOString(),
+          });
+        }
+      }
+      return res.json({ ok: true });
+    }
+
+    // === CALLBACK QUERIES (button presses from daily message) ===
     const cb = update.callback_query;
     if (!cb) return res.json({ ok: true });
 
@@ -170,10 +213,11 @@ router.post('/webhook', async (req, res) => {
 router.get('/status', (_req, res) => {
   res.json({
     ok: true,
-    bot: 'Chefe Bruno',
+    bot: 'Chefe Bruno / Diario Inteligente V3',
     timestamp: new Date().toISOString(),
     hasToken: !!process.env.TELEGRAM_BOT_TOKEN,
     hasChatId: !!process.env.TELEGRAM_CHAT_ID,
+    listener: getListenerStatus(),
   });
 });
 
