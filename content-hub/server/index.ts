@@ -25,11 +25,13 @@ import audienceRouter from './routes/audience.js';
 import infoprodutosRouter from './routes/infoprodutos.js';
 import telegramRouter from './routes/telegram.js';
 import onedriveRouter from './routes/onedrive.js';
+import catalogoRouter from './routes/catalogo.js';
 import { startBRollWatcher } from './services/brollWatcher.js';
 import { refreshTokenIfNeeded } from './services/instagram.js';
 import { refreshFacebookTokenIfNeeded } from './services/facebook.js';
 import { refreshThreadsTokenIfNeeded } from './services/threads.js';
 import { setupRcloneConfig } from './services/onedrive.js';
+import { loadCatalog } from './services/catalogo.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -94,6 +96,7 @@ app.use('/api/audience', audienceRouter);
 app.use('/api/infoprodutos', infoprodutosRouter);
 app.use('/api/telegram', telegramRouter);
 app.use('/api/onedrive', onedriveRouter);
+app.use('/api/catalogo', catalogoRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, timestamp: new Date().toISOString() });
@@ -113,4 +116,6 @@ app.listen(PORT, async () => {
   await refreshFacebookTokenIfNeeded();
   await refreshThreadsTokenIfNeeded();
   await setupRcloneConfig();
+  // Load catalog after OneDrive is configured
+  loadCatalog().catch(e => console.error('[Catalogo] Initial load failed:', e.message));
 });
