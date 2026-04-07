@@ -1,10 +1,15 @@
 // Catalogo Service — loads metric/exercise catalog from vault
 // Used by Haiku (PC off) for fuzzy matching of user messages
 // Reads from OneDrive via rclone (Railway) or filesystem (local dev)
+// Optimized: uses single rclone copy to download entire catalog folder at once
 
-import { readFile, listFolder } from './onedrive.js';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
+
+const execFileAsync = promisify(execFile);
+// Note: does NOT import from onedrive.js — uses rclone copy directly for bulk download
 
 // --- Types ---
 
@@ -76,81 +81,86 @@ function parseFrontmatter(content: string): Record<string, any> | null {
   return result;
 }
 
+// --- rclone config ---
+
+const RCLONE_REMOTE = 'opensquad-vault';
+const VAULT_PATH = process.env.ONEDRIVE_VAULT_PATH || 'Bruno Salles/Projetos/OpenSquad';
+const RCLONE_BIN = process.env.RCLONE_BIN || 'rclone';
+const RCLONE_CONFIG_PATH = process.env.RCLONE_CONFIG_PATH || '/tmp/rclone.conf';
+const LOCAL_CACHE_DIR = '/tmp/catalogo-cache';
+
 // --- Load catalog ---
+
+function readLocalDir(baseDir: string): CatalogEntry[] {
+  const entries: CatalogEntry[] = [];
+  for (const folder of SUBFOLDERS) {
+    const folderPath = path.join(baseDir, folder);
+    if (!fs.existsSync(folderPath)) continue;
+
+    const files = fs.readdirSync(folderPath).filter(f => f.endsWith('.md'));
+    for (const file of files) {
+      try {
+        const content = fs.readFileSync(path.join(folderPath, file), 'utf-8');
+        const parsed = parseFrontmatter(content);
+        if (parsed && parsed.nome) {
+          entries.push({
+            file: `${folder}/${file}`,
+            nome: parsed.nome,
+            aliases: parsed.aliases || [],
+            categoria: parsed.categoria || folder,
+            grupo_muscular: parsed.grupo_muscular,
+            tipo_valor: parsed.tipo_valor || 'texto',
+            unidade: parsed.unidade || '',
+            equipamento: parsed.equipamento,
+            fonte: parsed.fonte,
+            campo_frontmatter: parsed.campo_frontmatter,
+            origem: parsed.origem,
+            ativo: parsed.ativo !== false,
+          });
+        }
+      } catch (e: any) {
+        console.error(`[Catalogo] Failed to read ${folder}/${file}:`, e.message);
+      }
+    }
+  }
+  return entries;
+}
 
 export async function loadCatalog(): Promise<CatalogEntry[]> {
   const useLocal = process.env.NODE_ENV !== 'production' && !process.env.RCLONE_CONFIG_B64;
-  const entries: CatalogEntry[] = [];
 
-  console.log(`[Catalogo] Loading from ${useLocal ? 'filesystem' : 'OneDrive'}...`);
+  let entries: CatalogEntry[];
 
-  for (const folder of SUBFOLDERS) {
+  if (useLocal) {
+    // Local dev: read from filesystem (project root)
+    const localDir = path.resolve(process.cwd(), CATALOG_VAULT_PATH);
+    console.log(`[Catalogo] Loading from filesystem: ${localDir}`);
+    entries = readLocalDir(localDir);
+  } else {
+    // Production: single rclone copy to download entire catalog, then read locally
+    console.log('[Catalogo] Downloading catalog from OneDrive via rclone copy...');
+    const remotePath = `${RCLONE_REMOTE}:${VAULT_PATH}/${CATALOG_VAULT_PATH}`;
+
+    // Clean and recreate cache dir
+    if (fs.existsSync(LOCAL_CACHE_DIR)) {
+      fs.rmSync(LOCAL_CACHE_DIR, { recursive: true });
+    }
+    fs.mkdirSync(LOCAL_CACHE_DIR, { recursive: true });
+
     try {
-      let files: string[];
-
-      if (useLocal) {
-        // Local dev: read from filesystem
-        const localDir = path.resolve(process.cwd(), CATALOG_VAULT_PATH, folder);
-        if (!fs.existsSync(localDir)) {
-          console.log(`[Catalogo] Folder not found: ${localDir}`);
-          continue;
-        }
-        files = fs.readdirSync(localDir).filter(f => f.endsWith('.md'));
-        for (const file of files) {
-          try {
-            const content = fs.readFileSync(path.join(localDir, file), 'utf-8');
-            const parsed = parseFrontmatter(content);
-            if (parsed && parsed.nome) {
-              entries.push({
-                file: `${folder}/${file}`,
-                nome: parsed.nome,
-                aliases: parsed.aliases || [],
-                categoria: parsed.categoria || folder,
-                grupo_muscular: parsed.grupo_muscular,
-                tipo_valor: parsed.tipo_valor || 'texto',
-                unidade: parsed.unidade || '',
-                equipamento: parsed.equipamento,
-                fonte: parsed.fonte,
-                campo_frontmatter: parsed.campo_frontmatter,
-                origem: parsed.origem,
-                ativo: parsed.ativo !== false,
-              });
-            }
-          } catch (e: any) {
-            console.error(`[Catalogo] Failed to read ${folder}/${file}:`, e.message);
-          }
-        }
-      } else {
-        // Production: read from OneDrive via rclone
-        const items = await listFolder(`${CATALOG_VAULT_PATH}/${folder}`);
-        for (const item of items) {
-          if (!item.Name.endsWith('.md')) continue;
-          try {
-            const content = await readFile(`${CATALOG_VAULT_PATH}/${folder}/${item.Name}`);
-            const parsed = parseFrontmatter(content);
-            if (parsed && parsed.nome) {
-              entries.push({
-                file: `${folder}/${item.Name}`,
-                nome: parsed.nome,
-                aliases: parsed.aliases || [],
-                categoria: parsed.categoria || folder,
-                grupo_muscular: parsed.grupo_muscular,
-                tipo_valor: parsed.tipo_valor || 'texto',
-                unidade: parsed.unidade || '',
-                equipamento: parsed.equipamento,
-                fonte: parsed.fonte,
-                campo_frontmatter: parsed.campo_frontmatter,
-                origem: parsed.origem,
-                ativo: parsed.ativo !== false,
-              });
-            }
-          } catch (e: any) {
-            console.error(`[Catalogo] Failed to read ${folder}/${item.Name}:`, e.message);
-          }
-        }
-      }
+      await execFileAsync(RCLONE_BIN, [
+        '--config', RCLONE_CONFIG_PATH,
+        'copy', remotePath, LOCAL_CACHE_DIR,
+        '--include', '*.md',
+      ], {
+        maxBuffer: 10 * 1024 * 1024,
+        timeout: 60000, // 60s for entire copy
+      });
+      console.log('[Catalogo] Download complete, reading files...');
+      entries = readLocalDir(LOCAL_CACHE_DIR);
     } catch (e: any) {
-      console.error(`[Catalogo] Failed to process ${folder}:`, e.message);
+      console.error('[Catalogo] rclone copy failed:', e.message);
+      entries = [];
     }
   }
 
