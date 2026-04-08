@@ -46,6 +46,11 @@ interface PendingConfirmation {
   term?: string;
   originalMessage?: string;
   exercicio?: string;
+  suggestion?: {
+    categoria: string;
+    grupo: string;
+    unidade: string;
+  };
 }
 let pendingConfirmation: PendingConfirmation | null = null;
 
@@ -107,7 +112,7 @@ ${todayMetrics ? `## METRICAS JA REGISTRADAS HOJE\n${todayMetrics.slice(0, 400)}
 4. Refeicoes: macros vao no frontmatter (ex: almoco_kcal, almoco_prot)
 5. Refeicoes: descricao vai em sections.refeicoes com wikilink [[almoco]]
 6. Se o treino difere do PLANO DO DIA, registre em desvios[]
-7. Se NAO reconhece um termo, retorne em desconhecidos[] (NAO invente)
+7. Se NAO reconhece um termo, retorne em desconhecidos[] com sua SUGESTAO de classificacao (categoria, grupo, unidade, razao). Use seu conhecimento pra inferir do contexto.
 8. Correcao: use "replace" em vez de "sections" (nao duplicar)
 9. HTML: <b>, <i> pro Telegram
 
@@ -120,8 +125,8 @@ Exemplo treino:
 Exemplo refeicao:
 {"resposta":"Costelao no almoco? Gordura alta.","dados":{"frontmatter":{"almoco_kcal":800,"almoco_prot":50},"sections":{"refeicoes":"- 12:00 [[almoco]]: Costelao (800kcal, 50g prot)"},"desconhecidos":[]},"agente":"chefe-bruno"}
 
-Exemplo desconhecido:
-{"resposta":"Anotei o humor. Mas nao conheco 'prancha'.","dados":{"frontmatter":{"humor":6},"desconhecidos":["prancha"]},"agente":"chefe-bruno"}
+Exemplo desconhecido (SUGIRA a classificacao baseado no contexto):
+{"resposta":"Anotei o humor. Mas nao conheco 'prancha'.","dados":{"frontmatter":{"humor":6},"desconhecidos":[{"termo":"prancha","categoria":"exercicio","grupo":"core","unidade":"segundos","razao":"3x45s indica duracao, prancha e isometria de core"}]},"agente":"chefe-bruno"}
 
 IMPORTANTE: retorne SOMENTE JSON.`;
 }
@@ -261,24 +266,54 @@ function validateFrontmatter(
 
 // --- Handle unknown metrics ---
 
-async function handleUnknowns(desconhecidos: string[], originalMessage: string): Promise<void> {
+interface UnknownMetric {
+  termo: string;
+  categoria?: string;
+  grupo?: string;
+  unidade?: string;
+  razao?: string;
+}
+
+async function handleUnknowns(desconhecidos: any[], originalMessage: string): Promise<void> {
   if (desconhecidos.length === 0) return;
 
-  for (const term of desconhecidos) {
+  const item = desconhecidos[0]; // One at a time
+  const isStructured = typeof item === 'object' && item.termo;
+
+  if (isStructured) {
+    const u = item as UnknownMetric;
+    pendingConfirmation = {
+      type: 'unknown_metric',
+      term: u.termo,
+      originalMessage,
+      suggestion: {
+        categoria: u.categoria || 'habito',
+        grupo: u.grupo || '',
+        unidade: u.unidade || 'contagem',
+      },
+    };
+
+    await sendMessage(
+      `Nao conheco "<b>${u.termo}</b>".\n\n` +
+      `Pelo contexto, parece ser:\n` +
+      `• Tipo: <b>${u.categoria || '?'}</b>\n` +
+      `• Grupo: <b>${u.grupo || '?'}</b>\n` +
+      `• Mede em: <b>${u.unidade || '?'}</b>\n` +
+      (u.razao ? `\n<i>${u.razao}</i>\n` : '') +
+      `\nRegistro assim? Ou me corrige.`
+    );
+  } else {
+    // Fallback: unstructured string
+    const term = typeof item === 'string' ? item : String(item);
     pendingConfirmation = {
       type: 'unknown_metric',
       term,
       originalMessage,
     };
-
     await sendMessage(
-      `Nao conheco "<b>${term}</b>". O que e?\n\n` +
-      `Tipo: exercicio, habito, refeicao, sintoma, corpo?\n` +
-      `Mede em: kg, reps, segundos, 1-10, kcal, litros?\n` +
-      `Grupo: peito, costas, core, cardio, bracos, pernas?\n\n` +
+      `Nao conheco "<b>${term}</b>". O que e?\n` +
       `<i>Ex: "exercicio, core, segundos"</i>`
     );
-    break; // One at a time
   }
 }
 
@@ -288,35 +323,47 @@ async function handlePendingConfirmation(userText: string): Promise<string | nul
   if (!pendingConfirmation) return null;
 
   if (pendingConfirmation.type === 'unknown_metric' && pendingConfirmation.term) {
-    // Parse: "exercicio, core, segundos"
-    const parts = userText.split(/[,;]\s*/).map(s => s.trim().toLowerCase());
-    if (parts.length >= 2) {
-      const categoria = parts[0]; // exercicio, habito, refeicao, etc
-      const subcategoria = parts.length >= 3 ? parts[1] : '';
-      const unidadeOrTipo = parts.length >= 3 ? parts[2] : parts[1];
+    const lower = userText.trim().toLowerCase();
+    const tipoMap: Record<string, string> = {
+      kg: 'carga_kg', reps: 'contagem', segundos: 'duracao_s',
+      minutos: 'duracao_min', kcal: 'calorias', litros: 'volume',
+      '1-10': 'escala', contagem: 'contagem',
+    };
 
-      // Map common values
-      const tipoMap: Record<string, string> = {
-        kg: 'carga_kg', reps: 'contagem', segundos: 'duracao_s',
-        minutos: 'duracao_min', kcal: 'calorias', litros: 'volume',
-        '1-10': 'escala', contagem: 'contagem',
-      };
-      const tipo_valor = tipoMap[unidadeOrTipo] || 'contagem';
+    let categoria: string;
+    let subcategoria: string;
+    let unidade: string;
 
-      const slug = await createCatalogEntry(
-        pendingConfirmation.term,
-        categoria,
-        subcategoria,
-        tipo_valor,
-        unidadeOrTipo,
-        [pendingConfirmation.term.toLowerCase()],
-      );
-
-      pendingConfirmation = null;
-      return `Catalogado! "<b>${slug}</b>" agora e ${categoria}. Proxima vez que falar, ja reconheco.`;
+    // "sim", "ok", "isso", "pode ser", "registra" → use suggestion
+    if (pendingConfirmation.suggestion && /^(sim|ok|isso|pode|registra|bora|confirma|s$)/.test(lower)) {
+      categoria = pendingConfirmation.suggestion.categoria;
+      subcategoria = pendingConfirmation.suggestion.grupo;
+      unidade = pendingConfirmation.suggestion.unidade;
     } else {
-      return `Formato: "<i>tipo, grupo, unidade</i>". Ex: "exercicio, core, segundos"`;
+      // Manual: "exercicio, core, segundos"
+      const parts = userText.split(/[,;]\s*/).map(s => s.trim().toLowerCase());
+      if (parts.length >= 2) {
+        categoria = parts[0];
+        subcategoria = parts.length >= 3 ? parts[1] : '';
+        unidade = parts.length >= 3 ? parts[2] : parts[1];
+      } else {
+        return `Diz "sim" pra aceitar a sugestao, ou me diz no formato: "<i>tipo, grupo, unidade</i>"`;
+      }
     }
+
+    const tipo_valor = tipoMap[unidade] || 'contagem';
+
+    const slug = await createCatalogEntry(
+      pendingConfirmation.term,
+      categoria,
+      subcategoria,
+      tipo_valor,
+      unidade,
+      [pendingConfirmation.term.toLowerCase()],
+    );
+
+    pendingConfirmation = null;
+    return `Catalogado! "<b>${slug}</b>" (${categoria}, ${subcategoria || 'geral'}, ${unidade}). Proxima vez que falar, ja reconheco.`;
   }
 
   pendingConfirmation = null;
