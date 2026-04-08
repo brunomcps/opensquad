@@ -20,7 +20,7 @@ import {
 } from './vaultReader.js';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
-const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
+const FALLBACK_MODEL = 'claude-sonnet-4-6-20250514';
 
 // ============================
 // CONSTANTS
@@ -549,7 +549,7 @@ IMPORTANTE: retorne SOMENTE o JSON array, sem markdown, sem texto antes ou depoi
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: HAIKU_MODEL,
+      model: FALLBACK_MODEL,
       max_tokens: 1024,
       system: systemPrompt,
       messages: [{ role: 'user', content: JSON.stringify(data) }],

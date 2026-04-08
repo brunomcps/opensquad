@@ -26,7 +26,7 @@ import { readTreinoFromVault } from './vaultReader.js';
 import type { BufferedMessage } from './messageBuffer.js';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
-const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
+const FALLBACK_MODEL = 'claude-sonnet-4-6-20250514';
 const MAX_TOKENS = 1024;
 
 // --- History ---
@@ -144,7 +144,7 @@ async function callHaiku(systemPrompt: string, userMessage: string): Promise<str
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: HAIKU_MODEL,
+      model: FALLBACK_MODEL,
       max_tokens: MAX_TOKENS,
       system: systemPrompt,
       messages,
