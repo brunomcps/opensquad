@@ -157,24 +157,32 @@ export async function readTreinoFromVault(): Promise<VaultTreinoSemana | null> {
     const { meta, body } = parseFrontmatter(content);
 
     // Parse each day's exercises from ## headers
+    // Vault uses accented names (Terça, Sábado), code uses unaccented keys
     const dias: Record<string, VaultTreinoDia> = {};
-    const dayNames = ['Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado', 'Domingo'];
+    const dayMapping: [string, string][] = [
+      ['Segunda', 'Segunda'],
+      ['Terca', 'Ter[cç]a'],
+      ['Quarta', 'Quarta'],
+      ['Quinta', 'Quinta'],
+      ['Sexta', 'Sexta'],
+      ['Sabado', 'S[aá]bado'],
+      ['Domingo', 'Domingo'],
+    ];
 
-    for (const dayName of dayNames) {
-      // Match section header: ## Segunda — Push A (Pesado) + Escada
-      const headerRegex = new RegExp(`## ${dayName}\\s*[—–-]\\s*(.+?)\\n([\\s\\S]*?)(?=\\n## |$)`, 'i');
+    for (const [key, pattern] of dayMapping) {
+      const headerRegex = new RegExp(`## ${pattern}\\s*[—–-]\\s*(.+?)\\n([\\s\\S]*?)(?=\\n## |$)`, 'i');
       const match = body.match(headerRegex);
       if (match) {
         const label = match[1].trim();
         const sectionBody = match[2];
 
         if (label.toUpperCase().includes('REST') || label.toUpperCase().includes('DESCANSO')) {
-          continue; // Skip rest days
+          continue;
         }
 
         const exercises = parseExerciseTable(sectionBody);
         if (exercises.length > 0) {
-          dias[dayName] = { label, exercises };
+          dias[key] = { label, exercises };
         }
       }
     }
