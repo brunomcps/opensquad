@@ -69,35 +69,27 @@ Data de hoje: ${todayBRT()}
 ## AGENTES DISPONIVEIS
 ${agentsSummary}
 
-## CATALOGO DE METRICAS
+## CATALOGO DE METRICAS (campos validos pro frontmatter)
 ${catalogCompact}
 
-${todayMetrics ? `## METRICAS DE HOJE\n${todayMetrics.slice(0, 500)}` : ''}
+${todayMetrics ? `## METRICAS DE HOJE (ja registradas)\n${todayMetrics.slice(0, 500)}` : ''}
 
 ## REGRAS
-1. Responda SEMPRE em portugues BR, curto (max 3 frases), tom provocativo
-2. Extraia dados estruturados da mensagem
-3. Use HTML simples pra Telegram: <b>, <i>
-4. Horario logico: 05-23:59 = dia atual, 00-04:59 = verificar contexto
-5. Se a mensagem for vaga, pergunte detalhes
+1. Portugues BR, curto (max 3 frases), tom provocativo e direto
+2. SEMPRE extraia dados numericos da mensagem
+3. HTML simples pra Telegram: <b>, <i>
+4. Horario logico: 05-23:59 = dia atual, 00-04:59 = dia anterior
 
-## FORMATO DE RESPOSTA (OBRIGATORIO)
-Responda SEMPRE neste formato JSON exato:
-\`\`\`json
-{
-  "resposta": "texto pro Bruno (Telegram, HTML simples)",
-  "dados": {
-    "frontmatter": {},
-    "sections": {}
-  },
-  "agente_usado": "nome do agente"
-}
-\`\`\`
+## FORMATO DE RESPOSTA
+Voce DEVE retornar APENAS um bloco JSON. Nenhum texto fora do JSON.
+Exemplo pra "fiz supino 80kg 4x8, humor 7":
 
-- "frontmatter": campos pro YAML da metrica diaria (ex: {"peso": 77.8, "humor": 5, "cigarros": 2})
-- "sections": texto pra append nas secoes (ex: {"treino": "- 10:30 Supino reto 80kg 4x8"})
-- Se nao ha dados pra extrair, mande {} vazio
-- "agente_usado": qual agente voce esta usando pra responder`;
+{"resposta":"<b>80kg no supino</b>, 4x8 limpo? Boa. Humor 7, ta no caminho. Bora pro proximo.","dados":{"frontmatter":{"humor":7},"sections":{"treino":"- Supino reto 80kg 4x8"}},"agente":"chefe-bruno"}
+
+Campos do frontmatter: use EXATAMENTE os nomes do catalogo (humor, peso, cigarros, sono_horas, etc).
+Sections: treino, refeicoes, habitos, humor, notas.
+Se nao ha dados numericos, mande "dados":{} vazio.
+IMPORTANTE: retorne SOMENTE o JSON, sem markdown, sem texto antes ou depois.`;
 }
 
 // --- Call Haiku API ---
@@ -150,22 +142,43 @@ interface HaikuResponse {
     frontmatter: Record<string, any>;
     sections: Record<string, string>;
   };
-  agente_usado: string;
+  agente: string;
+}
+
+function normalizeResponse(obj: any): HaikuResponse {
+  return {
+    resposta: obj.resposta || obj.response || obj.text || '',
+    dados: {
+      frontmatter: obj.dados?.frontmatter || obj.frontmatter || {},
+      sections: obj.dados?.sections || obj.sections || {},
+    },
+    agente: obj.agente || obj.agente_usado || 'chefe-bruno',
+  };
 }
 
 function parseResponse(raw: string): HaikuResponse {
-  // Try to extract JSON from the response
-  const jsonMatch = raw.match(/```json\s*\n?([\s\S]*?)\n?\s*```/);
+  console.log(`[Haiku] Raw response: ${raw.slice(0, 200)}`);
+
+  // Try to extract JSON from markdown code block
+  const jsonMatch = raw.match(/```json?\s*\n?([\s\S]*?)\n?\s*```/);
   if (jsonMatch) {
     try {
-      return JSON.parse(jsonMatch[1]) as HaikuResponse;
+      return normalizeResponse(JSON.parse(jsonMatch[1]));
     } catch { /* fallback */ }
   }
 
-  // Try raw JSON parse
+  // Try raw JSON parse (Haiku sometimes returns pure JSON without code block)
   try {
-    return JSON.parse(raw) as HaikuResponse;
+    return normalizeResponse(JSON.parse(raw));
   } catch { /* fallback */ }
+
+  // Try to find JSON object anywhere in the text
+  const braceMatch = raw.match(/\{[\s\S]*"resposta"[\s\S]*\}/);
+  if (braceMatch) {
+    try {
+      return normalizeResponse(JSON.parse(braceMatch[0]));
+    } catch { /* fallback */ }
+  }
 
   // Last resort: treat entire response as text
   return {
