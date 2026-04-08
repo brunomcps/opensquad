@@ -76,20 +76,42 @@ ${todayMetrics ? `## METRICAS DE HOJE (ja registradas)\n${todayMetrics.slice(0, 
 
 ## REGRAS
 1. Portugues BR, curto (max 3 frases), tom provocativo e direto
-2. SEMPRE extraia dados numericos da mensagem
+2. SEMPRE extraia dados estruturados e coloque em frontmatter
 3. HTML simples pra Telegram: <b>, <i>
 4. Horario logico: 05-23:59 = dia atual, 00-04:59 = dia anterior
+5. Se o usuario CORRIGIR um dado anterior, use "replace" pra substituir (nao duplicar)
+
+## ESQUEMA DE FRONTMATTER (propriedades do Obsidian)
+
+Campos numericos simples:
+- humor (1-10), peso (kg), sono (horas), cigarros (qty)
+- passos, calorias, hr_repouso, hr_media
+
+Refeicoes — cada refeicao gera 4 campos com sufixo:
+- almoco_kcal, almoco_prot, almoco_carb, almoco_gord
+- jantar_kcal, jantar_prot, jantar_carb, jantar_gord
+- cafe_kcal, cafe_prot, cafe_carb, cafe_gord
+- lanche_kcal, lanche_prot, lanche_carb, lanche_gord
+
+Treino — dados do que FOI FEITO (nao o plano):
+- treino_tipo (ex: "Pull A"), treino_duracao (min)
 
 ## FORMATO DE RESPOSTA
-Voce DEVE retornar APENAS um bloco JSON. Nenhum texto fora do JSON.
+Retorne APENAS JSON. Nenhum texto fora do JSON.
+
+Exemplo pra "almocei costelao com arroz, uns 800kcal, 50g prot":
+{"resposta":"Costelao no almoco? Gordura alta, mas proteina boa.","dados":{"frontmatter":{"almoco_kcal":800,"almoco_prot":50},"sections":{"refeicoes":"- 12:00 Costelao com arroz (800kcal, 50g prot)"}},"agente":"chefe-bruno"}
+
 Exemplo pra "fiz supino 80kg 4x8, humor 7":
+{"resposta":"80kg no supino, 4x8 limpo? Boa.","dados":{"frontmatter":{"humor":7,"treino_tipo":"Push A"},"sections":{"treino":"- Supino reto 80kg 4x8"}},"agente":"chefe-bruno"}
 
-{"resposta":"<b>80kg no supino</b>, 4x8 limpo? Boa. Humor 7, ta no caminho. Bora pro proximo.","dados":{"frontmatter":{"humor":7},"sections":{"treino":"- Supino reto 80kg 4x8"}},"agente":"chefe-bruno"}
+Exemplo de CORRECAO (usuario corrige dado anterior):
+{"resposta":"Corrigido.","dados":{"frontmatter":{"almoco_kcal":820},"replace":{"refeicoes":"- 12:00 Costelao Rubaiyat com arroz e farofa (820kcal, 52g prot)"}},"agente":"chefe-bruno"}
 
-Campos do frontmatter: use EXATAMENTE os nomes do catalogo (humor, peso, cigarros, sono_horas, etc).
-Sections: treino, refeicoes, habitos, humor, notas.
-Se nao ha dados numericos, mande "dados":{} vazio.
-IMPORTANTE: retorne SOMENTE o JSON, sem markdown, sem texto antes ou depois.`;
+- "frontmatter": propriedades numericas pro YAML
+- "sections": texto pra APPEND na secao
+- "replace": texto pra SUBSTITUIR a secao inteira (usa quando corrige)
+IMPORTANTE: retorne SOMENTE o JSON.`;
 }
 
 // --- Call Haiku API ---
@@ -141,6 +163,7 @@ interface HaikuResponse {
   dados: {
     frontmatter: Record<string, any>;
     sections: Record<string, string>;
+    replace: Record<string, string>;
   };
   agente: string;
 }
@@ -151,6 +174,7 @@ function normalizeResponse(obj: any): HaikuResponse {
     dados: {
       frontmatter: obj.dados?.frontmatter || obj.frontmatter || {},
       sections: obj.dados?.sections || obj.sections || {},
+      replace: obj.dados?.replace || obj.replace || {},
     },
     agente: obj.agente || obj.agente_usado || 'chefe-bruno',
   };
@@ -183,8 +207,8 @@ function parseResponse(raw: string): HaikuResponse {
   // Last resort: treat entire response as text
   return {
     resposta: raw.slice(0, 500),
-    dados: { frontmatter: {}, sections: {} },
-    agente_usado: 'chefe-bruno',
+    dados: { frontmatter: {}, sections: {}, replace: {} },
+    agente: 'chefe-bruno',
   };
 }
 
@@ -206,17 +230,19 @@ export async function processWithHaiku(messages: BufferedMessage[]): Promise<str
     const raw = await callHaiku(systemPrompt, userText);
     const parsed = parseResponse(raw);
 
-    console.log(`[Haiku] Agent: ${parsed.agente_usado}, Response: "${parsed.resposta.slice(0, 60)}..."`);
+    console.log(`[Haiku] Agent: ${parsed.agente}, Response: "${parsed.resposta.slice(0, 60)}..."`);
 
     // Write extracted data to vault
     const hasDados = Object.keys(parsed.dados.frontmatter || {}).length > 0 ||
-                     Object.keys(parsed.dados.sections || {}).length > 0;
+                     Object.keys(parsed.dados.sections || {}).length > 0 ||
+                     Object.keys(parsed.dados.replace || {}).length > 0;
     if (hasDados) {
       try {
         await writeMetrics({
           date: todayBRT(),
           frontmatter: parsed.dados.frontmatter,
           sections: parsed.dados.sections,
+          replace: parsed.dados.replace,
         });
         console.log('[Haiku] Data written to vault');
       } catch (e: any) {

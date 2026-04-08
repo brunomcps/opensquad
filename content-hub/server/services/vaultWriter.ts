@@ -12,7 +12,14 @@ import { readFile, writeFile, fileExists } from './onedrive.js';
 export interface MetricUpdate {
   date: string;               // YYYY-MM-DD
   frontmatter?: Record<string, any>; // fields to update in YAML
-  sections?: {                 // body sections to append to
+  sections?: {                 // body sections to APPEND to
+    treino?: string;
+    refeicoes?: string;
+    habitos?: string;
+    humor?: string;
+    notas?: string;
+  };
+  replace?: {                  // body sections to REPLACE entirely
     treino?: string;
     refeicoes?: string;
     habitos?: string;
@@ -112,25 +119,36 @@ function serializeFrontmatter(fm: Record<string, any>): string {
   return lines.join('\n');
 }
 
-// --- Append to body section ---
+// --- Section operations ---
 
 function appendToSection(body: string, section: string, text: string): string {
   const sectionHeader = `## ${section}`;
   const idx = body.indexOf(sectionHeader);
   if (idx === -1) {
-    // Section doesn't exist, add it
     return body.trimEnd() + `\n\n${sectionHeader}\n\n${text}\n`;
   }
 
-  // Find end of section (next ## or end of file)
   const afterHeader = idx + sectionHeader.length;
   const nextSection = body.indexOf('\n## ', afterHeader);
   const insertAt = nextSection !== -1 ? nextSection : body.length;
 
-  // Insert text before next section
   const before = body.slice(0, insertAt).trimEnd();
   const after = body.slice(insertAt);
   return `${before}\n${text}\n${after}`;
+}
+
+function replaceSection(body: string, section: string, text: string): string {
+  const sectionHeader = `## ${section}`;
+  const idx = body.indexOf(sectionHeader);
+  if (idx === -1) {
+    return body.trimEnd() + `\n\n${sectionHeader}\n\n${text}\n`;
+  }
+
+  const afterHeader = idx + sectionHeader.length;
+  const nextSection = body.indexOf('\n## ', afterHeader);
+  const before = body.slice(0, idx + sectionHeader.length);
+  const after = nextSection !== -1 ? body.slice(nextSection) : '';
+  return `${before}\n\n${text}\n${after}`;
 }
 
 // --- Main write function ---
@@ -166,15 +184,26 @@ export async function writeMetrics(update: MetricUpdate): Promise<void> {
     }
   }
 
-  // Append to sections
+  const sectionMap: Record<string, string> = {
+    treino: 'Treino',
+    refeicoes: 'Refeicoes',
+    habitos: 'Habitos',
+    humor: 'Humor',
+    notas: 'Notas',
+  };
+
+  // Replace sections (corrections — overwrites entire section content)
+  if (update.replace) {
+    for (const [key, text] of Object.entries(update.replace)) {
+      if (text) {
+        const sectionName = sectionMap[key] || key;
+        body = replaceSection(body, sectionName, text);
+      }
+    }
+  }
+
+  // Append to sections (new data — adds to existing)
   if (update.sections) {
-    const sectionMap: Record<string, string> = {
-      treino: 'Treino',
-      refeicoes: 'Refeicoes',
-      habitos: 'Habitos',
-      humor: 'Humor',
-      notas: 'Notas',
-    };
     for (const [key, text] of Object.entries(update.sections)) {
       if (text) {
         const sectionName = sectionMap[key] || key;
