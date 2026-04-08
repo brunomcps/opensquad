@@ -4,5 +4,6 @@ aliases: ["pos-treino", "post-workout", "apos treino", "comi depois do treino", 
 categoria: "refeicao"
 tipo_valor: "calorias_macros"
 unidade: "kcal"
+campo_frontmatter: "postreino"
 ativo: true
 ---

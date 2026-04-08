@@ -283,6 +283,147 @@ function normalize(s: string): string {
     .trim();
 }
 
+// --- Multi-match: find all catalog entries mentioned in a message ---
+
+export function findByAliasMulti(text: string): Array<{ entry: CatalogEntry; score: number; matchedTerm: string }> {
+  const normalized = normalize(text);
+  const words = normalized.split(/\s+/);
+  const seen = new Set<string>();
+  const results: Array<{ entry: CatalogEntry; score: number; matchedTerm: string }> = [];
+
+  // Try 1-grams, 2-grams, 3-grams
+  for (let n = 3; n >= 1; n--) {
+    for (let i = 0; i <= words.length - n; i++) {
+      const gram = words.slice(i, i + n).join(' ');
+      if (gram.length < 3) continue; // skip very short grams
+
+      const matches = findByAlias(gram);
+      for (const entry of matches) {
+        if (seen.has(entry.file)) continue;
+
+        // Score threshold: only strong matches
+        const q = normalize(gram);
+        let score = 0;
+        if (normalize(entry.nome) === q) score = 100;
+        else if (entry.aliases.some(a => normalize(a) === q)) score = 95;
+        else if (normalize(entry.nome).includes(q)) score = 80;
+        else if (entry.aliases.some(a => normalize(a).includes(q))) score = 70;
+        else if (q.includes(normalize(entry.nome))) score = 60;
+        else if (entry.aliases.some(a => q.includes(normalize(a)))) score = 50;
+
+        if (score >= 50) {
+          seen.add(entry.file);
+          results.push({ entry, score, matchedTerm: gram });
+        }
+      }
+    }
+  }
+
+  results.sort((a, b) => b.score - a.score);
+  return results;
+}
+
+// --- Field map for Haiku: maps catalog IDs to frontmatter field names ---
+
+export interface FieldMapEntry {
+  id: string;              // file slug e.g. "supino-reto-barra"
+  nome: string;
+  campo_frontmatter: string | null;  // null = goes in body sections, not frontmatter
+  tipo_valor: string;
+  unidade: string;
+  wikilink: string;        // "[[supino-reto-barra]]"
+  categoria: string;
+}
+
+export function getFieldMap(matches: Array<{ entry: CatalogEntry }>): FieldMapEntry[] {
+  return matches.map(({ entry }) => {
+    const slug = entry.file.replace(/\.md$/, '').split('/').pop() || '';
+    return {
+      id: slug,
+      nome: entry.nome,
+      campo_frontmatter: entry.campo_frontmatter || null,
+      tipo_valor: entry.tipo_valor,
+      unidade: entry.unidade,
+      wikilink: `[[${slug}]]`,
+      categoria: entry.categoria,
+    };
+  });
+}
+
+// --- Compact format for Haiku with only matched entries + training plan ---
+
+export function getCatalogForPrompt(
+  fieldMap: FieldMapEntry[],
+  treinoDia?: { label: string; exercises: Array<{ nome: string; series: string; reps: string; carga: string; gif: string | null }> } | null,
+): string {
+  const lines: string[] = [];
+
+  if (fieldMap.length > 0) {
+    lines.push('METRICAS RECONHECIDAS na mensagem:');
+    for (const f of fieldMap) {
+      const field = f.campo_frontmatter ? ` → frontmatter: ${f.campo_frontmatter}` : ` → body section`;
+      lines.push(`- ${f.wikilink} ${f.nome} (${f.tipo_valor}, ${f.unidade})${field}`);
+    }
+    lines.push('');
+  }
+
+  if (treinoDia && treinoDia.exercises.length > 0) {
+    lines.push(`PLANO DE TREINO HOJE: ${treinoDia.label}`);
+    for (const ex of treinoDia.exercises) {
+      const slug = normalize(ex.nome).replace(/\s+/g, '-');
+      lines.push(`- [[${slug}]] ${ex.series}x${ex.reps} ${ex.carga}`);
+    }
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
+// --- Create new catalog entry ---
+
+export async function createCatalogEntry(
+  nome: string,
+  categoria: string,
+  subcategoria: string,
+  tipo_valor: string,
+  unidade: string,
+  aliasList: string[],
+): Promise<string> {
+  const { writeFile } = await import('./onedrive.js');
+
+  const slug = normalize(nome).replace(/\s+/g, '-');
+  const folderMap: Record<string, string> = {
+    exercicio: 'exercicios',
+    habito: 'habitos',
+    corpo: 'corpo',
+    humor: 'humor',
+    refeicao: 'refeicoes',
+    sintoma: 'corpo',
+  };
+  const folder = folderMap[categoria] || 'habitos';
+  const filePath = `catalogo/${folder}/${slug}.md`;
+
+  const content = `---
+nome: "${nome}"
+aliases: [${aliasList.map(a => `"${a}"`).join(', ')}]
+categoria: "${categoria}"
+${subcategoria ? `grupo_muscular: "${subcategoria}"\n` : ''}tipo_valor: "${tipo_valor}"
+unidade: "${unidade}"
+campo_frontmatter: "${slug.replace(/-/g, '_')}"
+origem: "conversa"
+ativo: true
+---
+`;
+
+  await writeFile(filePath, content);
+  console.log(`[Catalogo] Created new entry: ${filePath}`);
+
+  // Reload catalog to include the new entry
+  await loadCatalog();
+
+  return slug;
+}
+
 // --- Stats ---
 
 export function getCatalogStats() {
