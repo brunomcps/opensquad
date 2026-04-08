@@ -334,11 +334,13 @@ async function handlePendingConfirmation(userText: string): Promise<string | nul
     let subcategoria: string;
     let unidade: string;
 
-    // "sim", "ok", "isso", "pode ser", "registra" → use suggestion
-    if (pendingConfirmation.suggestion && /^(sim|ok|isso|pode|registra|bora|confirma|s$)/.test(lower)) {
-      categoria = pendingConfirmation.suggestion.categoria;
-      subcategoria = pendingConfirmation.suggestion.grupo;
-      unidade = pendingConfirmation.suggestion.unidade;
+    // "sim", "ok", "isso", "pode ser", "registra" → use suggestion (or defaults)
+    const isAffirmative = /^(sim|ok|isso|pode|registra|bora|confirma|s|yes|claro|pode ser)$/i.test(lower.split(/\s/)[0]);
+    if (isAffirmative) {
+      const s = pendingConfirmation.suggestion || { categoria: 'habito', grupo: '', unidade: 'contagem' };
+      categoria = s.categoria;
+      subcategoria = s.grupo;
+      unidade = s.unidade;
     } else {
       // Manual: "exercicio, core, segundos"
       const parts = userText.split(/[,;]\s*/).map(s => s.trim().toLowerCase());
