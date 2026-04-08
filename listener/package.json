@@ -1,6 +1,6 @@
 {
   "name": "opensquad-listener",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,11 +8,9 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
-    "ws": "^8.20.0",
     "dotenv": "^16.4.7"
   },
   "devDependencies": {
-    "@types/ws": "^8.18.1",
     "tsx": "^4.19.0",
     "typescript": "^5.8.3"
   }

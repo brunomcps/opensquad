@@ -13,7 +13,7 @@ import { answerCallbackQuery, sendMessage } from '../services/telegram.js';
 import { updateTarefaStatus, updateTarefaDue, updateProductionField, saveTelegramHistory } from '../db/bot.js';
 import { supabase } from '../db/client.js';
 import { bufferMessage } from '../services/messageBuffer.js';
-import { getListenerStatus, forceDisconnectListener } from '../services/wsServer.js';
+import { pollPending, submitResponse, getQueueStatus } from '../services/messageQueue.js';
 
 const router = Router();
 
@@ -47,20 +47,7 @@ router.post('/send-daily', async (req, res) => {
   }
 });
 
-// ============================
-// POLL CALLBACKS
-// ============================
-
-router.post('/poll', async (req, res) => {
-  if (!checkSecret(req, res)) return;
-  try {
-    const processed = await processCallbacks();
-    res.json({ ok: true, processed });
-  } catch (err: any) {
-    console.error('[Telegram] poll error:', err.message);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
+// (V2 /poll endpoint removed — callbacks handled by webhook)
 
 // ============================
 // TELEGRAM WEBHOOK (for button callbacks)
@@ -217,15 +204,28 @@ router.get('/status', (_req, res) => {
     timestamp: new Date().toISOString(),
     hasToken: !!process.env.TELEGRAM_BOT_TOKEN,
     hasChatId: !!process.env.TELEGRAM_CHAT_ID,
-    listener: getListenerStatus(),
+    queue: getQueueStatus(),
   });
 });
 
-// Force disconnect listener (for debugging stale connections)
-router.post('/disconnect-listener', (req, res) => {
-  if (!checkSecret(req, res)) return;
-  const disconnected = forceDisconnectListener();
-  res.json({ ok: true, disconnected });
+// ============================
+// LISTENER POLLING (replaces WebSocket)
+// ============================
+
+// Listener polls for pending messages
+router.get('/pending', (req, res) => {
+  const secret = (req.query.secret as string) || req.headers['x-listener-secret'] as string || '';
+  const batch = pollPending(secret);
+  res.json({ ok: true, batch });
+});
+
+// Listener submits response
+router.post('/respond', async (req, res) => {
+  const secret = (req.query.secret as string) || req.headers['x-listener-secret'] as string || '';
+  const { id, text } = req.body;
+  if (!id || !text) return res.json({ ok: false, error: 'missing id or text' });
+  const sent = await submitResponse(id, text, secret);
+  res.json({ ok: sent });
 });
 
 export default router;

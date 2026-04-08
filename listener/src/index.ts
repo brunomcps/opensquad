@@ -1,136 +1,105 @@
 /**
  * Local Listener — runs on Bruno's PC.
  *
- * Connects to Railway via WebSocket. When Railway receives a Telegram
- * message, it forwards here. This listener processes it with Claude CLI
- * (which has full vault access: Read, Write, Glob, Grep, Bash) and
- * sends the response back via WebSocket → Railway → Telegram.
+ * Polls Railway every 3s for pending messages.
+ * Processes with Claude CLI (Opus, free).
+ * Sends response back via HTTP POST.
  *
- * Auto-reconnects with exponential backoff when disconnected.
+ * No WebSocket. No persistent connection. Survives sleep/wake.
  *
  * Usage:
  *   cd listener && npm install && npm start
  */
 
 import 'dotenv/config';
-import WebSocket from 'ws';
 import { processWithClaude } from './processor.js';
 
 // --- Config ---
 
-const WS_URL = process.env.RAILWAY_WS_URL || 'wss://hub.brunosallesphd.com.br/ws/listener';
+const RAILWAY_URL = process.env.RAILWAY_URL || 'https://hub.brunosallesphd.com.br';
 const SECRET = process.env.LISTENER_SECRET || '';
+const POLL_INTERVAL = 3_000; // 3 seconds
 
 if (!SECRET) {
   console.error('[Listener] LISTENER_SECRET not set. Create a .env file.');
   process.exit(1);
 }
 
-// --- Reconnect state ---
+// --- Polling ---
 
-let ws: WebSocket | null = null;
-let reconnectAttempts = 0;
-const MAX_RECONNECT_DELAY = 30_000; // 30s max
-const BASE_RECONNECT_DELAY = 1_000; // 1s initial
+let running = true;
+let consecutiveErrors = 0;
 
-// --- Connect ---
+async function poll(): Promise<void> {
+  try {
+    const res = await fetch(`${RAILWAY_URL}/api/telegram/pending?secret=${encodeURIComponent(SECRET)}`, {
+      signal: AbortSignal.timeout(10_000),
+    });
+    const data = await res.json() as any;
 
-function connect(): void {
-  const url = `${WS_URL}?secret=${encodeURIComponent(SECRET)}`;
-  console.log(`[Listener] Connecting to ${WS_URL}...`);
+    if (data.batch) {
+      consecutiveErrors = 0;
+      const batch = data.batch;
+      console.log(`[Listener] Got batch ${batch.id}: ${batch.messages?.length || 0} messages`);
 
-  ws = new WebSocket(url);
+      try {
+        const response = await processWithClaude(batch);
 
-  ws.on('open', () => {
-    reconnectAttempts = 0;
-    console.log('[Listener] Connected to Railway!');
-    ws!.send(JSON.stringify({ type: 'status', status: 'ready' }));
-  });
+        await fetch(`${RAILWAY_URL}/api/telegram/respond`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-listener-secret': SECRET,
+          },
+          body: JSON.stringify({ id: batch.id, text: response }),
+          signal: AbortSignal.timeout(10_000),
+        });
 
-  ws.on('message', async (raw) => {
-    try {
-      const msg = JSON.parse(raw.toString());
-
-      // Heartbeat
-      if (msg.type === 'ping') {
-        ws?.send(JSON.stringify({ type: 'pong' }));
-        return;
-      }
-
-      // Connection confirmation
-      if (msg.type === 'connected') {
-        console.log('[Listener] Server confirmed connection');
-        return;
-      }
-
-      // Message batch from Telegram
-      if (msg.type === 'messages' && msg.id) {
-        console.log(`[Listener] Received batch ${msg.id}: ${msg.messages?.length || 0} messages`);
-
-        try {
-          const response = await processWithClaude(msg);
-          ws?.send(JSON.stringify({
-            type: 'response',
-            id: msg.id,
-            text: response,
-          }));
-          console.log(`[Listener] Sent response for ${msg.id}`);
-        } catch (err: any) {
-          console.error(`[Listener] Processing error for ${msg.id}:`, err.message);
-          ws?.send(JSON.stringify({
-            type: 'response',
-            id: msg.id,
+        console.log(`[Listener] Response sent for ${batch.id}`);
+      } catch (err: any) {
+        console.error(`[Listener] Processing error for ${batch.id}:`, err.message);
+        // Send error response so Railway doesn't timeout
+        await fetch(`${RAILWAY_URL}/api/telegram/respond`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-listener-secret': SECRET,
+          },
+          body: JSON.stringify({
+            id: batch.id,
             text: `⚠️ Erro ao processar: ${err.message.slice(0, 100)}`,
-          }));
-        }
-        return;
+          }),
+          signal: AbortSignal.timeout(10_000),
+        }).catch(() => {});
       }
-    } catch (e: any) {
-      console.error('[Listener] Bad message:', e.message);
+    } else {
+      // No pending messages — reset error counter
+      consecutiveErrors = 0;
     }
-  });
-
-  ws.on('close', (code, reason) => {
-    console.log(`[Listener] Disconnected (code=${code}, reason=${reason.toString()})`);
-    ws = null;
-    // 4002 = replaced by another listener instance — stop to avoid reconnect loop
-    if (code === 4002) {
-      console.log('[Listener] Replaced by another instance. Exiting.');
-      process.exit(0);
+  } catch (err: any) {
+    consecutiveErrors++;
+    if (consecutiveErrors <= 3 || consecutiveErrors % 20 === 0) {
+      console.error(`[Listener] Poll error (${consecutiveErrors}):`, err.message);
     }
-    scheduleReconnect();
-  });
-
-  ws.on('error', (err) => {
-    console.error('[Listener] WebSocket error:', err.message);
-    // close event will fire after error, which triggers reconnect
-  });
+  }
 }
 
-// --- Reconnect with exponential backoff ---
+async function loop(): Promise<void> {
+  console.log('=== Diario Inteligente V3 — Local Listener (Polling) ===');
+  console.log(`Server: ${RAILWAY_URL}`);
+  console.log(`Poll interval: ${POLL_INTERVAL / 1000}s`);
 
-function scheduleReconnect(): void {
-  reconnectAttempts++;
-  const delay = Math.min(BASE_RECONNECT_DELAY * Math.pow(2, reconnectAttempts - 1), MAX_RECONNECT_DELAY);
-  console.log(`[Listener] Reconnecting in ${delay / 1000}s (attempt ${reconnectAttempts})...`);
-  setTimeout(connect, delay);
+  while (running) {
+    await poll();
+    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+  }
 }
 
 // --- Graceful shutdown ---
 
-function shutdown(): void {
-  console.log('[Listener] Shutting down...');
-  if (ws) {
-    ws.close(1000, 'shutdown');
-  }
-  process.exit(0);
-}
-
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+process.on('SIGINT', () => { running = false; console.log('\n[Listener] Shutting down...'); });
+process.on('SIGTERM', () => { running = false; });
 
 // --- Start ---
 
-console.log('=== Diario Inteligente V3 — Local Listener ===');
-console.log(`Server: ${WS_URL}`);
-connect();
+loop();

@@ -32,7 +32,7 @@ import { refreshFacebookTokenIfNeeded } from './services/facebook.js';
 import { refreshThreadsTokenIfNeeded } from './services/threads.js';
 import { setupRcloneConfig } from './services/onedrive.js';
 import { loadCatalog } from './services/catalogo.js';
-import { setupWebSocket } from './services/wsServer.js';
+// WebSocket removed — replaced by polling (messageQueue.ts)
 import { loadAgents } from './services/agentLoader.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -111,7 +111,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-const server = app.listen(PORT, async () => {
+app.listen(PORT, async () => {
   console.log(`Content Hub API running on http://localhost:${PORT}`);
   startBRollWatcher(BROLL_LIBRARY);
   await refreshTokenIfNeeded();
@@ -121,6 +121,3 @@ const server = app.listen(PORT, async () => {
   loadCatalog().catch(e => console.error('[Catalogo] Initial load failed:', e.message));
   loadAgents().catch(e => console.error('[AgentLoader] Initial load failed:', e.message));
 });
-
-// Attach WebSocket server to the HTTP server (same port)
-setupWebSocket(server);
