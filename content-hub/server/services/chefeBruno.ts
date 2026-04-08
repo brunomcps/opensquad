@@ -12,16 +12,13 @@ import {
   getActiveTarefas,
   updateTarefaStatus,
   updateTarefaDue,
-  getCurrentTreino,
-  getMetricasDia,
   getActiveProductions,
   updateProductionField,
   type Tarefa,
-  type TreinoSemana,
-  type MetricaDiaria,
   type Production,
 } from '../db/bot.js';
 import { supabase } from '../db/client.js';
+import { readTreinoFromVault, readMetricasFromVault, type VaultMetrica, type VaultTreinoSemana } from './vaultReader.js';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
@@ -208,10 +205,10 @@ interface TreinoInfo {
   feitos: number;
   proxima: number | null;
   treino_titulo: string;
-  exercicios: Array<{ nome: string; musculo: string; series: string; reps: string; carga: string }>;
+  exercicios: Array<{ nome: string; musculo: string; series: string; reps: string; carga: string; gif: string | null }>;
 }
 
-function scanTreino(treino: TreinoSemana | null): TreinoInfo | null {
+function scanTreino(treino: VaultTreinoSemana | null): TreinoInfo | null {
   if (!treino) return null;
 
   const meta = treino.meta_sessoes;
@@ -224,7 +221,7 @@ function scanTreino(treino: TreinoSemana | null): TreinoInfo | null {
     }
   }
 
-  // Get today's exercises from JSONB
+  // Get today's exercises from vault data
   const weekday = todayBRT().getDay(); // 0=Sunday
   const dayIndex = weekday === 0 ? 6 : weekday - 1; // Convert to 0=Monday
   const dayName = DAY_NAMES[dayIndex];
@@ -232,17 +229,17 @@ function scanTreino(treino: TreinoSemana | null): TreinoInfo | null {
   let treino_titulo = '';
   let exercicios: TreinoInfo['exercicios'] = [];
 
-  if (treino.exercicios && dayName !== 'Domingo') {
-    const dayData = treino.exercicios[dayName];
+  if (treino.dias && dayName !== 'Domingo') {
+    const dayData = treino.dias[dayName];
     if (dayData) {
       treino_titulo = `${dayName} — ${dayData.label}`;
-      exercicios = (dayData.exercises || []).map((ex: any) => ({
+      exercicios = dayData.exercises.map(ex => ({
         nome: ex.nome,
         musculo: ex.musculo,
         series: ex.series,
         reps: ex.reps,
         carga: ex.carga,
-        gif: ex.gif || null,
+        gif: ex.gif,
       }));
     }
   }
@@ -270,7 +267,7 @@ function compose(
   videoTasks: Record<string, VideoTask[]>,
   tarefaTasks: Record<string, TarefaTask[]>,
   treinoInfo: TreinoInfo | null,
-  metricas: MetricaDiaria | null,
+  metricas: VaultMetrica | null,
   gcalEvents: CalendarEvent[],
 ): string[] {
   const today = todayBRT();
@@ -452,7 +449,7 @@ async function composeWithAI(
   videoTasks: Record<string, VideoTask[]>,
   tarefaTasks: Record<string, TarefaTask[]>,
   treinoInfo: TreinoInfo | null,
-  metricas: MetricaDiaria | null,
+  metricas: VaultMetrica | null,
   gcalEvents: CalendarEvent[],
 ): Promise<string[]> {
   const today = todayBRT();
@@ -463,8 +460,7 @@ async function composeWithAI(
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = yesterday.toISOString().slice(0, 10);
-  let metricasOntem: MetricaDiaria | null = null;
-  try { metricasOntem = await getMetricasDia(yesterdayStr); } catch { /* ok */ }
+  const metricasOntem = await readMetricasFromVault(yesterdayStr);
 
   // Build structured data for Haiku
   const data: Record<string, any> = {
@@ -667,21 +663,17 @@ function buildKeyboard(
 
 export async function sendDaily(): Promise<{ ok: boolean; messageCount: number; error?: string }> {
   try {
-    // 1. Sync Google Fit
-    let metricas: MetricaDiaria | null = null;
-    try {
-      await syncToday();
-      metricas = await getMetricasDia(todayStr());
-    } catch (err: any) {
+    // 1. Sync Google Fit → vault
+    try { await syncToday(); } catch (err: any) {
       console.error('[ChefeBruno] Google Fit sync error:', err.message);
-      metricas = await getMetricasDia(todayStr());
     }
 
-    // 2. Fetch all data in parallel
-    const [productions, tarefas, treino, gcalEvents] = await Promise.all([
+    // 2. Fetch all data in parallel (vault for health/treino, Supabase for tasks/productions)
+    const [metricas, productions, tarefas, treino, gcalEvents] = await Promise.all([
+      readMetricasFromVault(todayStr()),
       getActiveProductions(),
       getActiveTarefas(),
-      getCurrentTreino(),
+      readTreinoFromVault(),
       getTodayEvents().catch(() => [] as CalendarEvent[]),
     ]);
 
