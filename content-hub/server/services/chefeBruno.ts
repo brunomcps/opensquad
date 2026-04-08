@@ -5,20 +5,19 @@
  * Reads from Supabase (not local .md files) so it works on Railway 24/7.
  */
 
-import { sendMessage, answerCallbackQuery, getUpdates } from './telegram.js';
+import { sendMessage } from './telegram.js';
 import { getTodayEvents, type CalendarEvent } from './calendar.js';
 import { syncToday } from './googleFitSync.js';
 import {
-  getActiveTarefas,
-  updateTarefaStatus,
-  updateTarefaDue,
-  getActiveProductions,
-  updateProductionField,
-  type Tarefa,
-  type Production,
-} from '../db/bot.js';
-import { supabase } from '../db/client.js';
-import { readTreinoFromVault, readMetricasFromVault, type VaultMetrica, type VaultTreinoSemana } from './vaultReader.js';
+  readTreinoFromVault,
+  readMetricasFromVault,
+  readTarefasFromVault,
+  readProductionsFromVault,
+  type VaultMetrica,
+  type VaultTreinoSemana,
+  type VaultTarefa,
+  type VaultProduction,
+} from './vaultReader.js';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
@@ -105,61 +104,51 @@ interface VideoTask {
   acao_verb: string;
 }
 
-function scanVideos(productions: Production[]): Record<string, VideoTask[]> {
-  const today = new Date(todayStr() + 'T12:00:00');
+function scanVideos(productions: VaultProduction[]): Record<string, VideoTask[]> {
   const tasks: Record<string, VideoTask[]> = {
     overdue: [], today: [], upcoming: [], no_schedule: [], done_recent: [],
   };
 
-  for (const prod of productions) {
-    if ((prod.status || '').includes('publicado')) continue;
-    if (!prod.slug) continue;
+  // Vault productions use simple status: done/pendente
+  const VAULT_PIPELINE: Array<[string, string, string]> = [
+    ['roteiro', '📝', 'Roteiro'],
+    ['hook', '🪝', 'Hook'],
+    ['gravacao', '🎙️', 'Gravar'],
+    ['edicao', '🎬', 'Editar'],
+    ['thumbnail', '🖼️', 'Thumbnail'],
+    ['publicacao', '📤', 'Publicar'],
+  ];
 
-    // Compute proxima_acao
-    let acao = '✅ completo';
-    for (const [field, emoji, verb] of PIPELINE) {
-      if (!isDone((prod as any)[field])) {
-        acao = `${emoji} ${verb.toLowerCase()}`;
+  for (const prod of productions) {
+    if (prod.status === 'publicado' || prod.status === 'arquivado') continue;
+
+    // Find first pending step
+    let acao_emoji = '✅';
+    let acao_verb = 'completo';
+    let pendingField = '';
+    for (const [field, emoji, verb] of VAULT_PIPELINE) {
+      const val = (prod as any)[field];
+      if (val !== 'done') {
+        acao_emoji = emoji;
+        acao_verb = verb.toLowerCase();
+        pendingField = field;
         break;
       }
     }
-    const acao_emoji = acao.split(' ')[0];
-    const acao_verb = acao.split(' ').slice(1).join(' ');
 
-    let hasSchedule = false;
-
-    for (const field of ['gravacao', 'edicao', 'publicacao']) {
-      const val = (prod as any)[field] as string | null;
-      if (!val || val === '❌') continue;
-      hasSchedule = true;
-
-      const { emoji, date: taskDate } = parseDateField(val);
-      if (!taskDate) continue;
-
-      if (emoji === '✅') {
-        if (daysBetween(today, taskDate) <= 2) {
-          tasks.done_recent.push({ title: prod.title, slug: prod.slug, field, date: taskDate, acao_emoji, acao_verb });
-        }
-        continue;
-      }
-
-      const info: VideoTask = {
-        title: prod.title, slug: prod.slug, field, date: taskDate, acao_emoji, acao_verb,
-      };
-
-      if (taskDate < today) {
-        info.days_late = daysBetween(today, taskDate);
-        tasks.overdue.push(info);
-      } else if (taskDate.toISOString().slice(0, 10) === todayStr()) {
-        tasks.today.push(info);
-      } else if (daysBetween(taskDate, today) <= 3) {
-        tasks.upcoming.push(info);
-      }
+    if (prod.status === 'ideia') {
+      // Ideas don't have schedule
+      continue;
     }
 
-    if (!hasSchedule && !(prod.status || '').includes('publicado') && !(prod.status || '').includes('ideia')) {
-      tasks.no_schedule.push({ title: prod.title, slug: prod.slug, field: '', acao_emoji, acao_verb });
-    }
+    // No date-based scheduling in vault format — show as no_schedule with next action
+    tasks.no_schedule.push({
+      title: prod.title,
+      slug: prod.slug,
+      field: pendingField,
+      acao_emoji,
+      acao_verb,
+    });
   }
 
   return tasks;
@@ -174,7 +163,7 @@ interface TarefaTask {
   days_late?: number;
 }
 
-function scanTarefas(tarefas: Tarefa[]): Record<string, TarefaTask[]> {
+function scanTarefas(tarefas: VaultTarefa[]): Record<string, TarefaTask[]> {
   const today = new Date(todayStr() + 'T12:00:00');
   const result: Record<string, TarefaTask[]> = { overdue: [], today: [], upcoming: [] };
 
@@ -670,11 +659,11 @@ export async function sendDaily(): Promise<{ ok: boolean; messageCount: number; 
       console.error('[ChefeBruno] Google Fit sync error:', err.message);
     }
 
-    // 2. Fetch all data in parallel (vault for health/treino, Supabase for tasks/productions)
+    // 2. Fetch all data from vault + Google Calendar
     const [metricas, productions, tarefas, treino, gcalEvents] = await Promise.all([
       readMetricasFromVault(todayStr()),
-      getActiveProductions(),
-      getActiveTarefas(),
+      readProductionsFromVault(),
+      readTarefasFromVault(),
       readTreinoFromVault(),
       getTodayEvents().catch(() => [] as CalendarEvent[]),
     ]);
@@ -706,12 +695,7 @@ export async function sendDaily(): Promise<{ ok: boolean; messageCount: number; 
       await sendMessage(messages[i], kb);
     }
 
-    // 5. Save to history
-    const { saveTelegramHistory } = await import('../db/bot.js');
-    saveTelegramHistory({
-      source: 'daily',
-      assistant_response: messages.join('\n\n---\n\n'),
-    }).catch(() => {});
+    // History is in Telegram itself — no need to duplicate
 
     console.log(`[ChefeBruno] Sent ${messages.length} messages`);
     return { ok: true, messageCount: messages.length };
@@ -723,85 +707,4 @@ export async function sendDaily(): Promise<{ ok: boolean; messageCount: number; 
 
 // ============================
 // CALLBACK PROCESSING
-// ============================
-
-let lastUpdateId = 0;
-
-export async function processCallbacks(): Promise<number> {
-  const result = await getUpdates(lastUpdateId + 1);
-  if (!result.ok || !result.result?.length) return 0;
-
-  let processed = 0;
-
-  for (const update of result.result) {
-    lastUpdateId = update.update_id;
-    const cb = update.callback_query;
-    if (!cb) continue;
-
-    const data = cb.data || '';
-
-    // === TAREFAS (prefix T:) ===
-    if (data.startsWith('T:')) {
-      const [, action, slug] = data.split(':', 3);
-      if (!slug) continue;
-
-      // Check tarefa exists
-      const { data: tarefaData } = await supabase.from('tarefas').select('title').eq('slug', slug).limit(1);
-      if (!tarefaData?.length) {
-        await answerCallbackQuery(cb.id, '❌ Tarefa não encontrada');
-        continue;
-      }
-      const title = tarefaData[0].title;
-
-      if (action === 'd') {
-        await updateTarefaStatus(slug, 'concluido');
-        await answerCallbackQuery(cb.id, '✅ Tarefa concluída!');
-        await sendMessage(`✅ <b>${title.slice(0, 40)}</b> concluída!`);
-        processed++;
-      } else if (action === 'r') {
-        const newDate = new Date(todayBRT().getTime() + 2 * 86400000);
-        const newDateStr = newDate.toISOString().slice(0, 10);
-        await updateTarefaDue(slug, newDateStr);
-        await answerCallbackQuery(cb.id, `📅 Reagendada pra ${formatDate(newDate)}`);
-        await sendMessage(`📅 <b>${title.slice(0, 35)}</b> → ${formatDate(newDate)}.\nMas não vira hábito.`);
-        processed++;
-      } else if (action === 'x') {
-        await updateTarefaStatus(slug, 'arquivado');
-        await answerCallbackQuery(cb.id, '🗑️ Tarefa descartada');
-        await sendMessage(`🗑️ <b>${title.slice(0, 40)}</b> descartada. Menos peso.`);
-        processed++;
-      }
-      continue;
-    }
-
-    // === VIDEOS (format d:slug:fc) ===
-    const parts = data.split(':');
-    if (parts.length !== 3) continue;
-    const [action, slug, fc] = parts;
-    const field = FIELD_CODE[fc];
-    if (!field) continue;
-
-    const { data: prodData } = await supabase.from('productions').select('title').eq('slug', slug).limit(1);
-    if (!prodData?.length) {
-      await answerCallbackQuery(cb.id, '❌ Arquivo não encontrado');
-      continue;
-    }
-    const fi = FIELD_INFO[field] || { emoji: '❓', verb: field };
-
-    if (action === 'd') {
-      await updateProductionField(slug, field, `✅ ${todayStr()}`);
-      await answerCallbackQuery(cb.id, `✅ ${fi.verb} concluído!`);
-      await sendMessage(`✅ <b>${fi.verb}</b> de <b>${prodData[0].title.slice(0, 35)}</b> concluído!`);
-      processed++;
-    } else if (action === 'r') {
-      const newDate = new Date(todayBRT().getTime() + 2 * 86400000);
-      const newDateStr = newDate.toISOString().slice(0, 10);
-      await updateProductionField(slug, field, `📅 ${newDateStr}`);
-      await answerCallbackQuery(cb.id, `📅 Reagendado pra ${formatDate(newDate)}`);
-      await sendMessage(`📅 ${fi.emoji} ${fi.verb} de <b>${prodData[0].title.slice(0, 30)}</b> → ${formatDate(newDate)}`);
-      processed++;
-    }
-  }
-
-  return processed;
-}
+// processCallbacks removed — webhook handler in telegram.ts handles callbacks

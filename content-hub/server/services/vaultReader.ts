@@ -5,7 +5,7 @@
  * Replaces Supabase calls for health/treino data.
  */
 
-import { readFile } from './onedrive.js';
+import { readFile, listFolder } from './onedrive.js';
 
 // --- Types (compatible with existing bot.ts types) ---
 
@@ -206,5 +206,98 @@ export async function readTreinoFromVault(): Promise<VaultTreinoSemana | null> {
   } catch (e: any) {
     console.error(`[VaultReader] treino ${path} not found:`, e.message);
     return null;
+  }
+}
+
+// --- Tarefas ---
+
+export interface VaultTarefa {
+  title: string;
+  slug: string;
+  pillar: string;
+  status: string;
+  due: string | null;
+}
+
+export async function readTarefasFromVault(): Promise<VaultTarefa[]> {
+  try {
+    const files = await listFolder('tarefas');
+    const mdFiles = files.filter(f => f.Name.endsWith('.md'));
+
+    const tarefas: VaultTarefa[] = [];
+    for (const file of mdFiles) {
+      try {
+        const raw = await readFile(`tarefas/${file.Name}`);
+        const content = raw.replace(/\r\n/g, '\n');
+        const { meta } = parseFrontmatter(content);
+        if (meta.type !== 'tarefa') continue;
+        if (meta.status === 'concluido' || meta.status === 'arquivado') continue;
+
+        tarefas.push({
+          title: meta.title || file.Name.replace('.md', ''),
+          slug: file.Name.replace('.md', ''),
+          pillar: meta.pillar || 'pessoal',
+          status: meta.status || 'pendente',
+          due: meta.due ? String(meta.due) : null,
+        });
+      } catch { /* skip unreadable files */ }
+    }
+
+    console.log(`[VaultReader] Loaded ${tarefas.length} tarefas from vault`);
+    return tarefas;
+  } catch (e: any) {
+    console.error('[VaultReader] tarefas folder error:', e.message);
+    return [];
+  }
+}
+
+// --- Productions ---
+
+export interface VaultProduction {
+  title: string;
+  slug: string;
+  status: string;
+  roteiro: string;
+  hook: string;
+  gravacao: string;
+  edicao: string;
+  thumbnail: string;
+  publicacao: string;
+  proxima_acao: string | null;
+}
+
+export async function readProductionsFromVault(): Promise<VaultProduction[]> {
+  try {
+    const files = await listFolder('producoes');
+    const mdFiles = files.filter(f => f.Name.endsWith('.md'));
+
+    const prods: VaultProduction[] = [];
+    for (const file of mdFiles) {
+      try {
+        const raw = await readFile(`producoes/${file.Name}`);
+        const content = raw.replace(/\r\n/g, '\n');
+        const { meta } = parseFrontmatter(content);
+        if (meta.type !== 'producao') continue;
+
+        prods.push({
+          title: meta.title || file.Name.replace('.md', ''),
+          slug: meta.slug || file.Name.replace('.md', ''),
+          status: meta.status || 'ideia',
+          roteiro: meta.roteiro || 'pendente',
+          hook: meta.hook || 'pendente',
+          gravacao: meta.gravacao || 'pendente',
+          edicao: meta.edicao || 'pendente',
+          thumbnail: meta.thumbnail || 'pendente',
+          publicacao: meta.publicacao || 'pendente',
+          proxima_acao: meta.proxima_acao || null,
+        });
+      } catch { /* skip */ }
+    }
+
+    console.log(`[VaultReader] Loaded ${prods.length} productions from vault`);
+    return prods;
+  } catch (e: any) {
+    console.error('[VaultReader] producoes folder error:', e.message);
+    return [];
   }
 }

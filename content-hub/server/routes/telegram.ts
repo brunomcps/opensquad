@@ -8,7 +8,7 @@
  */
 
 import { Router } from 'express';
-import { sendDaily, processCallbacks } from '../services/chefeBruno.js';
+import { sendDaily } from '../services/chefeBruno.js';
 import { answerCallbackQuery, sendMessage } from '../services/telegram.js';
 import { updateTarefaStatus, updateTarefaDue, updateProductionField, saveTelegramHistory } from '../db/bot.js';
 import { supabase } from '../db/client.js';
