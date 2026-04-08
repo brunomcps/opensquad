@@ -528,6 +528,8 @@ async function composeWithAI(
     data.treino = { completo: true };
   }
 
+  console.log(`[ChefeBruno] AI data: metricas=${!!metricas}, treino=${!!data.treino}, videos=${!!(data.videos_atrasados || data.videos_hoje)}, tarefas=${!!(data.tarefas_atrasadas || data.tarefas_hoje)}`);
+
   const systemPrompt = `Voce e o Chefe Bruno, assistente do Dr. Bruno Salles. Sua tarefa: compor a MENSAGEM MATINAL diaria pro Telegram.
 
 REGRAS:
@@ -678,6 +680,7 @@ export async function sendDaily(): Promise<{ ok: boolean; messageCount: number; 
     ]);
 
     // 3. Scan & compose
+    console.log(`[ChefeBruno] Data loaded: metricas=${!!metricas}, treino=${!!treino}, treino.dias=${treino ? Object.keys(treino.dias).join(',') : 'none'}`);
     const videoTasks = scanVideos(productions);
     const tarefaTasks = scanTarefas(tarefas);
     const treinoInfo = scanTreino(treino);
