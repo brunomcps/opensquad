@@ -123,7 +123,8 @@ function parseExerciseTable(tableBlock: string): VaultExercicio[] {
 
 export async function readMetricasFromVault(date: string): Promise<VaultMetrica | null> {
   try {
-    const content = await readFile(`saude/metricas/metricas-${date}.md`);
+    const raw = await readFile(`saude/metricas/metricas-${date}.md`);
+    const content = raw.replace(/\r\n/g, '\n');
     const { meta } = parseFrontmatter(content);
 
     return {
@@ -153,8 +154,10 @@ export async function readTreinoFromVault(): Promise<VaultTreinoSemana | null> {
   const path = `saude/treino-semana-${year}-W${String(week).padStart(2, '0')}.md`;
 
   try {
-    const content = await readFile(path);
+    const raw = await readFile(path);
+    const content = raw.replace(/\r\n/g, '\n'); // Normalize Windows line endings
     const { meta, body } = parseFrontmatter(content);
+    console.log(`[VaultReader] treino loaded: ${content.length} chars, body ${body.length} chars`);
 
     // Parse each day's exercises from ## headers
     // Vault uses accented names (Terça, Sábado), code uses unaccented keys
