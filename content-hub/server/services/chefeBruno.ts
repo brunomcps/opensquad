@@ -23,6 +23,9 @@ import {
 } from '../db/bot.js';
 import { supabase } from '../db/client.js';
 
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
+const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
+
 // ============================
 // CONSTANTS
 // ============================
@@ -441,6 +444,160 @@ function compose(
 }
 
 // ============================
+// AI COMPOSE (Fase 4)
+// ============================
+
+async function composeWithAI(
+  videoTasks: Record<string, VideoTask[]>,
+  tarefaTasks: Record<string, TarefaTask[]>,
+  treinoInfo: TreinoInfo | null,
+  metricas: MetricaDiaria | null,
+  gcalEvents: CalendarEvent[],
+): Promise<string[]> {
+  const today = todayBRT();
+  const dia = DIAS_SEMANA[today.getDay() === 0 ? 6 : today.getDay() - 1];
+  const dateStr = formatDate(today);
+
+  // Get yesterday's metrics for comparison
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+  let metricasOntem: MetricaDiaria | null = null;
+  try { metricasOntem = await getMetricasDia(yesterdayStr); } catch { /* ok */ }
+
+  // Build structured data for Haiku
+  const data: Record<string, any> = {
+    dia: `${dia}, ${dateStr}`,
+  };
+
+  if (metricas) {
+    data.saude_hoje = {
+      sono: metricas.sono,
+      peso: metricas.peso,
+      hr_repouso: metricas.hr_repouso,
+      passos: metricas.passos,
+      humor: (metricas as any).humor,
+    };
+  }
+  if (metricasOntem) {
+    data.saude_ontem = {
+      sono: metricasOntem.sono,
+      peso: metricasOntem.peso,
+      hr_repouso: metricasOntem.hr_repouso,
+      humor: (metricasOntem as any).humor,
+    };
+  }
+
+  if (gcalEvents.length) {
+    data.consultas = gcalEvents.map(e => ({
+      horario: e.start.includes('T') ? e.start.split('T')[1].slice(0, 5) : 'dia todo',
+      titulo: e.summary,
+    }));
+  }
+
+  const mapVideo = (t: VideoTask) => ({
+    titulo: t.title.slice(0, 40),
+    etapa: FIELD_INFO[t.field]?.verb || t.field,
+    dias_atraso: t.days_late,
+  });
+  const mapTarefa = (t: TarefaTask) => ({
+    titulo: t.title.slice(0, 40),
+    pillar: t.pillar_emoji,
+    dias_atraso: t.days_late,
+  });
+
+  if (videoTasks.overdue.length) data.videos_atrasados = videoTasks.overdue.map(mapVideo);
+  if (tarefaTasks.overdue.length) data.tarefas_atrasadas = tarefaTasks.overdue.map(mapTarefa);
+  if (videoTasks.today.length) data.videos_hoje = videoTasks.today.map(mapVideo);
+  if (tarefaTasks.today.length) data.tarefas_hoje = tarefaTasks.today.map(mapTarefa);
+  if (videoTasks.upcoming.length) data.videos_proximos = videoTasks.upcoming.map(mapVideo);
+  if (tarefaTasks.upcoming.length) data.tarefas_proximas = tarefaTasks.upcoming.map(mapTarefa);
+  if (videoTasks.no_schedule.length) data.videos_sem_data = videoTasks.no_schedule.map(t => t.title.slice(0, 40));
+  if (videoTasks.done_recent.length) data.concluidos = videoTasks.done_recent.map(t => `${FIELD_INFO[t.field]?.verb || t.field}: ${t.title.slice(0, 30)}`);
+
+  if (treinoInfo?.proxima) {
+    data.treino = {
+      sessao: `${treinoInfo.proxima}/${treinoInfo.meta}`,
+      titulo: treinoInfo.treino_titulo,
+      exercicios: treinoInfo.exercicios.map(ex => ({
+        nome: ex.nome,
+        series_reps: `${ex.series}x${ex.reps}`,
+        carga: ex.carga,
+        musculo: ex.musculo,
+      })),
+    };
+  } else if (treinoInfo && !treinoInfo.proxima) {
+    data.treino = { completo: true };
+  }
+
+  const systemPrompt = `Voce e o Chefe Bruno, assistente do Dr. Bruno Salles. Sua tarefa: compor a MENSAGEM MATINAL diaria pro Telegram.
+
+REGRAS:
+- Portugues BR, tom provocativo e direto (voce e o "chefe" do Bruno)
+- HTML pra Telegram: <b>, <i>, emojis
+- NUNCA invente dados. Só use o que esta no JSON abaixo
+- Maximo ~600 caracteres na mensagem principal
+- Se tem algo atrasado, COBRE. Se ta tudo em dia, ELOGIE com parcimonia
+- Compare metricas de hoje com ontem quando houver diferença relevante
+- Mencione consultas/agenda se houver
+- Nao liste TODOS os itens — destaque os mais urgentes (max 3-4 linhas de itens)
+
+FORMATO:
+Retorne APENAS um JSON array de strings. Cada string e uma mensagem separada pro Telegram.
+Primeira mensagem: briefing matinal (saude + tarefas/videos + fechamento)
+Segunda mensagem (se houver treino): detalhes do treino com exercicios formatados
+
+Exemplo de retorno:
+["<b>mensagem principal aqui</b>\\ncom quebras de linha","<b>treino aqui</b>"]
+
+IMPORTANTE: retorne SOMENTE o JSON array, sem markdown, sem texto antes ou depois.`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: HAIKU_MODEL,
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: JSON.stringify(data) }],
+    }),
+    signal: AbortSignal.timeout(20_000),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Haiku API error ${res.status}: ${err.slice(0, 200)}`);
+  }
+
+  const result = await res.json() as any;
+  const raw = result.content?.[0]?.text || '';
+  console.log(`[ChefeBruno] AI compose raw: ${raw.slice(0, 150)}...`);
+
+  // Parse JSON array
+  try {
+    const msgs = JSON.parse(raw);
+    if (Array.isArray(msgs) && msgs.length > 0 && typeof msgs[0] === 'string') {
+      return msgs;
+    }
+  } catch { /* try extraction */ }
+
+  // Try to extract array from markdown
+  const match = raw.match(/\[[\s\S]*\]/);
+  if (match) {
+    try {
+      const msgs = JSON.parse(match[0]);
+      if (Array.isArray(msgs)) return msgs;
+    } catch { /* fallback */ }
+  }
+
+  throw new Error('AI compose returned invalid format');
+}
+
+// ============================
 // KEYBOARD
 // ============================
 
@@ -531,7 +688,19 @@ export async function sendDaily(): Promise<{ ok: boolean; messageCount: number; 
     const tarefaTasks = scanTarefas(tarefas);
     const treinoInfo = scanTreino(treino);
 
-    const messages = compose(videoTasks, tarefaTasks, treinoInfo, metricas, gcalEvents);
+    // Try AI compose first, fall back to static template
+    let messages: string[];
+    if (ANTHROPIC_API_KEY) {
+      try {
+        messages = await composeWithAI(videoTasks, tarefaTasks, treinoInfo, metricas, gcalEvents);
+        console.log('[ChefeBruno] Using AI-composed message');
+      } catch (err: any) {
+        console.error('[ChefeBruno] AI compose failed, using template:', err.message);
+        messages = compose(videoTasks, tarefaTasks, treinoInfo, metricas, gcalEvents);
+      }
+    } else {
+      messages = compose(videoTasks, tarefaTasks, treinoInfo, metricas, gcalEvents);
+    }
     const keyboard = buildKeyboard(videoTasks, tarefaTasks);
 
     // 4. Send
