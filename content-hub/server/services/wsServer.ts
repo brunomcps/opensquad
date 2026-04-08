@@ -66,11 +66,12 @@ export function sendToListener(payload: Record<string, any>): Promise<string> {
     const id = randomUUID();
     const message = { ...payload, id };
 
-    // 2 min timeout for Claude CLI processing (can be slow)
+    // 15s timeout — fast fallback to Haiku if listener doesn't respond
+    // Claude CLI usually responds within 10s. If not, Haiku takes over.
     const timeout = setTimeout(() => {
       pendingResponses.delete(id);
-      reject(new Error('Listener timeout (120s)'));
-    }, 120_000);
+      reject(new Error('Listener timeout (15s)'));
+    }, 15_000);
 
     pendingResponses.set(id, { resolve, reject, timeout });
     listenerWs!.send(JSON.stringify(message));
