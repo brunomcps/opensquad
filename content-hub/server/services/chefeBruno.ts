@@ -242,6 +242,7 @@ function scanTreino(treino: TreinoSemana | null): TreinoInfo | null {
         series: ex.series,
         reps: ex.reps,
         carga: ex.carga,
+        gif: ex.gif || null,
       }));
     }
   }
@@ -524,6 +525,7 @@ async function composeWithAI(
         series_reps: `${ex.series}x${ex.reps}`,
         carga: ex.carga,
         musculo: ex.musculo,
+        gif: (ex as any).gif || null,
       })),
     };
   } else if (treinoInfo && !treinoInfo.proxima) {
@@ -545,7 +547,7 @@ REGRAS:
 FORMATO:
 Retorne APENAS um JSON array de strings. Cada string e uma mensagem separada pro Telegram.
 Primeira mensagem: briefing matinal (saude + tarefas/videos + fechamento)
-Segunda mensagem (se houver treino): detalhes do treino com exercicios formatados
+Segunda mensagem (se houver treino): detalhes do treino com exercicios formatados. IMPORTANTE: se o exercicio tem campo "gif", inclua o link como hyperlink no nome: <a href="URL">Nome do exercicio</a>
 
 Exemplo de retorno:
 ["<b>mensagem principal aqui</b>\\ncom quebras de linha","<b>treino aqui</b>"]
