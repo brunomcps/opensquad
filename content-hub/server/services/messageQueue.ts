@@ -54,6 +54,16 @@ export function getQueueStatus() {
  * Called by messageBuffer after debounce.
  */
 export async function enqueue(chatId: number, messages: BufferedMessage[]): Promise<void> {
+  const hasVoice = messages.some(m => m.type === 'voice');
+  const hasText = messages.some(m => m.type === 'text');
+
+  // Send feedback to user immediately
+  if (hasVoice) {
+    await sendMessage('🎙️ Transcrevendo áudio...');
+  } else if (hasText) {
+    await sendMessage('🧠 Processando...');
+  }
+
   // Transcribe voice messages on Railway (always, regardless of PC status)
   for (const msg of messages) {
     if (msg.type === 'voice' && msg.fileId && !msg.text) {

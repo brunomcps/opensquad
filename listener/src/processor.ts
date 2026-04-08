@@ -87,6 +87,7 @@ export async function processWithClaude(batch: MessageBatch): Promise<string> {
   try {
     const { stdout } = await execFileAsync(CLAUDE_BIN, [
       '-p', userPrompt,
+      '--model', 'claude-opus-4-6',
       '--output-format', 'text',
       '--max-turns', '10',
     ], {
