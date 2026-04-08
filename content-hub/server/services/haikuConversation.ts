@@ -23,14 +23,13 @@ import {
 import { writeMetrics, todayBRT } from './vaultWriter.js';
 import { readFile } from './onedrive.js';
 import { readTreinoFromVault } from './vaultReader.js';
-import { sendMessage } from './telegram.js';
 import type { BufferedMessage } from './messageBuffer.js';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
 const MAX_TOKENS = 1024;
 
-// --- History + pending state ---
+// --- History ---
 
 interface HistoryEntry {
   role: 'user' | 'assistant';
@@ -40,19 +39,6 @@ interface HistoryEntry {
 
 let recentHistory: HistoryEntry[] = [];
 const MAX_HISTORY = 15;
-
-interface PendingConfirmation {
-  type: 'unknown_metric' | 'desvio_permanente';
-  term?: string;
-  originalMessage?: string;
-  exercicio?: string;
-  suggestion?: {
-    categoria: string;
-    grupo: string;
-    unidade: string;
-  };
-}
-let pendingConfirmation: PendingConfirmation | null = null;
 
 function addToHistory(role: 'user' | 'assistant', content: string): void {
   recentHistory.push({ role, content, timestamp: new Date().toISOString() });
@@ -112,12 +98,15 @@ ${todayMetrics ? `## METRICAS JA REGISTRADAS HOJE\n${todayMetrics.slice(0, 400)}
 4. Refeicoes: macros vao no frontmatter (ex: almoco_kcal, almoco_prot)
 5. Refeicoes: descricao vai em sections.refeicoes com wikilink [[almoco]]
 6. Se o treino difere do PLANO DO DIA, registre em desvios[]
-7. Se NAO reconhece um termo, retorne em desconhecidos[] com sua SUGESTAO de classificacao (categoria, grupo, unidade, razao). Use seu conhecimento pra inferir do contexto.
+7. Se NAO reconhece um termo: na PRIMEIRA vez, pergunte na resposta sugerindo classificacao ("Parece exercicio de core, medido em segundos. Confirma?"). Na SEGUNDA vez (usuario confirma com "sim"/"ok"), retorne criar_catalogo com os dados.
 8. Correcao: use "replace" em vez de "sections" (nao duplicar)
 9. HTML: <b>, <i> pro Telegram
 
 ## FORMATO JSON (retorne SOMENTE isto)
-{"resposta":"texto Telegram","dados":{"frontmatter":{},"sections":{},"replace":{},"desvios":[],"desconhecidos":[]},"agente":"nome"}
+{"resposta":"texto Telegram","dados":{"frontmatter":{},"sections":{},"replace":{},"desvios":[],"desconhecidos":[],"criar_catalogo":null},"agente":"nome"}
+
+criar_catalogo: use SOMENTE quando o usuario CONFIRMAR ("sim","ok") uma sugestao anterior de metrica nova.
+Formato: {"nome":"prancha","categoria":"exercicio","grupo":"core","unidade":"segundos","aliases":["prancha"]}
 
 Exemplo treino:
 {"resposta":"80kg limpo, boa.","dados":{"frontmatter":{"humor":7},"sections":{"treino":"### [[push-a]] (100%)\\n| Exercicio | Planejado | Executado | Desvio |\\n|---|---|---|---|\\n| [[supino-reto-barra]] | 4x6-8 80kg | 4x8 80kg | conforme |"},"desvios":[],"desconhecidos":[]},"agente":"rafa-coach"}
@@ -125,8 +114,11 @@ Exemplo treino:
 Exemplo refeicao:
 {"resposta":"Costelao no almoco? Gordura alta.","dados":{"frontmatter":{"almoco_kcal":800,"almoco_prot":50},"sections":{"refeicoes":"- 12:00 [[almoco]]: Costelao (800kcal, 50g prot)"},"desconhecidos":[]},"agente":"chefe-bruno"}
 
-Exemplo desconhecido (SUGIRA a classificacao baseado no contexto):
-{"resposta":"Anotei o humor. Mas nao conheco 'prancha'.","dados":{"frontmatter":{"humor":6},"desconhecidos":[{"termo":"prancha","categoria":"exercicio","grupo":"core","unidade":"segundos","razao":"3x45s indica duracao, prancha e isometria de core"}]},"agente":"chefe-bruno"}
+Exemplo desconhecido (1a vez — SUGERE e pergunta):
+{"resposta":"Nao conheco 'prancha'. Parece exercicio de core, medido em segundos. Confirma?","dados":{"desconhecidos":["prancha"]},"agente":"chefe-bruno"}
+
+Exemplo confirmacao (usuario disse "sim" — CRIA a entrada):
+{"resposta":"Catalogado! Prancha agora e exercicio de core.","dados":{"criar_catalogo":{"nome":"prancha","categoria":"exercicio","grupo":"core","unidade":"segundos","aliases":["prancha"]}},"agente":"chefe-bruno"}
 
 IMPORTANTE: retorne SOMENTE JSON.`;
 }
@@ -179,6 +171,7 @@ interface HaikuResponse {
     replace: Record<string, string>;
     desvios: Array<{ exercicio: string; tipo: string; motivo?: string }>;
     desconhecidos: string[];
+    criar_catalogo: { nome: string; categoria: string; grupo: string; unidade: string; aliases: string[] } | null;
   };
   agente: string;
 }
@@ -197,6 +190,7 @@ function parseResponse(raw: string): HaikuResponse {
           replace: obj.dados?.replace || obj.replace || {},
           desvios: obj.dados?.desvios || obj.desvios || [],
           desconhecidos: obj.dados?.desconhecidos || obj.desconhecidos || [],
+          criar_catalogo: obj.dados?.criar_catalogo || obj.criar_catalogo || null,
         },
         agente: obj.agente || 'chefe-bruno',
       };
@@ -215,7 +209,7 @@ function parseResponse(raw: string): HaikuResponse {
 
   return {
     resposta: raw.slice(0, 500),
-    dados: { frontmatter: {}, sections: {}, replace: {}, desvios: [], desconhecidos: [] },
+    dados: { frontmatter: {}, sections: {}, replace: {}, desvios: [], desconhecidos: [], criar_catalogo: null },
     agente: 'chefe-bruno',
   };
 }
@@ -264,112 +258,29 @@ function validateFrontmatter(
   return validated;
 }
 
-// --- Handle unknown metrics ---
+// --- Handle catalog creation from Haiku response ---
 
-interface UnknownMetric {
-  termo: string;
-  categoria?: string;
-  grupo?: string;
-  unidade?: string;
-  razao?: string;
-}
+async function handleCriarCatalogo(entry: { nome: string; categoria: string; grupo: string; unidade: string; aliases: string[] }): Promise<void> {
+  const tipoMap: Record<string, string> = {
+    kg: 'carga_kg', reps: 'contagem', segundos: 'duracao_s',
+    minutos: 'duracao_min', kcal: 'calorias', litros: 'volume',
+    '1-10': 'escala', contagem: 'contagem',
+  };
+  const tipo_valor = tipoMap[entry.unidade] || 'contagem';
 
-async function handleUnknowns(desconhecidos: any[], originalMessage: string): Promise<void> {
-  if (desconhecidos.length === 0) return;
-
-  const item = desconhecidos[0]; // One at a time
-  const isStructured = typeof item === 'object' && item.termo;
-
-  if (isStructured) {
-    const u = item as UnknownMetric;
-    pendingConfirmation = {
-      type: 'unknown_metric',
-      term: u.termo,
-      originalMessage,
-      suggestion: {
-        categoria: u.categoria || 'habito',
-        grupo: u.grupo || '',
-        unidade: u.unidade || 'contagem',
-      },
-    };
-
-    await sendMessage(
-      `Nao conheco "<b>${u.termo}</b>".\n\n` +
-      `Pelo contexto, parece ser:\n` +
-      `• Tipo: <b>${u.categoria || '?'}</b>\n` +
-      `• Grupo: <b>${u.grupo || '?'}</b>\n` +
-      `• Mede em: <b>${u.unidade || '?'}</b>\n` +
-      (u.razao ? `\n<i>${u.razao}</i>\n` : '') +
-      `\nRegistro assim? Ou me corrige.`
-    );
-  } else {
-    // Fallback: unstructured string
-    const term = typeof item === 'string' ? item : String(item);
-    pendingConfirmation = {
-      type: 'unknown_metric',
-      term,
-      originalMessage,
-    };
-    await sendMessage(
-      `Nao conheco "<b>${term}</b>". O que e?\n` +
-      `<i>Ex: "exercicio, core, segundos"</i>`
-    );
-  }
-}
-
-// --- Handle pending confirmation responses ---
-
-async function handlePendingConfirmation(userText: string): Promise<string | null> {
-  if (!pendingConfirmation) return null;
-
-  if (pendingConfirmation.type === 'unknown_metric' && pendingConfirmation.term) {
-    const lower = userText.trim().toLowerCase();
-    const tipoMap: Record<string, string> = {
-      kg: 'carga_kg', reps: 'contagem', segundos: 'duracao_s',
-      minutos: 'duracao_min', kcal: 'calorias', litros: 'volume',
-      '1-10': 'escala', contagem: 'contagem',
-    };
-
-    let categoria: string;
-    let subcategoria: string;
-    let unidade: string;
-
-    // "sim", "ok", "isso", "pode ser", "registra" → use suggestion (or defaults)
-    const isAffirmative = /^(sim|ok|isso|pode|registra|bora|confirma|s|yes|claro|pode ser)$/i.test(lower.split(/\s/)[0]);
-    if (isAffirmative) {
-      const s = pendingConfirmation.suggestion || { categoria: 'habito', grupo: '', unidade: 'contagem' };
-      categoria = s.categoria;
-      subcategoria = s.grupo;
-      unidade = s.unidade;
-    } else {
-      // Manual: "exercicio, core, segundos"
-      const parts = userText.split(/[,;]\s*/).map(s => s.trim().toLowerCase());
-      if (parts.length >= 2) {
-        categoria = parts[0];
-        subcategoria = parts.length >= 3 ? parts[1] : '';
-        unidade = parts.length >= 3 ? parts[2] : parts[1];
-      } else {
-        return `Diz "sim" pra aceitar a sugestao, ou me diz no formato: "<i>tipo, grupo, unidade</i>"`;
-      }
-    }
-
-    const tipo_valor = tipoMap[unidade] || 'contagem';
-
-    const slug = await createCatalogEntry(
-      pendingConfirmation.term,
-      categoria,
-      subcategoria,
+  try {
+    await createCatalogEntry(
+      entry.nome,
+      entry.categoria,
+      entry.grupo,
       tipo_valor,
-      unidade,
-      [pendingConfirmation.term.toLowerCase()],
+      entry.unidade,
+      entry.aliases || [entry.nome.toLowerCase()],
     );
-
-    pendingConfirmation = null;
-    return `Catalogado! "<b>${slug}</b>" (${categoria}, ${subcategoria || 'geral'}, ${unidade}). Proxima vez que falar, ja reconheco.`;
+    console.log(`[Haiku] Catalog entry created: ${entry.nome}`);
+  } catch (e: any) {
+    console.error(`[Haiku] Failed to create catalog entry:`, e.message);
   }
-
-  pendingConfirmation = null;
-  return null;
 }
 
 // --- Main entry point ---
@@ -379,14 +290,6 @@ export async function processWithHaiku(messages: BufferedMessage[]): Promise<str
   if (!userText.trim()) return '(mensagem vazia)';
 
   console.log(`[Haiku] Processing: "${userText.slice(0, 80)}..."`);
-
-  // Check if this is a response to a pending confirmation
-  const confirmResponse = await handlePendingConfirmation(userText);
-  if (confirmResponse) {
-    addToHistory('user', userText);
-    addToHistory('assistant', confirmResponse);
-    return confirmResponse;
-  }
 
   try {
     // 1. PRE-PROCESS: find catalog matches in the message
@@ -438,21 +341,9 @@ export async function processWithHaiku(messages: BufferedMessage[]): Promise<str
       }
     }
 
-    // 7. Handle unknowns (ask Bruno)
-    if (parsed.dados.desconhecidos?.length > 0) {
-      handleUnknowns(parsed.dados.desconhecidos, userText).catch(() => {});
-    }
-
-    // 8. Handle desvios
-    if (parsed.dados.desvios?.length > 0) {
-      const subs = parsed.dados.desvios.filter(d => d.tipo === 'substituicao');
-      if (subs.length > 0) {
-        const desvioMsg = subs.map(d =>
-          `Trocou <b>${d.exercicio}</b>${d.motivo ? ` (${d.motivo})` : ''}. So hoje ou muda no plano?`
-        ).join('\n');
-        // Send after the main response
-        setTimeout(() => sendMessage(desvioMsg).catch(() => {}), 2000);
-      }
+    // 7. Handle catalog creation (Haiku decided to create after user confirmed)
+    if (parsed.dados.criar_catalogo) {
+      handleCriarCatalogo(parsed.dados.criar_catalogo).catch(() => {});
     }
 
     addToHistory('user', userText);
