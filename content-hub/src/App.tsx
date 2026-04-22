@@ -13,7 +13,7 @@ import { DashboardHome } from './components/DashboardHome';
 import { RoteiroLab } from './components/RoteiroLab';
 import { FichaDetail } from './components/FichaDetail';
 import { FinancialView } from './components/FinancialView';
-import { AudienceInsightsView } from './components/AudienceInsightsView';
+import { AudienceIntelView } from './components/audience-intel/AudienceIntelView';
 import { InfoprodutosView } from './components/InfoprodutosView';
 import { VideoDetail } from './components/VideoDetail';
 import { TikTokDetail } from './components/TikTokDetail';
@@ -38,7 +38,7 @@ export default function App() {
       {viewMode === 'calendar' && <CalendarView />}
       {viewMode === 'analytics' && <AnalyticsViewV2 />}
       {viewMode === 'financial' && <FinancialView />}
-      {viewMode === 'audience' && <AudienceInsightsView />}
+      {viewMode === 'audience' && <AudienceIntelView />}
       {viewMode === 'viral-radar' && <ViralRadarView />}
       {viewMode === 'crosspost' && <CrossPostingView />}
       {viewMode === 'productions' && <ProductionsView />}

@@ -1,4 +1,5 @@
 // Cloudflare Worker: proxy hub.brunosallesphd.com.br → Railway
+// Supports HTTP + WebSocket (for Diario Inteligente listener)
 const RAILWAY_URL = 'https://web-production-47e8f.up.railway.app';
 
 export default {
@@ -6,6 +7,12 @@ export default {
     const url = new URL(request.url);
     const railwayUrl = RAILWAY_URL + url.pathname + url.search;
 
+    // WebSocket upgrade: pass request through directly
+    if (request.headers.get('upgrade') === 'websocket') {
+      return fetch(railwayUrl, request);
+    }
+
+    // Regular HTTP: proxy with Host header rewrite
     const headers = new Headers(request.headers);
     headers.set('Host', 'web-production-47e8f.up.railway.app');
 
