@@ -4,14 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"tsx watch --env-file=../.env server/index.ts\" \"vite\"",
-    "dev:server": "tsx watch --env-file=../.env server/index.ts",
+    "dev": "concurrently \"tsx watch --env-file=../../.env server/index.ts\" \"vite\"",
+    "dev:server": "tsx watch --env-file=../../.env server/index.ts",
     "dev:client": "vite",
     "build": "vite build",
     "typecheck": "tsc -b",
     "start": "NODE_ENV=production tsx server/index.ts",
+    "local-start": "vite build && tsx --env-file=../../.env server/index.ts",
     "preview": "vite preview",
-    "push-remote": "tsx --env-file=../.env server/scripts/push-to-remote.ts"
+    "push-remote": "tsx --env-file=../.env server/scripts/push-to-remote.ts",
+    "test": "node --import tsx --test \"server/**/*.test.ts\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.100.1",
