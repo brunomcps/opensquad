@@ -26,6 +26,7 @@ import infoprodutosRouter from './routes/infoprodutos.js';
 import telegramRouter from './routes/telegram.js';
 import onedriveRouter from './routes/onedrive.js';
 import catalogoRouter from './routes/catalogo.js';
+import nicheRadarRouter from './routes/nicheRadar.js';
 import { startBRollWatcher } from './services/brollWatcher.js';
 import { refreshTokenIfNeeded } from './services/instagram.js';
 import { refreshFacebookTokenIfNeeded } from './services/facebook.js';
@@ -99,6 +100,7 @@ app.use('/api/infoprodutos', infoprodutosRouter);
 app.use('/api/telegram', telegramRouter);
 app.use('/api/onedrive', onedriveRouter);
 app.use('/api/catalogo', catalogoRouter);
+app.use('/api/niche-radar', nicheRadarRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, timestamp: new Date().toISOString() });
