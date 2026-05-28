@@ -1,7 +1,7 @@
 // Detector do Radar de Viral do Nicho.
 // Junta coleta + score + filtro e grava os achados (radar_findings).
 
-import { getTrackData, saveFindings, type Track, type RadarFinding, type VideoWithSnaps } from '../../db/nicheRadar.js';
+import { getTrackData, saveFindings, deleteFindings, type Track, type RadarFinding, type VideoWithSnaps } from '../../db/nicheRadar.js';
 import { outlierScore, velocity, combinedScore } from './scoring.js';
 import { isRelevant } from './relevance.js';
 
@@ -72,6 +72,7 @@ export async function runDetection(track: Track): Promise<Detection[]> {
     }
   }
 
+  await deleteFindings(track, today); // idempotência: re-rodar no mesmo dia não acumula
   await saveFindings(findings.map(({ title, channel_id, ...f }) => f));
   return findings;
 }

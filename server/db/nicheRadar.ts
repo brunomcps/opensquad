@@ -87,6 +87,12 @@ export async function getSnapshots(videoId: string): Promise<RadarSnapshot[]> {
 
 // -- Findings --
 
+// Limpa os achados de uma trilha num dia (idempotência: re-rodar não acumula).
+export async function deleteFindings(track: Track, detectedOn: string): Promise<void> {
+  const { error } = await supabase.from('radar_findings').delete().eq('track', track).eq('detected_on', detectedOn);
+  if (error) throw new Error(`[radar] deleteFindings: ${error.message}`);
+}
+
 export async function saveFindings(findings: RadarFinding[]): Promise<void> {
   if (!findings.length) return;
   const { error } = await supabase.from('radar_findings').upsert(findings, { onConflict: 'video_id,detected_on' });
