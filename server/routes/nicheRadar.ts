@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { collectAll } from '../services/nicheRadar/collector.js';
-import { runDetection } from '../services/nicheRadar/detector.js';
+import { runRadar } from '../services/nicheRadar/orchestrator.js';
 import { listChannels, upsertChannels, getFindings, type RadarChannel } from '../db/nicheRadar.js';
 
 // Radar de Viral do Nicho — módulo novo, independente do viral-radar antigo.
@@ -48,14 +47,12 @@ router.post('/run-daily', async (_req, res) => {
   }
   isRunning = true;
   try {
-    const collected = await collectAll('br');
-    const found = await runDetection('br');
+    const result = await runRadar();
     res.json({
       ok: true,
       data: {
-        canais: collected.length,
-        videos: collected.reduce((a, c) => a + c.videos, 0),
-        achados: found.length,
+        videos: result.collected,
+        achados: result.found,
       },
     });
   } catch (err: any) {
