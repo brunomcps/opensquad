@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { useContentStore } from '../store/useContentStore';
 import { RefreshIcon } from './icons/PlatformIcons';
 
-export type ViewMode = 'home' | 'timeline' | 'calendar' | 'analytics' | 'financial' | 'audience' | 'viral-radar' | 'crosspost' | 'brolls' | 'productions' | 'roteiro-lab' | 'infoprodutos';
+export type ViewMode = 'home' | 'timeline' | 'calendar' | 'analytics' | 'financial' | 'audience' | 'viral-radar' | 'radar-nicho' | 'crosspost' | 'brolls' | 'productions' | 'roteiro-lab' | 'infoprodutos';
 
 const header: CSSProperties = {
   display: 'flex',
@@ -125,6 +125,7 @@ const tabs: { mode: ViewMode; label: string }[] = [
   { mode: 'financial', label: 'Financeiro' },
   { mode: 'audience', label: 'Audiência' },
   { mode: 'viral-radar', label: 'Viral Radar' },
+  { mode: 'radar-nicho', label: 'Radar Nicho' },
   { mode: 'crosspost', label: 'Cross-post' },
   { mode: 'productions', label: 'Produções' },
   { mode: 'brolls', label: 'B-Rolls' },

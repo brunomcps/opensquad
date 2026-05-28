@@ -6,6 +6,7 @@ import { CalendarView } from './components/CalendarView';
 import { AnalyticsViewV2 } from './components/AnalyticsViewV2';
 import { CompetitorsView } from './components/CompetitorsView';
 import { ViralRadarView } from './components/ViralRadarView';
+import { NicheRadarView } from './components/NicheRadarView';
 import { CrossPostingView } from './components/CrossPostingView';
 import { BRollLibrary } from './components/BRollLibrary';
 import { ProductionsView } from './components/productions/ProductionsView';
@@ -40,12 +41,13 @@ export default function App() {
       {viewMode === 'financial' && <FinancialView />}
       {viewMode === 'audience' && <AudienceIntelView />}
       {viewMode === 'viral-radar' && <ViralRadarView />}
+      {viewMode === 'radar-nicho' && <NicheRadarView />}
       {viewMode === 'crosspost' && <CrossPostingView />}
       {viewMode === 'productions' && <ProductionsView />}
       {viewMode === 'brolls' && <BRollLibrary />}
       {viewMode === 'roteiro-lab' && <RoteiroLab />}
       {viewMode === 'infoprodutos' && <InfoprodutosView />}
-      {!['brolls', 'productions', 'home', 'financial', 'audience', 'roteiro-lab', 'infoprodutos'].includes(viewMode) && <VideoDetail />}
+      {!['brolls', 'productions', 'home', 'financial', 'audience', 'roteiro-lab', 'infoprodutos', 'radar-nicho'].includes(viewMode) && <VideoDetail />}
       <FichaDetail />
       <TikTokDetail />
       <InstagramDetail />
