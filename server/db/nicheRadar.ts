@@ -111,6 +111,7 @@ export interface VideoWithSnaps {
   channel_id: string;
   title: string | null;
   published_at: string | null;
+  duration_sec: number | null;
   track: Track;
   radar_snapshots: { snap_date: string; views: number; likes: number | null; comments: number | null }[];
 }
@@ -118,7 +119,7 @@ export interface VideoWithSnaps {
 export async function getTrackData(track: Track): Promise<VideoWithSnaps[]> {
   const { data, error } = await supabase
     .from('radar_videos')
-    .select('video_id, channel_id, title, published_at, track, radar_snapshots(snap_date, views, likes, comments)')
+    .select('video_id, channel_id, title, published_at, duration_sec, track, radar_snapshots(snap_date, views, likes, comments)')
     .eq('track', track);
   if (error) throw new Error(`[radar] getTrackData: ${error.message}`);
   return (data ?? []) as VideoWithSnaps[];

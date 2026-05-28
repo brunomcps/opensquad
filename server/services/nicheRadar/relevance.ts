@@ -11,6 +11,8 @@ const NOISE_PATTERNS: RegExp[] = [
   /\b(m[úu]sica|song|lyrics?|clipe|videoclipe|official\s+video|[áa]udio\s+oficial)\b/i,
   /\b(infantil|kids|crian[çc]as?|nursery|desenho\s+animado)\b/i,
   /\b(funk|sertanejo|pagode|trap)\b/i,
+  // saúde alternativa / fora do nicho neuro-psi
+  /\b(pr[óo]polis|rem[ée]dio\s+caseiro|antibi[óo]tico\s+natural|planta\s+que\s+cura|receita\s+caseira|ch[áa]\s+(que|para|pra))\b/i,
 ];
 
 export interface RadarVideoLike {

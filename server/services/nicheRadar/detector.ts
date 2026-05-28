@@ -7,6 +7,8 @@ import { isRelevant } from './relevance.js';
 
 const TOP_N = 12;        // top por trilha que sempre entra no relatório
 const ESTOURO = 70;      // score acima disso entra mesmo fora do top
+const MIN_DURATION = 180; // ignora vídeos < 3 min (cortes/shorts)
+const MAX_PER_CHANNEL = 3; // diversidade: máx achados por canal no relatório do dia
 
 function latestViews(snaps: VideoWithSnaps['radar_snapshots']): number {
   if (!snaps.length) return 0;
@@ -15,6 +17,7 @@ function latestViews(snaps: VideoWithSnaps['radar_snapshots']): number {
 
 export interface Detection extends RadarFinding {
   title: string | null;
+  channel_id: string;
 }
 
 /** Roda a detecção de uma trilha: calcula score de cada vídeo, filtra, grava findings. */
@@ -32,7 +35,9 @@ export async function runDetection(track: Track): Promise<Detection[]> {
 
   const scored: Detection[] = [];
   for (const v of videos) {
-    if (!isRelevant({ title: v.title, track: v.track }, { fromCuratedChannel: true })) continue;
+    // calibração: ignora cortes/shorts e aplica o filtro de tema mesmo em canal curado
+    if ((v.duration_sec ?? 0) < MIN_DURATION) continue;
+    if (!isRelevant({ title: v.title, track: v.track })) continue;
     const views = latestViews(v.radar_snapshots);
     const channelViews = viewsByChannel.get(v.channel_id) ?? [];
     const outlier = outlierScore(views, channelViews);
@@ -47,15 +52,27 @@ export async function runDetection(track: Track): Promise<Detection[]> {
       track,
       status: 'novo',
       title: v.title,
+      channel_id: v.channel_id,
     });
   }
 
   scored.sort((a, b) => b.score - a.score);
-  const top = scored.slice(0, TOP_N);
-  const estouros = scored.slice(TOP_N).filter((d) => d.score >= ESTOURO);
-  const findings = [...top, ...estouros];
 
-  await saveFindings(findings.map(({ title, ...f }) => f));
+  // diversidade: máx N por canal; preenche o top e ainda admite estouros fortes
+  const perChannel = new Map<string, number>();
+  const findings: Detection[] = [];
+  for (const d of scored) {
+    const n = perChannel.get(d.channel_id) ?? 0;
+    if (n >= MAX_PER_CHANNEL) continue;
+    const isTop = findings.length < TOP_N;
+    const isEstouro = d.score >= ESTOURO;
+    if (isTop || isEstouro) {
+      findings.push(d);
+      perChannel.set(d.channel_id, n + 1);
+    }
+  }
+
+  await saveFindings(findings.map(({ title, channel_id, ...f }) => f));
   return findings;
 }
 
