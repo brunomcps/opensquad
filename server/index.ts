@@ -27,6 +27,7 @@ import telegramRouter from './routes/telegram.js';
 import onedriveRouter from './routes/onedrive.js';
 import catalogoRouter from './routes/catalogo.js';
 import nicheRadarRouter from './routes/nicheRadar.js';
+import { startRadarCron } from './services/nicheRadar/cron.js';
 import { startBRollWatcher } from './services/brollWatcher.js';
 import { refreshTokenIfNeeded } from './services/instagram.js';
 import { refreshFacebookTokenIfNeeded } from './services/facebook.js';
@@ -122,4 +123,5 @@ app.listen(PORT, async () => {
   await setupRcloneConfig();
   loadCatalog().catch(e => console.error('[Catalogo] Initial load failed:', e.message));
   loadAgents().catch(e => console.error('[AgentLoader] Initial load failed:', e.message));
+  startRadarCron();
 });
