@@ -104,3 +104,22 @@ export async function getFindings(track?: Track, detectedOn?: string): Promise<a
   if (error) throw new Error(`[radar] getFindings: ${error.message}`);
   return data ?? [];
 }
+
+// Vídeos de uma trilha com seus snapshots aninhados (pro detector calcular score).
+export interface VideoWithSnaps {
+  video_id: string;
+  channel_id: string;
+  title: string | null;
+  published_at: string | null;
+  track: Track;
+  radar_snapshots: { snap_date: string; views: number; likes: number | null; comments: number | null }[];
+}
+
+export async function getTrackData(track: Track): Promise<VideoWithSnaps[]> {
+  const { data, error } = await supabase
+    .from('radar_videos')
+    .select('video_id, channel_id, title, published_at, track, radar_snapshots(snap_date, views, likes, comments)')
+    .eq('track', track);
+  if (error) throw new Error(`[radar] getTrackData: ${error.message}`);
+  return (data ?? []) as VideoWithSnaps[];
+}
