@@ -36,6 +36,10 @@ function getPageId(env) {
   return env.INSTAGRAM_PAGE_ID || env.FACEBOOK_PAGE_ID || '';
 }
 
+function getInstagramBusinessId(env) {
+  return env.INSTAGRAM_BUSINESS_ID || env.INSTAGRAM_USER_ID || '';
+}
+
 function getGraphVersion(env) {
   return env.META_GRAPH_VERSION || DEFAULT_GRAPH_VERSION;
 }
@@ -247,6 +251,7 @@ async function handleLiveConversations(request, env) {
   const limit = Math.min(Math.max(Number(url.searchParams.get('limit') || 25), 1), 100);
   const includeMessages = url.searchParams.get('includeMessages') !== 'false';
   const after = url.searchParams.get('after') || '';
+  const userId = url.searchParams.get('userId') || '';
   const params = {
     platform: 'instagram',
     fields: includeMessages
@@ -255,8 +260,24 @@ async function handleLiveConversations(request, env) {
     limit,
   };
   if (after) params.after = after;
+  if (userId) params.user_id = userId;
 
   const data = await graphRequest(env, `/${pageId}/conversations`, params);
+
+  return json({ ok: true, data: sanitizeGraphResponse(data) });
+}
+
+async function handleLiveUserLookup(env, username) {
+  const instagramBusinessId = getInstagramBusinessId(env);
+  if (!instagramBusinessId) throw new Error('INSTAGRAM_BUSINESS_ID or INSTAGRAM_USER_ID is not configured');
+  if (!username) throw new Error('username is required');
+
+  const safeUsername = username.replace(/[^A-Za-z0-9._]/g, '');
+  if (!safeUsername) throw new Error('invalid username');
+
+  const data = await graphRequest(env, `/${instagramBusinessId}`, {
+    fields: `business_discovery.username(${safeUsername}){id,username,name,profile_picture_url}`,
+  });
 
   return json({ ok: true, data: sanitizeGraphResponse(data) });
 }
@@ -313,6 +334,9 @@ async function handleInstagramDm(request, env) {
   try {
     if (path === '/api/instagram-dm/status' && request.method === 'GET') return handleStatus(env);
     if (path === '/api/instagram-dm/live/conversations' && request.method === 'GET') return await handleLiveConversations(request, env);
+
+    const userLookupMatch = path.match(/^\/api\/instagram-dm\/live\/users\/([^/]+)$/);
+    if (userLookupMatch && request.method === 'GET') return await handleLiveUserLookup(env, decodeURIComponent(userLookupMatch[1]));
 
     const messageMatch = path.match(/^\/api\/instagram-dm\/live\/conversations\/([^/]+)\/messages$/);
     if (messageMatch && request.method === 'GET') return await handleLiveMessages(request, env, decodeURIComponent(messageMatch[1]));
