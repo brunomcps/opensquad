@@ -288,12 +288,12 @@ async function handleInstagramDm(request, env) {
 
   try {
     if (path === '/api/instagram-dm/status' && request.method === 'GET') return handleStatus(env);
-    if (path === '/api/instagram-dm/live/conversations' && request.method === 'GET') return handleLiveConversations(request, env);
+    if (path === '/api/instagram-dm/live/conversations' && request.method === 'GET') return await handleLiveConversations(request, env);
 
     const messageMatch = path.match(/^\/api\/instagram-dm\/live\/conversations\/([^/]+)\/messages$/);
-    if (messageMatch && request.method === 'GET') return handleLiveMessages(request, env, decodeURIComponent(messageMatch[1]));
+    if (messageMatch && request.method === 'GET') return await handleLiveMessages(request, env, decodeURIComponent(messageMatch[1]));
 
-    if (path === '/api/instagram-dm/messages' && request.method === 'POST') return handleSendMessage(request, env);
+    if (path === '/api/instagram-dm/messages' && request.method === 'POST') return await handleSendMessage(request, env);
 
     if ((path === '/api/instagram-dm/messages' || path === '/api/instagram-dm/conversations') && request.method === 'GET') {
       return json({
