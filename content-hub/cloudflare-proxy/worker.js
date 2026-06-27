@@ -245,12 +245,18 @@ async function handleLiveConversations(request, env) {
 
   const url = new URL(request.url);
   const limit = Math.min(Math.max(Number(url.searchParams.get('limit') || 25), 1), 100);
-
-  const data = await graphRequest(env, `/${pageId}/conversations`, {
+  const includeMessages = url.searchParams.get('includeMessages') !== 'false';
+  const after = url.searchParams.get('after') || '';
+  const params = {
     platform: 'instagram',
-    fields: 'id,updated_time,link,participants,messages.limit(1){id,created_time,from,to,message}',
+    fields: includeMessages
+      ? 'id,updated_time,link,participants,messages.limit(1){id,created_time,from,to,message}'
+      : 'id,updated_time,link,participants',
     limit,
-  });
+  };
+  if (after) params.after = after;
+
+  const data = await graphRequest(env, `/${pageId}/conversations`, params);
 
   return json({ ok: true, data: sanitizeGraphResponse(data) });
 }
