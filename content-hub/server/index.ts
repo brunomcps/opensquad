@@ -26,6 +26,7 @@ import infoprodutosRouter from './routes/infoprodutos.js';
 import telegramRouter from './routes/telegram.js';
 import onedriveRouter from './routes/onedrive.js';
 import catalogoRouter from './routes/catalogo.js';
+import instagramDmRouter from './routes/instagramDm.js';
 import { startBRollWatcher } from './services/brollWatcher.js';
 import { refreshTokenIfNeeded } from './services/instagram.js';
 import { refreshFacebookTokenIfNeeded } from './services/facebook.js';
@@ -42,7 +43,12 @@ const PORT = Number(process.env.PORT) || 3001;
 // B-Roll library path (relative to project root)
 const BROLL_LIBRARY = path.resolve(__dirname, '../../_opensquad/_library/brolls');
 
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({
+  limit: '50mb',
+  verify: (req: any, _res: unknown, buf: Buffer) => {
+    req.rawBody = Buffer.from(buf);
+  },
+}));
 
 // Basic Auth in production — supports multiple users via AUTH_USERS=user1:pass1,user2:pass2
 if (process.env.NODE_ENV === 'production' && process.env.AUTH_USERS) {
@@ -53,7 +59,13 @@ if (process.env.NODE_ENV === 'production' && process.env.AUTH_USERS) {
     })
   );
   app.use((req, res, next) => {
-    if (req.path === '/api/sync-push' || req.path === '/api/health' || req.path.startsWith('/api/telegram/') || req.path.startsWith('/favicon')) return next();
+    if (
+      req.path === '/api/sync-push'
+      || req.path === '/api/health'
+      || req.path === '/api/instagram-dm/webhook'
+      || req.path.startsWith('/api/telegram/')
+      || req.path.startsWith('/favicon')
+    ) return next();
 
     const auth = req.headers.authorization;
     if (!auth || !auth.startsWith('Basic ')) {
@@ -99,6 +111,7 @@ app.use('/api/infoprodutos', infoprodutosRouter);
 app.use('/api/telegram', telegramRouter);
 app.use('/api/onedrive', onedriveRouter);
 app.use('/api/catalogo', catalogoRouter);
+app.use('/api/instagram-dm', instagramDmRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, timestamp: new Date().toISOString() });
