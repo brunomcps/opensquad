@@ -256,7 +256,7 @@ async function handleLiveConversations(request, env) {
     platform: 'instagram',
     fields: includeMessages
       ? 'id,updated_time,link,participants,messages.limit(1){id,created_time,from,to,message}'
-      : 'id,updated_time,link,participants',
+      : 'id,updated_time,participants',
     limit,
   };
   if (after) params.after = after;
