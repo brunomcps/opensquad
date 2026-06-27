@@ -162,6 +162,24 @@ async function graphRequest(env, pathname, params = {}, init = {}) {
   return data;
 }
 
+function sanitizeGraphResponse(value) {
+  if (Array.isArray(value)) return value.map(sanitizeGraphResponse);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [key, sanitizeGraphResponse(nestedValue)]),
+    );
+  }
+  if (typeof value !== 'string' || !value.includes('access_token=')) return value;
+
+  try {
+    const url = new URL(value);
+    if (url.searchParams.has('access_token')) url.searchParams.set('access_token', 'REDACTED');
+    return url.toString();
+  } catch {
+    return value.replace(/access_token=[^&\s]+/g, 'access_token=REDACTED');
+  }
+}
+
 async function handleWebhookGet(request, env) {
   const url = new URL(request.url);
   const mode = url.searchParams.get('hub.mode');
@@ -234,7 +252,7 @@ async function handleLiveConversations(request, env) {
     limit,
   });
 
-  return json({ ok: true, data });
+  return json({ ok: true, data: sanitizeGraphResponse(data) });
 }
 
 async function handleLiveMessages(request, env, conversationId) {
@@ -246,7 +264,7 @@ async function handleLiveMessages(request, env, conversationId) {
     limit,
   });
 
-  return json({ ok: true, data });
+  return json({ ok: true, data: sanitizeGraphResponse(data) });
 }
 
 async function handleSendMessage(request, env) {
@@ -272,7 +290,7 @@ async function handleSendMessage(request, env) {
     }),
   });
 
-  return json({ ok: true, data });
+  return json({ ok: true, data: sanitizeGraphResponse(data) });
 }
 
 async function handleInstagramDm(request, env) {
