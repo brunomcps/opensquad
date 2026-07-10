@@ -1,7 +1,14 @@
 import { Router } from 'express';
-import { getSalesHistory, getSalesSummary } from '../services/hotmart.js';
+import { getSalesHistory, getSalesSummary, type HotmartSale } from '../services/hotmart.js';
 
 const router = Router();
+
+export function sanitizeHotmartSale(
+  sale: HotmartSale,
+): Omit<HotmartSale, 'buyerName' | 'buyerEmail'> {
+  const { buyerName: _buyerName, buyerEmail: _buyerEmail, ...publicSale } = sale;
+  return publicSale;
+}
 
 router.get('/sales', async (req, res) => {
   try {
@@ -11,7 +18,8 @@ router.get('/sales', async (req, res) => {
       end as string | undefined,
       status as string | undefined
     );
-    res.json({ ok: true, sales, count: sales.length });
+    const publicSales = sales.map(sanitizeHotmartSale);
+    res.json({ ok: true, sales: publicSales, count: publicSales.length });
   } catch (err: any) {
     console.error('Hotmart API error:', err.message);
     res.status(500).json({ ok: false, error: err.message });
@@ -69,11 +77,16 @@ router.get('/monthly', async (req, res) => {
   }
 });
 
-// Webhook handler for real-time events
-router.post('/webhook', (req, res) => {
-  const event = req.body;
-  console.log('[Hotmart Webhook]', event?.event || 'unknown', JSON.stringify(event).slice(0, 200));
-  res.status(200).json({ ok: true });
+// Legacy endpoint deliberately disabled. The validated endpoint lives under
+// /api/commercial-intel/hotmart/webhook.
+router.post('/webhook', (_req, res) => {
+  res.status(410).json({
+    ok: false,
+    error: {
+      code: 'webhook_moved',
+      message: 'Use o webhook validado da Inteligência Comercial.',
+    },
+  });
 });
 
 export default router;

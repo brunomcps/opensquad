@@ -19,6 +19,15 @@ interface VideoRevenue {
 }
 
 router.get('/content-revenue', async (req, res) => {
+  if (process.env.ENABLE_LEGACY_CONTENT_REVENUE !== 'true') {
+    return res.status(410).json({
+      ok: false,
+      error: {
+        code: 'legacy_analysis_disabled',
+        message: 'A leitura antiga foi desativada porque representa associação temporal, não atribuição.',
+      },
+    });
+  }
   try {
     const windowDays = parseInt(req.query.window as string) || 7;
 
@@ -123,6 +132,8 @@ router.get('/content-revenue', async (req, res) => {
 
     res.json({
       ok: true,
+      evidenceLevel: 'temporal_association_exploratory',
+      warning: 'Receita observada na janela não é receita atribuída ao vídeo.',
       windowDays,
       totalVideos: results.length,
       videosWithSales: results.filter(r => r.revenue > 0).length,
