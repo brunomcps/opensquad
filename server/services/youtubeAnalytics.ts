@@ -1,10 +1,7 @@
-import { google } from 'googleapis';
-import { oauth2Client, youtube } from './youtubeClient.js';
+import { youtube, youtubeAnalytics } from './youtubeClient.js';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-const youtubeAnalytics = google.youtubeAnalytics({ version: 'v2', auth: oauth2Client });
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LONGOS_DIR = path.resolve(__dirname, '../../../youtube/by-video/longos');

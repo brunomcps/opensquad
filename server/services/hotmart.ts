@@ -13,6 +13,9 @@ async function getAccessToken(): Promise<string> {
 
   const clientId = process.env.HOTMART_CLIENT_ID;
   const clientSecret = process.env.HOTMART_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    throw new Error('Hotmart credentials are not configured');
+  }
   const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
   const res = await fetch('https://api-sec-vlc.hotmart.com/security/oauth/token?grant_type=client_credentials', {
@@ -62,17 +65,49 @@ export interface HotmartSale {
   productId: number;
   buyerName: string;
   buyerEmail: string;
-  price: number;       // valor bruto em BRL (convertido se moeda estrangeira)
-  priceBRL: number;    // valor base em BRL (hotmart_fee.base)
-  netPrice: number;    // valor líquido (após taxa Hotmart)
-  hotmartFee: number;  // taxa cobrada pelo Hotmart
-  currency: string;    // moeda original
+  price: number;
+  priceBRL: number;
+  netPrice: number;
+  hotmartFee: number;
+  currency: string;
   status: string;
   paymentMethod: string;
   purchaseDate: string;
   approvedDate?: string;
   commissionValue?: number;
   source?: string;
+}
+
+export function toHotmartMillis(value: string, endOfDay = false): string {
+  const candidate = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? `${value}T${endOfDay ? '23:59:59.999' : '00:00:00.000'}-03:00`
+    : value;
+  const timestamp = new Date(candidate).getTime();
+  if (!Number.isFinite(timestamp)) throw new Error('Invalid Hotmart date range');
+  return timestamp.toString();
+}
+
+export async function getSalesHistoryRaw(
+  startDate?: string,
+  endDate?: string,
+  status: string = 'APPROVED,COMPLETE',
+): Promise<any[]> {
+  const params: Record<string, string> = {};
+  if (startDate) params.start_date = toHotmartMillis(startDate);
+  if (endDate) params.end_date = toHotmartMillis(endDate, true);
+  if (status) params.transaction_status = status;
+  params.max_results = '500';
+
+  const items: any[] = [];
+  let pageToken: string | undefined;
+  do {
+    if (pageToken) params.page_token = pageToken;
+    else delete params.page_token;
+    const data = await hotmartFetch('/sales/history', params);
+    items.push(...(data.items || []));
+    pageToken = data.page_info?.next_page_token;
+  } while (pageToken);
+  return items;
 }
 
 export interface HotmartSummary {
@@ -90,40 +125,35 @@ export async function getSalesHistory(
   endDate?: string,
   status: string = 'APPROVED,COMPLETE'
 ): Promise<HotmartSale[]> {
-  const params: Record<string, string> = {};
-  if (startDate) params.start_date = new Date(startDate).getTime().toString();
-  if (endDate) params.end_date = new Date(endDate).getTime().toString();
-  if (status) params.transaction_status = status;
-  params.max_results = '500';
-
+  const items = await getSalesHistoryRaw(startDate, endDate, status);
   const allSales: HotmartSale[] = [];
-  let pageToken: string | undefined;
-
-  do {
-    if (pageToken) params.page_token = pageToken;
-    const data = await hotmartFetch('/sales/history', params);
-    const items = data.items || [];
-
-    for (const item of items) {
+  for (const item of items) {
       const purchase = item.purchase || {};
       const product = item.product || {};
       const buyer = item.buyer || {};
       const payment = purchase.payment || {};
       const fee = purchase.hotmart_fee || {};
-
-      // Convert foreign currency to approximate BRL
-      // hotmart_fee.base is NOT reliable for foreign currencies (returns original currency value)
       const currency = purchase.price?.currency_code || 'BRL';
       const rawPrice = purchase.price?.value || 0;
       const feeTotal = fee.total || 0;
-
-      // Approximate conversion rates (updated periodically)
-      const toBRL: Record<string, number> = {
-        BRL: 1, USD: 5.7, EUR: 6.2, GBP: 7.3, CLP: 0.0058, ARS: 0.005,
-        JPY: 0.038, MXN: 0.29, COP: 0.0013, PEN: 1.5,
-      };
-      const rate = toBRL[currency] || 1;
-      const baseBRL = currency === 'BRL' ? rawPrice : rawPrice * rate;
+      const feeCurrency = fee.currency_code || currency;
+      const producerCommission = (item.commissions || [])
+        .find((commission: any) => commission.source === 'PRODUCER');
+      const commissionValue = item.commission?.value
+        ?? producerCommission?.commission?.value
+        ?? producerCommission?.value;
+      const commissionCurrency = item.commission?.currency_code
+        ?? producerCommission?.commission?.currency_code
+        ?? producerCommission?.currency_value
+        ?? producerCommission?.currency_code;
+      const priceBRL = currency === 'BRL' ? rawPrice : 0;
+      const feeBRL = feeCurrency === 'BRL' ? feeTotal : 0;
+      const netPrice = commissionCurrency === 'BRL' && Number.isFinite(Number(commissionValue))
+        ? Number(commissionValue)
+        : currency === 'BRL' && feeCurrency === 'BRL'
+          ? rawPrice - feeTotal
+          : 0;
+      const origin = purchase.origin || purchase.tracking || {};
 
       allSales.push({
         transactionId: purchase.transaction || '',
@@ -132,21 +162,18 @@ export async function getSalesHistory(
         buyerName: buyer.name || '',
         buyerEmail: buyer.email || '',
         price: purchase.price?.value || 0,
-        priceBRL: baseBRL,
-        netPrice: baseBRL - feeTotal,
-        hotmartFee: feeTotal,
+        priceBRL,
+        netPrice,
+        hotmartFee: feeBRL,
         currency,
         status: purchase.status || '',
         paymentMethod: payment.type || '',
         purchaseDate: purchase.order_date ? new Date(purchase.order_date).toISOString() : '',
         approvedDate: purchase.approved_date ? new Date(purchase.approved_date).toISOString() : undefined,
-        commissionValue: item.commission?.value || undefined,
-        source: purchase.tracking?.source || undefined,
+        commissionValue: Number.isFinite(Number(commissionValue)) ? Number(commissionValue) : undefined,
+        source: origin.sck || origin.src || origin.xcod || origin.source || undefined,
       });
-    }
-
-    pageToken = data.page_info?.next_page_token;
-  } while (pageToken);
+  }
 
   return allSales;
 }
