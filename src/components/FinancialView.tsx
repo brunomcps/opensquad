@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useFinancialStore } from '../store/useFinancialStore';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Line, CartesianGrid, ReferenceLine } from 'recharts';
-import { ContentRevenueView } from './ContentRevenueView';
+import { CommercialIntelligenceView } from './commercial-intelligence/CommercialIntelligenceView';
 
 const container: CSSProperties = {
   padding: '24px', paddingBottom: '60px', flex: 1, overflowY: 'auto', minHeight: 0,
@@ -56,7 +56,7 @@ function fmtK(n: number): string {
   return n.toFixed(0);
 }
 
-type SubView = 'revenue' | 'content-revenue';
+type SubView = 'revenue' | 'commercial-intelligence';
 
 export function FinancialView() {
   const [subView, setSubView] = useState<SubView>('revenue');
@@ -141,14 +141,14 @@ export function FinancialView() {
     })).filter(p => p.sales > 0);
   }, [summary]);
 
-  if (subView === 'content-revenue') {
+  if (subView === 'commercial-intelligence') {
     return (
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         <div style={{ display: 'flex', gap: '2px', padding: '8px 24px', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
           <button onClick={() => setSubView('revenue')} style={{ background: 'transparent', border: 'none', padding: '6px 16px', fontSize: '13px', fontWeight: 500, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font)', borderBottom: '2px solid transparent' }}>Receita</button>
-          <button onClick={() => setSubView('content-revenue')} style={{ background: 'transparent', border: 'none', padding: '6px 16px', fontSize: '13px', fontWeight: 700, color: 'var(--accent-gold-dark)', cursor: 'pointer', fontFamily: 'var(--font)', borderBottom: '2px solid var(--accent-gold)' }}>Conteúdo x Receita</button>
+          <button onClick={() => setSubView('commercial-intelligence')} style={{ background: 'transparent', border: 'none', padding: '6px 16px', fontSize: '13px', fontWeight: 700, color: 'var(--accent-gold-dark)', cursor: 'pointer', fontFamily: 'var(--font)', borderBottom: '2px solid var(--accent-gold)' }}>Inteligência comercial</button>
         </div>
-        <ContentRevenueView />
+        <CommercialIntelligenceView />
       </div>
     );
   }
@@ -169,7 +169,7 @@ export function FinancialView() {
       {/* Sub-nav */}
       <div style={{ display: 'flex', gap: '2px', marginBottom: '-8px' }}>
         <button onClick={() => setSubView('revenue')} style={{ background: 'transparent', border: 'none', padding: '6px 16px', fontSize: '13px', fontWeight: 700, color: 'var(--accent-gold-dark)', cursor: 'pointer', fontFamily: 'var(--font)', borderBottom: '2px solid var(--accent-gold)' }}>Receita</button>
-        <button onClick={() => setSubView('content-revenue')} style={{ background: 'transparent', border: 'none', padding: '6px 16px', fontSize: '13px', fontWeight: 500, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font)', borderBottom: '2px solid transparent' }}>Conteúdo x Receita</button>
+        <button onClick={() => setSubView('commercial-intelligence')} style={{ background: 'transparent', border: 'none', padding: '6px 16px', fontSize: '13px', fontWeight: 500, color: 'var(--text-muted)', cursor: 'pointer', fontFamily: 'var(--font)', borderBottom: '2px solid transparent' }}>Inteligência comercial</button>
       </div>
 
       {/* Header */}
@@ -279,7 +279,7 @@ export function FinancialView() {
                   <XAxis dataKey="day" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `R$${v >= 1000 ? (v/1000).toFixed(1)+'K' : v.toFixed(0)}`} />
                   <Tooltip
-                    formatter={(value: number, name: string) => [
+                    formatter={(value: any, name: any) => [
                       name === 'total' ? `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : `${value} vendas`,
                       name === 'total' ? 'Receita total' : 'Vendas'
                     ]}
@@ -341,7 +341,7 @@ export function FinancialView() {
                 <XAxis dataKey="month" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `R$${v >= 1000 ? (v/1000).toFixed(1)+'K' : v}`} domain={[0, 'auto']} />
                 <Tooltip
-                  formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Receita Líquida']}
+                  formatter={(value: any) => [`R$ ${Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 'Receita Líquida']}
                   contentStyle={{ fontSize: '12px', borderRadius: '8px' }}
                 />
                 <Bar dataKey="netRevenue" fill="var(--accent-gold)" radius={[4, 4, 0, 0]} />
@@ -366,7 +366,7 @@ export function FinancialView() {
                   <XAxis dataKey="day" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `R$${fmtK(v)}`} domain={[0, 'auto']} />
                   <Tooltip
-                    formatter={(value: number) => [`R$ ${fmt(value)}`, 'Receita']}
+                    formatter={(value: any) => [`R$ ${fmt(Number(value || 0))}`, 'Receita']}
                     contentStyle={{ fontSize: '12px', borderRadius: '8px' }}
                   />
                   <Bar dataKey="total" fill="var(--accent-gold)" radius={[4, 4, 0, 0]} />
@@ -398,7 +398,7 @@ export function FinancialView() {
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => [`R$ ${fmt(value)}`, '']} contentStyle={{ fontSize: '11px', borderRadius: '8px' }} />
+                    <Tooltip formatter={(value: any) => [`R$ ${fmt(Number(value || 0))}`, '']} contentStyle={{ fontSize: '11px', borderRadius: '8px' }} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -444,10 +444,10 @@ export function FinancialView() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {s.buyerName}
+                  {s.productName.replace(/·.*/, '').trim()}
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                  {s.productName.replace(/·.*/, '').trim()} · {s.paymentMethod}{s.currency !== 'BRL' ? ` · ${s.currency}` : ''}
+                  {s.paymentMethod}{s.currency !== 'BRL' ? ` · ${s.currency}` : ''}
                 </div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>

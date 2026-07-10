@@ -4,8 +4,6 @@ export interface HotmartSale {
   transactionId: string;
   productName: string;
   productId: number;
-  buyerName: string;
-  buyerEmail: string;
   price: number;
   priceBRL: number;
   netPrice: number;
