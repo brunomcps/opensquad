@@ -13,6 +13,7 @@
     "local-start": "vite build && tsx --env-file=../../.env server/index.ts",
     "preview": "vite preview",
     "ci:migrate": "tsx server/scripts/commercial-intelligence/apply-migration.ts",
+    "ci:sync": "tsx server/scripts/commercial-intelligence/run-initial-sync.ts",
     "push-remote": "tsx --env-file=../.env server/scripts/push-to-remote.ts",
     "test": "node --import tsx --test \"server/**/*.test.ts\""
   },

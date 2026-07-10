@@ -20,9 +20,10 @@ create table if not exists public.ci_youtube_daily (
   metric_date date not null,
   views bigint not null check (views >= 0),
   estimated_minutes_watched numeric not null check (estimated_minutes_watched >= 0),
-  likes integer check (likes is null or likes >= 0),
-  comments integer check (comments is null or comments >= 0),
-  shares integer check (shares is null or shares >= 0),
+  -- Engagement metrics can be negative when removals exceed additions.
+  likes integer,
+  comments integer,
+  shares integer,
   subscribers_gained integer check (subscribers_gained is null or subscribers_gained >= 0),
   subscribers_lost integer check (subscribers_lost is null or subscribers_lost >= 0),
   source_updated_at timestamptz not null,
@@ -30,6 +31,13 @@ create table if not exists public.ci_youtube_daily (
   updated_at timestamptz not null default now(),
   primary key (video_id, metric_date)
 );
+
+alter table public.ci_youtube_daily
+  drop constraint if exists ci_youtube_daily_likes_check;
+alter table public.ci_youtube_daily
+  drop constraint if exists ci_youtube_daily_comments_check;
+alter table public.ci_youtube_daily
+  drop constraint if exists ci_youtube_daily_shares_check;
 
 create index if not exists ci_youtube_daily_metric_date_idx
   on public.ci_youtube_daily(metric_date);

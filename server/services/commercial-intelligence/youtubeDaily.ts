@@ -23,9 +23,11 @@ export type YoutubeReportReader = (input: {
   endDate: string;
   startIndex: number;
   maxResults: number;
+  videoIds: string[];
 }) => Promise<YoutubeReport>;
 
 export type YoutubeMetadataReader = (videoIds: string[]) => Promise<unknown[]>;
+export type YoutubeVideoIdsReader = () => Promise<string[]>;
 
 function numeric(value: unknown, fallback: number | null): number | null {
   const parsed = typeof value === 'number' ? value : Number(value);
@@ -134,18 +136,47 @@ async function defaultReportReader(input: {
   endDate: string;
   startIndex: number;
   maxResults: number;
+  videoIds: string[];
 }): Promise<YoutubeReport> {
   const response = await youtubeAnalytics.reports.query({
     ids: 'channel==MINE',
     startDate: input.startDate,
     endDate: input.endDate,
     dimensions: 'day,video',
+    filters: `video==${input.videoIds.join(',')}`,
     metrics: 'views,estimatedMinutesWatched,likes,comments,shares,subscribersGained,subscribersLost',
     sort: 'day,video',
     startIndex: input.startIndex,
     maxResults: input.maxResults,
   });
   return response.data as YoutubeReport;
+}
+
+async function defaultVideoIdsReader(): Promise<string[]> {
+  const channelResponse = await youtube.channels.list({
+    part: ['contentDetails'],
+    mine: true,
+  });
+  const uploadsPlaylistId = channelResponse.data.items?.[0]
+    ?.contentDetails?.relatedPlaylists?.uploads;
+  if (!uploadsPlaylistId) return [];
+
+  const videoIds = new Set<string>();
+  let pageToken: string | undefined;
+  do {
+    const response = await youtube.playlistItems.list({
+      part: ['contentDetails'],
+      playlistId: uploadsPlaylistId,
+      maxResults: 50,
+      pageToken,
+    });
+    for (const item of response.data.items || []) {
+      const videoId = item.contentDetails?.videoId;
+      if (videoId) videoIds.add(videoId);
+    }
+    pageToken = response.data.nextPageToken || undefined;
+  } while (pageToken);
+  return [...videoIds];
 }
 
 async function defaultMetadataReader(videoIds: string[]): Promise<unknown[]> {
@@ -162,6 +193,7 @@ export interface SyncYoutubeDailyInput {
   endDate?: string;
   readReport?: YoutubeReportReader;
   readMetadata?: YoutubeMetadataReader;
+  readVideoIds?: YoutubeVideoIdsReader;
   now?: Date;
 }
 
@@ -184,6 +216,7 @@ export async function syncYoutubeDaily(input: SyncYoutubeDailyInput): Promise<Sy
   );
   const readReport = input.readReport || defaultReportReader;
   const readMetadata = input.readMetadata || defaultMetadataReader;
+  const readVideoIds = input.readVideoIds || defaultVideoIdsReader;
   const runId = randomUUID();
   const run: SyncRunRecord = {
     run_id: runId,
@@ -206,22 +239,29 @@ export async function syncYoutubeDaily(input: SyncYoutubeDailyInput): Promise<Sy
   await input.repository.createSyncRun(run);
 
   const maxResults = 200;
-  let startIndex = 1;
   const rows: YoutubeDailyRecord[] = [];
   const warningSet = new Set<string>();
 
   try {
-    while (true) {
-      const report = await readReport({
-        startDate: range.startDate,
-        endDate: range.endDate,
-        startIndex,
-        maxResults,
-      });
-      const parsed = parseYoutubeDailyReport(report, now.toISOString());
-      rows.push(...parsed);
-      if (parsed.length < maxResults) break;
-      startIndex += parsed.length;
+    const sourceVideoIds = await readVideoIds();
+    if (!sourceVideoIds.length) warningSet.add('youtube_no_uploads');
+
+    for (let offset = 0; offset < sourceVideoIds.length; offset += 500) {
+      const videoIds = sourceVideoIds.slice(offset, offset + 500);
+      let startIndex = 1;
+      while (true) {
+        const report = await readReport({
+          startDate: range.startDate,
+          endDate: range.endDate,
+          startIndex,
+          maxResults,
+          videoIds,
+        });
+        const parsed = parseYoutubeDailyReport(report, now.toISOString());
+        rows.push(...parsed);
+        if (parsed.length < maxResults) break;
+        startIndex += parsed.length;
+      }
     }
 
     const videoIds = [...new Set(rows.map(row => row.video_id))];

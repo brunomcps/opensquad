@@ -54,14 +54,34 @@ test('converte duração ISO 8601', () => {
   assert.equal(parseIsoDuration('invalid'), null);
 });
 
+test('preserva ajustes negativos de engajamento', () => {
+  const rows = parseYoutubeDailyReport({
+    columnHeaders: [
+      { name: 'day' },
+      { name: 'video' },
+      { name: 'views' },
+      { name: 'estimatedMinutesWatched' },
+      { name: 'likes' },
+    ],
+    rows: [['2026-07-10', 'fixture-video-001', 10, 20, -1]],
+  }, '2026-07-10T12:00:00.000Z');
+
+  assert.equal(rows[0].likes, -1);
+});
+
 test('sync persiste day,video e mantém dia ausente como lacuna', async () => {
   const repository = new InMemoryCommercialIntelligenceRepository();
+  let requestedVideoIds: string[] = [];
   const result = await syncYoutubeDaily({
     repository,
     startDate: '2026-07-08',
     endDate: '2026-07-10',
     now: new Date('2026-07-10T12:00:00.000Z'),
-    readReport: async () => report,
+    readVideoIds: async () => ['fixture-video-001', 'fixture-video-002'],
+    readReport: async input => {
+      requestedVideoIds = input.videoIds;
+      return report;
+    },
     readMetadata: async () => metadata,
   });
 
@@ -72,6 +92,7 @@ test('sync persiste day,video e mantém dia ausente como lacuna', async () => {
   assert.ok(result.warnings.includes('youtube_missing_days:1'));
   assert.equal(repository.youtubeDaily.has('fixture-video-001:2026-07-09'), false);
   assert.equal(repository.youtubeVideos.get('fixture-video-002')?.content_type, 'short');
+  assert.deepEqual(requestedVideoIds, ['fixture-video-001', 'fixture-video-002']);
 });
 
 test('revisão da fonte atualiza a combinação existente', async () => {
@@ -81,6 +102,7 @@ test('revisão da fonte atualiza a combinação existente', async () => {
     startDate: '2026-07-08',
     endDate: '2026-07-10',
     now: new Date('2026-07-10T12:00:00.000Z'),
+    readVideoIds: async () => ['fixture-video-001', 'fixture-video-002'],
     readReport: async () => report,
     readMetadata: async () => metadata,
   });
@@ -91,6 +113,7 @@ test('revisão da fonte atualiza a combinação existente', async () => {
     startDate: '2026-07-08',
     endDate: '2026-07-10',
     now: new Date('2026-07-11T12:00:00.000Z'),
+    readVideoIds: async () => ['fixture-video-001', 'fixture-video-002'],
     readReport: async () => revised,
     readMetadata: async () => metadata,
   });
