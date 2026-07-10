@@ -33,7 +33,7 @@ export interface AudienceIntelState {
   selectedComment: any | null;
   subclusters: any[];
   insights: any[];
-  superfans: any[];
+  superfans: { items: any[]; total: number };
 
   // UI
   loading: boolean;

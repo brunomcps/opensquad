@@ -1,4 +1,4 @@
-import { useState, useEffect, type CSSProperties } from 'react';
+import { useState, useEffect, type CSSProperties, type ReactElement } from 'react';
 
 const container: CSSProperties = {
   display: 'flex',
@@ -130,7 +130,7 @@ const SECTIONS: PatternSection[] = [
   { emoji: '📖', title: 'Padrões Narrativos', key: 'narrativePatterns' },
 ];
 
-function renderItems(data: any): JSX.Element | null {
+function renderItems(data: any): ReactElement | null {
   if (!data) return null;
 
   const lists = [

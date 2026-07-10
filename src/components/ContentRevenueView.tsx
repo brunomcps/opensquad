@@ -186,7 +186,7 @@ export function ContentRevenueView() {
               <YAxis yAxisId="rev" tick={{ fontSize: 10 }} tickFormatter={v => `R$${fmtK(v)}`} domain={[0, (max: number) => Math.ceil(max * 1.1)]} />
               <YAxis yAxisId="pub" orientation="right" tick={{ fontSize: 10 }} domain={[0, 5]} hide />
               <Tooltip
-                formatter={(value: number, name: string) => [
+                formatter={(value: any, name: any) => [
                   name === 'revenue' ? `R$ ${fmt(value)}` : `${value} vídeo(s)`,
                   name === 'revenue' ? 'Receita' : 'Publicações'
                 ]}

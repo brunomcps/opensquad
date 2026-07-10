@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactElement } from 'react';
 import { useContentStore } from '../store/useContentStore';
 import { useFichaStore } from '../store/useFichaStore';
 import { StatusBadge } from './StatusBadge';
@@ -258,7 +258,7 @@ function CommentsSection({ videoId }: { videoId: string }) {
     finally { setLoading(false); }
   };
 
-  const catBadge = (cat: string, count: number): JSX.Element => (
+  const catBadge = (cat: string, count: number): ReactElement => (
     <span key={cat} style={{
       display: 'inline-flex', alignItems: 'center', gap: '4px',
       padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600,

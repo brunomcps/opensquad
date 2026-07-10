@@ -15,7 +15,7 @@ async function main() {
     console.log(
       String(f.score).padStart(5),
       '|', String(f.outlier_score).padStart(6),
-      '|', String(Math.round(f.velocity)).padStart(8),
+      '|', String(Math.round(f.velocity ?? 0)).padStart(8),
       '|', (f.title || '').slice(0, 58)
     );
   }

@@ -1,0 +1,48 @@
+{
+  "id": "fixture-event-refunded-001",
+  "event": "PURCHASE_REFUNDED",
+  "creation_date": 1783805400000,
+  "data": {
+    "product": {
+      "id": 7001,
+      "name": "Produto Fixture"
+    },
+    "buyer": {
+      "ucode": "fixture-buyer-001",
+      "name": "Pessoa Teste",
+      "email": "buyer@example.test"
+    },
+    "purchase": {
+      "transaction": "FIXTURE-TX-001",
+      "status": "REFUNDED",
+      "order_date": 1783632000000,
+      "approved_date": 1783632600000,
+      "price": {
+        "value": 197,
+        "currency_code": "BRL"
+      },
+      "hotmart_fee": {
+        "total": 19.7,
+        "currency_code": "BRL"
+      },
+      "payment": {
+        "type": "PIX"
+      },
+      "offer": {
+        "code": "fixture-offer"
+      },
+      "origin": {
+        "src": "ytfixture",
+        "sck": "yt|fixture|desc",
+        "xcod": "fixture-xcod"
+      }
+    },
+    "commissions": [
+      {
+        "source": "PRODUCER",
+        "value": 177.3,
+        "currency_value": "BRL"
+      }
+    ]
+  }
+}

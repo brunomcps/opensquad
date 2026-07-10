@@ -268,7 +268,9 @@ export async function generateAggregatedProfile(competitorId: string): Promise<A
     // Bordões
     const bordaoSection = s10.match(/[Bb]ord[oõ][eê]s[:\s]*([^\n]+)/);
     if (bordaoSection) {
-      const terms = bordaoSection[1].split(/[,;]/).map(t => t.trim().replace(/[*"()]/g, '')).filter(t => t.length > 1 && t.length < 40);
+      const terms = bordaoSection[1].split(/[,;]/)
+        .map((term: string) => term.trim().replace(/[*"()]/g, ''))
+        .filter((term: string) => term.length > 1 && term.length < 40);
       for (const term of terms.slice(0, 5)) {
         const existing = bordoes.find(b => b.value.toLowerCase() === term.toLowerCase());
         if (existing) {

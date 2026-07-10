@@ -21,6 +21,7 @@ interface BRoll {
   filename: string;
   filepath: string;
   thumbnailPath?: string;
+  previewUrl?: string;
   duration: number;
   resolution: string;
   aspectRatio: string;

@@ -323,7 +323,7 @@ export function CompetitorsView() {
               <PolarRadiusAxis tick={false} domain={[0, 100]} />
               <Tooltip
                 contentStyle={{ background: '#fff', border: '1px solid #E8E5DD', borderRadius: 8, fontSize: 13, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                formatter={(value: number) => `${value}%`}
+                formatter={(value: any) => `${value}%`}
               />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               {allDerived.map((c, i) => (

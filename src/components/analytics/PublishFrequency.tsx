@@ -74,7 +74,7 @@ export function PublishFrequency() {
           <Tooltip
             contentStyle={{ background: '#fff', border: '1px solid #E8E5DD', borderRadius: 8, fontSize: 13, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
             labelStyle={{ color: '#1A1A1A', fontWeight: 600 }}
-            formatter={(value: number, name: string) => [
+            formatter={(value: any, name: any) => [
               name === 'avgViews' ? value.toLocaleString('pt-BR') : value,
               name === 'count' ? 'Videos publicados' : 'Views media/video',
             ]}

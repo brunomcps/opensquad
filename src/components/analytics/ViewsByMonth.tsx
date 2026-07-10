@@ -77,7 +77,7 @@ export function ViewsByMonth() {
           <Tooltip
             contentStyle={{ background: '#fff', border: '1px solid #E8E5DD', borderRadius: 8, fontSize: 13, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
             labelStyle={{ color: '#1A1A1A', fontWeight: 600 }}
-            formatter={(value: number) => value.toLocaleString('pt-BR')}
+            formatter={(value: any) => Number(value || 0).toLocaleString('pt-BR')}
           />
           <Legend wrapperStyle={{ fontSize: 12 }} />
           <Bar dataKey="longViews" name="YT Longos" fill="#FF0000" radius={[4, 4, 0, 0]} stackId="views" />

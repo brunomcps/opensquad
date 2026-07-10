@@ -545,7 +545,7 @@ export function EvolutionTab() {
               <YAxis fontSize={11} stroke="var(--text-muted)" tickFormatter={(v: number) => formatNum(v)} />
               <Tooltip
                 contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
-                formatter={(value: number) => [formatNum(value), '']}
+                formatter={(value: any) => [formatNum(Number(value || 0)), '']}
               />
               <Legend />
               {activeCompetitors.map((comp, i) => (
