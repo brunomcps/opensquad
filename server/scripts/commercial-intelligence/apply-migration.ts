@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const migrationPath = path.join(__dirname, '001-base.sql');
 const apply = process.argv.includes('--apply');
+const verify = process.argv.includes('--verify');
 
 function requireEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -29,7 +30,7 @@ async function main(): Promise<void> {
   const sql = fs.readFileSync(migrationPath, 'utf8');
   assertMigration(sql);
 
-  if (!apply) {
+  if (!apply && !verify) {
     console.log(JSON.stringify({
       ok: true,
       mode: 'check',
@@ -45,9 +46,11 @@ async function main(): Promise<void> {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  const { error: migrationError } = await supabase.rpc('exec_sql', { sql });
-  if (migrationError) {
-    throw new Error(`Migration RPC failed: ${migrationError.code || 'unknown'}`);
+  if (apply) {
+    const { error: migrationError } = await supabase.rpc('exec_sql', { sql });
+    if (migrationError) {
+      throw new Error(`Migration RPC failed: ${migrationError.code || 'unknown'}`);
+    }
   }
 
   const tables = [
@@ -69,7 +72,7 @@ async function main(): Promise<void> {
 
   console.log(JSON.stringify({
     ok: true,
-    mode: 'apply',
+    mode: apply ? 'apply' : 'verify',
     migration: path.basename(migrationPath),
     tables: counts,
   }));
