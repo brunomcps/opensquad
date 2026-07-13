@@ -5,7 +5,10 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
-const sql = fs.readFileSync(path.join(directory, '002-edge-app.sql'), 'utf8');
+const sql = fs.readFileSync(
+  path.resolve(directory, '../../../supabase/migrations/20260713180000_ci_edge_app.sql'),
+  'utf8',
+);
 
 test('migration Edge adiciona membros, RLS e travas sem operação destrutiva', () => {
   assert.match(sql, /create table if not exists public\.ci_app_members/i);

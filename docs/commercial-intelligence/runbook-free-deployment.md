@@ -9,7 +9,7 @@ Este runbook publica somente a Inteligência Comercial. Ele não altera o portal
 - Frontend: `ci-app/`
 - Build estático: `dist-ci/`
 - Edge Functions: `supabase/functions/`
-- Migration de acesso e travas: `server/scripts/commercial-intelligence/002-edge-app.sql`
+- Migration de acesso e travas: `supabase/migrations/20260713180000_ci_edge_app.sql`
 - Ativação Cron: `supabase/cron/activate.sql`
 - Rollback Cron: `supabase/cron/rollback.sql`
 
@@ -92,7 +92,7 @@ O preview precisa passar por login Supabase e associação ativa antes da promo�
 
 ## Ativação
 
-1. Aplicar `002-edge-app.sql`.
+1. Aplicar `supabase/migrations/20260713180000_ci_edge_app.sql`.
 2. Configurar Secrets e Vault.
 3. Publicar as quatro funções.
 4. Criar o usuário admin.

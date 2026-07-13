@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const migrationPaths = [
   path.join(__dirname, '001-base.sql'),
-  path.join(__dirname, '002-edge-app.sql'),
+  path.resolve(__dirname, '../../../supabase/migrations/20260713180000_ci_edge_app.sql'),
 ];
 const apply = process.argv.includes('--apply');
 const verify = process.argv.includes('--verify');
