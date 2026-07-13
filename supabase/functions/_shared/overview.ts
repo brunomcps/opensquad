@@ -153,6 +153,19 @@ function roundRatio(value: number): number {
   return Math.round((value + Number.EPSILON) * 10_000) / 10_000;
 }
 
+function decodeText(value: string): string {
+  const named: Record<string, string> = {
+    amp: '&', quot: '"', apos: "'", lt: '<', gt: '>', nbsp: ' ',
+  };
+  return value.replace(/&(#\d+|#x[\da-f]+|amp|quot|apos|lt|gt|nbsp);/gi, (entity, code: string) => {
+    if (code.startsWith('#')) {
+      const point = Number.parseInt(code.slice(code.startsWith('#x') ? 2 : 1), code.startsWith('#x') ? 16 : 10);
+      return Number.isInteger(point) && point >= 0 && point <= 0x10FFFF ? String.fromCodePoint(point) : entity;
+    }
+    return named[code.toLowerCase()] || entity;
+  });
+}
+
 function latestIso(current: string | null, candidate: string | null): string | null {
   if (!candidate || Number.isNaN(Date.parse(candidate))) return current;
   if (!current || Date.parse(candidate) > Date.parse(current)) return candidate;
@@ -240,9 +253,10 @@ export function buildCommercialOverview(input: {
     if (row.buyer_key) buyers.add(row.buyer_key);
     else warn('buyer_key_missing');
 
-    const productKey = row.product_id || `name:${row.product_name || 'Produto desconhecido'}`;
+    const productName = decodeText(row.product_name || 'Produto desconhecido');
+    const productKey = row.product_id || `name:${productName}`;
     const product = products.get(productKey) || {
-      name: row.product_name || 'Produto desconhecido',
+      name: productName,
       buyers: new Set<string>(),
       gross: 0,
       fees: 0,

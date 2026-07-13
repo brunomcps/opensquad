@@ -126,6 +126,15 @@ test('trata fallback de data, produto e período vazio sem PII na saída', () =>
   assert.equal(empty.updatedAt, '2026-07-13T10:00:00.000Z');
 });
 
+test('decodifica entidades HTML no nome do produto sem renderizar HTML', () => {
+  const overview = buildCommercialOverview({
+    filters,
+    now,
+    rows: [row({ product_name: 'Autismo &amp; Superdotação &#40;2AS&#41;' })],
+  });
+  assert.equal(overview.products[0].name, 'Autismo & Superdotação (2AS)');
+});
+
 test('valida filtros, meta e limite de período', () => {
   assert.deepEqual(
     parseOverviewFilters(new URL('https://example.test?currency=usd&goal=50000'), now),
