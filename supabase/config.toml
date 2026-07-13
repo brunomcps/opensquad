@@ -1,0 +1,13 @@
+project_id = "commercial-intelligence"
+
+[functions.ci-quality]
+verify_jwt = false
+
+[functions.ci-hotmart-webhook]
+verify_jwt = false
+
+[functions.ci-sync-hotmart]
+verify_jwt = false
+
+[functions.ci-sync-youtube]
+verify_jwt = false

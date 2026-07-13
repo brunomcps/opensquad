@@ -4,7 +4,10 @@ import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const migrationPath = path.join(__dirname, '001-base.sql');
+const migrationPaths = [
+  path.join(__dirname, '001-base.sql'),
+  path.join(__dirname, '002-edge-app.sql'),
+];
 const apply = process.argv.includes('--apply');
 const verify = process.argv.includes('--verify');
 
@@ -14,28 +17,40 @@ function requireEnv(name: string): string {
   return value;
 }
 
-function assertMigration(sql: string): void {
-  if (!sql.includes('create table if not exists public.ci_youtube_videos')) {
-    throw new Error('Unexpected migration: ci_youtube_videos is missing');
+function assertMigrations(sqlByName: Array<{ name: string; sql: string }>): void {
+  const combined = sqlByName.map(item => item.sql).join('\n');
+  if (!combined.includes('create table if not exists public.ci_youtube_videos')) {
+    throw new Error('Unexpected migrations: ci_youtube_videos is missing');
   }
-  if (!sql.includes('create or replace function public.ci_apply_hotmart_event')) {
-    throw new Error('Unexpected migration: ci_apply_hotmart_event is missing');
+  if (!combined.includes('create or replace function public.ci_apply_hotmart_event')) {
+    throw new Error('Unexpected migrations: ci_apply_hotmart_event is missing');
   }
-  if (/\bdrop\s+(table|schema|function)\b/i.test(sql)) {
+  if (!combined.includes('create table if not exists public.ci_app_members')) {
+    throw new Error('Unexpected migrations: ci_app_members is missing');
+  }
+  if (!combined.includes('create or replace function public.ci_acquire_sync_lock')) {
+    throw new Error('Unexpected migrations: ci_acquire_sync_lock is missing');
+  }
+  if (/\bdrop\s+(table|schema|function)\b/i.test(combined)) {
     throw new Error('Destructive DROP statement found');
   }
 }
 
 async function main(): Promise<void> {
-  const sql = fs.readFileSync(migrationPath, 'utf8');
-  assertMigration(sql);
+  const migrations = migrationPaths.map(migrationPath => ({
+    name: path.basename(migrationPath),
+    sql: fs.readFileSync(migrationPath, 'utf8'),
+  }));
+  assertMigrations(migrations);
 
   if (!apply && !verify) {
     console.log(JSON.stringify({
       ok: true,
       mode: 'check',
-      migration: path.basename(migrationPath),
-      bytes: Buffer.byteLength(sql),
+      migrations: migrations.map(migration => ({
+        name: migration.name,
+        bytes: Buffer.byteLength(migration.sql),
+      })),
     }));
     return;
   }
@@ -47,9 +62,11 @@ async function main(): Promise<void> {
   });
 
   if (apply) {
-    const { error: migrationError } = await supabase.rpc('exec_sql', { sql });
-    if (migrationError) {
-      throw new Error(`Migration RPC failed: ${migrationError.code || 'unknown'}`);
+    for (const migration of migrations) {
+      const { error: migrationError } = await supabase.rpc('exec_sql', { sql: migration.sql });
+      if (migrationError) {
+        throw new Error(`Migration RPC failed for ${migration.name}: ${migrationError.code || 'unknown'}`);
+      }
     }
   }
 
@@ -59,6 +76,8 @@ async function main(): Promise<void> {
     'ci_hotmart_transactions',
     'ci_hotmart_events',
     'ci_sync_runs',
+    'ci_app_members',
+    'ci_sync_locks',
   ] as const;
   const counts: Record<string, number | null> = {};
 
@@ -73,7 +92,7 @@ async function main(): Promise<void> {
   console.log(JSON.stringify({
     ok: true,
     mode: apply ? 'apply' : 'verify',
-    migration: path.basename(migrationPath),
+    migrations: migrations.map(migration => migration.name),
     tables: counts,
   }));
 }

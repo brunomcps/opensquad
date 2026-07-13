@@ -8,6 +8,19 @@ interface CommercialIntelligenceState {
   fetchQuality: () => Promise<void>;
 }
 
+type QualityLoader = () => Promise<DataQualityReport>;
+
+let qualityLoader: QualityLoader = async () => {
+  const response = await fetch('/api/commercial-intel/data-quality');
+  const payload = await response.json();
+  if (!response.ok || !payload.ok) throw new Error(errorMessage(payload));
+  return payload.quality;
+};
+
+export function configureCommercialIntelligenceQualityLoader(loader: QualityLoader): void {
+  qualityLoader = loader;
+}
+
 function errorMessage(payload: any): string {
   return payload?.error?.message || payload?.error || 'Falha ao carregar qualidade dos dados.';
 }
@@ -19,10 +32,7 @@ export const useCommercialIntelligenceStore = create<CommercialIntelligenceState
   fetchQuality: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch('/api/commercial-intel/data-quality');
-      const payload = await response.json();
-      if (!response.ok || !payload.ok) throw new Error(errorMessage(payload));
-      set({ quality: payload.quality });
+      set({ quality: await qualityLoader() });
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Falha ao carregar qualidade dos dados.' });
     } finally {
