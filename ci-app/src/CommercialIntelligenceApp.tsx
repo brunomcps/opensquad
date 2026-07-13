@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { CommercialIntelligenceView } from '../../src/components/commercial-intelligence/CommercialIntelligenceView';
 import { configureCommercialIntelligenceQualityLoader, useCommercialIntelligenceStore } from '../../src/store/useCommercialIntelligenceStore';
 import { CommercialIntelligenceApiError, getQuality, runSync, type MemberRole } from './api';
 import { AuthScreen } from './AuthScreen';
+import { StandaloneCommercialIntelligenceView } from './StandaloneCommercialIntelligenceView';
 import { configurationError, supabase } from './supabase';
 
 configureCommercialIntelligenceQualityLoader(async () => (await getQuality()).quality);
@@ -116,7 +116,7 @@ export function CommercialIntelligenceApp() {
   return (
     <main className="ci-app-shell">
       {actionMessage && <div className="ci-action-message" role="status">{actionMessage}</div>}
-      <CommercialIntelligenceView actions={actions} />
+      <StandaloneCommercialIntelligenceView actions={actions} role={role} />
     </main>
   );
 }

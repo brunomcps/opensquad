@@ -14,3 +14,15 @@ verify_jwt = false
 
 [functions.ci-sync-youtube]
 verify_jwt = false
+
+[functions.ci-campaigns]
+verify_jwt = false
+
+[functions.ci-attribution]
+verify_jwt = false
+
+[functions.ci-association]
+verify_jwt = false
+
+[functions.ci-campaign-redirect]
+verify_jwt = false

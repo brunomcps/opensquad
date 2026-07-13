@@ -178,6 +178,435 @@
   background: var(--bg-secondary);
 }
 
+.ci-decision-view {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ci-method-banner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.72fr);
+  gap: 20px;
+  align-items: center;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+
+.ci-method-banner > div {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+.ci-method-banner strong {
+  color: var(--text-primary);
+  font: 800 17px var(--font);
+  letter-spacing: -0.02em;
+}
+
+.ci-method-banner p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.ci-method-direct {
+  border-left: 4px solid var(--accent-green);
+}
+
+.ci-method-association {
+  border-left: 4px solid var(--accent-gold-dark);
+}
+
+.ci-evidence-badge,
+.ci-status-pill,
+.ci-signal {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ci-evidence-direct,
+.ci-signal-above,
+.ci-status-active {
+  background: rgba(34, 163, 91, 0.12);
+  color: var(--accent-green);
+}
+
+.ci-evidence-association {
+  background: rgba(240, 186, 60, 0.16);
+  color: var(--accent-gold-dark);
+}
+
+.ci-status-inactive,
+.ci-status-draft,
+.ci-signal-flat {
+  background: var(--bg-primary);
+  color: var(--text-muted);
+}
+
+.ci-signal-below {
+  background: rgba(220, 53, 69, 0.1);
+  color: var(--accent-red);
+}
+
+.ci-campaign-form {
+  overflow: hidden;
+  border: 1px solid rgba(240, 186, 60, 0.5);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(145deg, rgba(240, 186, 60, 0.08), var(--bg-card) 45%);
+  box-shadow: var(--shadow-sm);
+}
+
+.ci-campaign-form > header,
+.ci-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 18px;
+}
+
+.ci-campaign-form > header {
+  border-bottom: 1px solid var(--border);
+}
+
+.ci-campaign-form > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.ci-campaign-form > header span:first-child {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ci-campaign-form > header small,
+.ci-form-footer span {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.ci-form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+  padding: 18px;
+}
+
+.ci-form-grid label,
+.ci-select-label {
+  min-width: 0;
+}
+
+.ci-form-grid label {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.ci-form-grid input,
+.ci-form-grid select,
+.ci-select-label input {
+  min-width: 0;
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 9px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: 600 11px var(--font-body);
+}
+
+.ci-form-wide {
+  grid-column: span 2;
+}
+
+.ci-campaign-form > .ci-form-error {
+  margin: 0 18px;
+}
+
+.ci-form-footer {
+  border-top: 1px solid var(--border);
+}
+
+.ci-form-footer button,
+.ci-link-stack button {
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 12px;
+  background: var(--accent-gold);
+  color: #1a1a1a;
+  cursor: pointer;
+  font: 800 11px var(--font-body);
+}
+
+.ci-form-footer button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.ci-kpi-grid-four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ci-empty-action {
+  display: grid;
+  justify-items: start;
+  gap: 7px;
+  padding: 24px;
+  border: 1px dashed var(--border-light);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+}
+
+.ci-empty-action strong {
+  color: var(--text-primary);
+  font: 800 15px var(--font);
+}
+
+.ci-empty-action span {
+  max-width: 760px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.ci-campaign-list {
+  display: grid;
+}
+
+.ci-campaign-row {
+  display: grid;
+  gap: 13px;
+  padding: 17px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ci-campaign-row:last-child {
+  border-bottom: 0;
+}
+
+.ci-campaign-summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.ci-campaign-summary > div:first-child {
+  display: grid;
+  justify-items: start;
+  gap: 5px;
+  min-width: 0;
+}
+
+.ci-campaign-summary strong {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.ci-campaign-summary small,
+.ci-campaign-meta,
+.ci-campaign-metrics small {
+  color: var(--text-muted);
+  font-size: 9px;
+}
+
+.ci-campaign-metrics {
+  display: flex;
+  gap: 22px;
+}
+
+.ci-campaign-metrics > span {
+  display: grid;
+  gap: 2px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.ci-campaign-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ci-campaign-meta > span,
+.ci-campaign-meta code {
+  border-radius: 6px;
+  padding: 5px 7px;
+  background: var(--bg-primary);
+}
+
+.ci-link-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.ci-link-stack > div {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.ci-link-stack label {
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ci-link-stack code {
+  overflow: hidden;
+  padding: 8px 9px;
+  border-radius: 7px;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ci-link-stack button {
+  padding: 7px 10px;
+  font-size: 9px;
+}
+
+.ci-text-action {
+  justify-self: start;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font: 700 10px var(--font-body);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ci-association-table-wrap {
+  overflow-x: auto;
+}
+
+.ci-association-mobile {
+  display: none;
+}
+
+.ci-association-table {
+  width: 100%;
+  min-width: 1080px;
+  border-collapse: collapse;
+}
+
+.ci-association-table th {
+  padding: 10px 13px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.ci-association-table td {
+  padding: 13px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 10px;
+  vertical-align: top;
+}
+
+.ci-association-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.ci-association-table td > strong,
+.ci-association-table td > small {
+  display: block;
+}
+
+.ci-association-table td > strong {
+  color: var(--text-primary);
+  font-size: 11px;
+}
+
+.ci-association-table td > small {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 9px;
+}
+
+.ci-video-cell {
+  display: flex;
+  gap: 10px;
+  width: min(360px, 32vw);
+}
+
+.ci-video-cell img,
+.ci-video-placeholder {
+  flex: 0 0 80px;
+  width: 80px;
+  height: 45px;
+  border-radius: 7px;
+  object-fit: cover;
+}
+
+.ci-video-placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  font-weight: 800;
+}
+
+.ci-video-cell > div {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ci-video-cell strong {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 10px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ci-video-cell small {
+  color: var(--text-muted);
+  font-size: 8px;
+}
+
+.ci-signal {
+  padding: 3px 6px;
+  font-size: 7px;
+}
+
+.ci-positive-value strong { color: var(--accent-green) !important; }
+.ci-negative-value strong { color: var(--accent-red) !important; }
+
 .ci-main-tabs button,
 .ci-segmented button,
 .ci-refresh {
@@ -569,10 +998,137 @@
 
   .ci-main-tabs {
     width: 100%;
+    flex-wrap: wrap;
+    overflow: visible;
   }
 
   .ci-main-tabs button {
-    flex: 1;
+    flex: 1 1 44%;
+  }
+
+  .ci-method-banner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ci-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ci-form-wide {
+    grid-column: auto;
+  }
+
+  .ci-campaign-form > header,
+  .ci-form-footer,
+  .ci-campaign-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ci-form-footer button {
+    width: 100%;
+  }
+
+  .ci-kpi-grid-four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ci-campaign-metrics {
+    justify-content: space-between;
+  }
+
+  .ci-campaign-metrics > span {
+    text-align: left;
+  }
+
+  .ci-link-stack > div {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .ci-link-stack label {
+    grid-column: 1 / -1;
+  }
+
+  .ci-video-cell {
+    width: 260px;
+  }
+
+  .ci-association-desktop {
+    display: none;
+  }
+
+  .ci-association-mobile {
+    display: grid;
+  }
+
+  .ci-association-card {
+    display: grid;
+    gap: 14px;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ci-association-card:last-child {
+    border-bottom: 0;
+  }
+
+  .ci-association-card-head {
+    display: grid;
+    justify-items: start;
+    gap: 8px;
+  }
+
+  .ci-association-card-head > div {
+    display: grid;
+    gap: 4px;
+  }
+
+  .ci-association-card-head strong {
+    color: var(--text-primary);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .ci-association-card-head small {
+    color: var(--text-muted);
+    font-size: 9px;
+  }
+
+  .ci-association-card dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0;
+  }
+
+  .ci-association-card dl > div {
+    display: grid;
+    align-content: start;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .ci-association-card dt {
+    color: var(--text-muted);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .ci-association-card dd {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .ci-association-card dd small {
+    color: var(--text-muted);
+    font-size: 8px;
+    font-weight: 500;
   }
 
   .ci-overview-toolbar {
@@ -627,5 +1183,13 @@
   .ci-overview-grid,
   .ci-bottom-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ci-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ci-kpi-grid-four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

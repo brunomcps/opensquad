@@ -7,6 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const migrationPaths = [
   path.join(__dirname, '001-base.sql'),
   path.resolve(__dirname, '../../../supabase/migrations/20260713180000_ci_edge_app.sql'),
+  path.resolve(__dirname, '../../../supabase/migrations/20260713230000_ci_campaign_tracking.sql'),
 ];
 const apply = process.argv.includes('--apply');
 const verify = process.argv.includes('--verify');
@@ -30,6 +31,12 @@ function assertMigrations(sqlByName: Array<{ name: string; sql: string }>): void
   }
   if (!combined.includes('create or replace function public.ci_acquire_sync_lock')) {
     throw new Error('Unexpected migrations: ci_acquire_sync_lock is missing');
+  }
+  if (!combined.includes('create table if not exists public.ci_campaigns')) {
+    throw new Error('Unexpected migrations: ci_campaigns is missing');
+  }
+  if (!combined.includes('create table if not exists public.ci_click_events')) {
+    throw new Error('Unexpected migrations: ci_click_events is missing');
   }
   if (/\bdrop\s+(table|schema|function)\b/i.test(combined)) {
     throw new Error('Destructive DROP statement found');
@@ -78,6 +85,8 @@ async function main(): Promise<void> {
     'ci_sync_runs',
     'ci_app_members',
     'ci_sync_locks',
+    'ci_campaigns',
+    'ci_click_events',
   ] as const;
   const counts: Record<string, number | null> = {};
 

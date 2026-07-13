@@ -7,7 +7,7 @@ export function corsHeaders(request: Request): HeadersInit {
   return {
     ...(allowOrigin ? { 'access-control-allow-origin': allowOrigin, vary: 'Origin' } : {}),
     'access-control-allow-headers': 'authorization, content-type, x-ci-cron-secret, x-hotmart-hottok',
-    'access-control-allow-methods': 'GET, POST, OPTIONS',
+    'access-control-allow-methods': 'GET, POST, PATCH, OPTIONS',
     'content-type': 'application/json; charset=utf-8',
   };
 }

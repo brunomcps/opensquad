@@ -1,8 +1,36 @@
 import type { DataQualityReport } from '../../src/types/commercialIntelligence';
+import type { TemporalAssociationReport } from '../../supabase/functions/_shared/association';
+import type { DirectAttributionReport } from '../../supabase/functions/_shared/attribution';
+import type { CampaignInput, CampaignRecord, CampaignStatus } from '../../supabase/functions/_shared/campaigns';
 import type { CommercialOverview } from '../../supabase/functions/_shared/overview';
 import { functionsBaseUrl, supabase } from './supabase';
 
 export type MemberRole = 'viewer' | 'admin';
+
+export type CampaignDto = Omit<CampaignRecord, 'created_by'> & {
+  directUrl: string;
+  redirectUrl: string | null;
+  humanClicks: number;
+};
+
+export interface CampaignCatalog {
+  videos: Array<{
+    video_id: string;
+    title: string;
+    published_at: string | null;
+    content_type: string;
+    thumbnail_url: string | null;
+  }>;
+  products: Array<{
+    productId: string;
+    productName: string;
+    offerCodes: string[];
+  }>;
+}
+
+export interface AttributionDto extends DirectAttributionReport {
+  period: { start: string; end: string };
+}
 
 interface FunctionErrorPayload {
   error?: { code?: string; message?: string } | string;
@@ -79,4 +107,73 @@ export async function runSync(source: 'youtube' | 'hotmart'): Promise<void> {
     method: 'POST',
     body: JSON.stringify({}),
   });
+}
+
+export async function getCampaigns(): Promise<{
+  campaigns: CampaignDto[];
+  catalog: CampaignCatalog;
+  member: { role: MemberRole };
+}> {
+  const result = await request<{
+    ok: true;
+    campaigns: CampaignDto[];
+    catalog: CampaignCatalog;
+    member: { role: MemberRole };
+  }>('ci-campaigns');
+  return { campaigns: result.campaigns, catalog: result.catalog, member: result.member };
+}
+
+export async function createCampaign(input: CampaignInput): Promise<CampaignDto> {
+  const result = await request<{ ok: true; campaign: CampaignDto }>('ci-campaigns', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: input.name,
+      videoId: input.videoId,
+      productId: input.productId,
+      productName: input.productName,
+      offerCode: input.offerCode,
+      destinationUrl: input.destinationUrl,
+      trackingParameter: input.trackingParameter,
+      ctaLabel: input.ctaLabel,
+      ctaPosition: input.ctaPosition,
+      utmSource: input.utmSource,
+      utmMedium: input.utmMedium,
+      utmCampaign: input.utmCampaign,
+      utmContent: input.utmContent,
+      utmTerm: input.utmTerm,
+      startsAt: input.startsAt,
+      status: input.status,
+    }),
+  });
+  return result.campaign;
+}
+
+export async function updateCampaignStatus(campaignId: string, status: Extract<CampaignStatus, 'active' | 'inactive'>): Promise<CampaignDto> {
+  const result = await request<{ ok: true; campaign: CampaignDto }>('ci-campaigns', {
+    method: 'PATCH',
+    body: JSON.stringify({ campaignId, status }),
+  });
+  return result.campaign;
+}
+
+export async function getAttribution(filters: { start: string; end: string; currency: string }): Promise<AttributionDto> {
+  const query = new URLSearchParams(filters);
+  const result = await request<{ ok: true; attribution: AttributionDto }>(`ci-attribution?${query.toString()}`);
+  return result.attribution;
+}
+
+export async function getAssociation(filters: {
+  start: string;
+  end: string;
+  currency: string;
+  window: number;
+}): Promise<TemporalAssociationReport> {
+  const query = new URLSearchParams({
+    start: filters.start,
+    end: filters.end,
+    currency: filters.currency,
+    window: String(filters.window),
+  });
+  const result = await request<{ ok: true; association: TemporalAssociationReport }>(`ci-association?${query.toString()}`);
+  return result.association;
 }
