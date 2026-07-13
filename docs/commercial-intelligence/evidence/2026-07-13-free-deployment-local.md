@@ -87,6 +87,59 @@ preflight com origem publicada: 204
 
 Pendências deliberadas:
 
-- criar o primeiro usuário e associá-lo como `admin`;
-- executar e medir as sincronizações remotas após autorização específica para as APIs com quota;
-- ativar o webhook e o Cron somente depois dos testes remotos aprovados.
+- concluir a definição de senha pelo convite enviado ao primeiro administrador;
+- validar o login ponta a ponta depois que o administrador definir a senha.
+
+## Ativação final
+
+Primeiro administrador:
+
+```text
+e-mail: contact@brunosalles.com
+papel: admin
+enabled: true
+convite: enviado
+```
+
+Sincronização YouTube:
+
+```json
+{"status":"partial","rowsRead":800,"rowsWritten":800,"videosWritten":59,"sourceWatermark":"2026-07-09","warnings":["youtube_missing_days:15"],"durationMs":6714}
+```
+
+O estado `partial` representa os 15 dias sem linhas retornadas pela fonte. As 800 linhas recebidas foram persistidas, cobrindo 59 vídeos entre 2026-06-09 e 2026-07-09.
+
+Reconciliação Hotmart:
+
+```json
+{"status":"success","rowsRead":556,"rowsWritten":3,"rowsSkipped":553,"repairs":0,"warnings":[],"durationMs":23785}
+```
+
+Verificação posterior:
+
+```text
+transações Hotmart: 556
+buyer_key preenchido: 556
+cobertura anonimizada: 100%
+```
+
+Cron ativado:
+
+```text
+ci-youtube-daily: 10 9 * * *, active=true
+ci-hotmart-daily: 40 9 * * *, active=true
+```
+
+Os horários correspondem a 06:10 e 06:40 em America/Sao_Paulo enquanto o fuso estiver em UTC-3.
+
+Webhook Hotmart:
+
+```text
+nome: Inteligência Comercial
+escopo: todos os produtos
+versão: 2.0.0
+eventos: compra cancelada, completa, aprovada, reembolsada e chargeback
+status: ativo
+```
+
+Antes do cadastro, o endpoint recebeu uma requisição autenticada com HOTTOK real e payload vazio. A resposta foi `400 invalid_hotmart_payload`, confirmando autenticação e validação sem persistir dado sintético.
