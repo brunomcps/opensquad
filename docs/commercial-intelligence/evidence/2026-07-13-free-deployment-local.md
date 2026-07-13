@@ -143,3 +143,20 @@ status: ativo
 ```
 
 Antes do cadastro, o endpoint recebeu uma requisição autenticada com HOTTOK real e payload vazio. A resposta foi `400 invalid_hotmart_payload`, confirmando autenticação e validação sem persistir dado sintético.
+
+## Validação final de autenticação
+
+O primeiro convite não havia sido concluído: a conta existia, mas ainda não tinha e-mail confirmado nem login registrado. Foi gerado um link único de recuperação pela API administrativa da Supabase, sem expor senha, token ou link no repositório ou nesta evidência.
+
+Após o administrador definir a nova senha, a verificação remota retornou:
+
+```text
+usuário encontrado: true
+e-mail confirmado: true
+login registrado: true
+associação encontrada: true
+papel: admin
+enabled: true
+```
+
+O endpoint público de recuperação também aceitou uma nova solicitação com `ok: true`, usando como destino `https://opensquad-commercial-intelligence.pages.dev`.
