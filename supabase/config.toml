@@ -3,6 +3,9 @@ project_id = "commercial-intelligence"
 [functions.ci-quality]
 verify_jwt = false
 
+[functions.ci-overview]
+verify_jwt = false
+
 [functions.ci-hotmart-webhook]
 verify_jwt = false
 

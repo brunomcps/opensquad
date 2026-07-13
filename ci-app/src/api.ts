@@ -1,4 +1,5 @@
 import type { DataQualityReport } from '../../src/types/commercialIntelligence';
+import type { CommercialOverview } from '../../supabase/functions/_shared/overview';
 import { functionsBaseUrl, supabase } from './supabase';
 
 export type MemberRole = 'viewer' | 'admin';
@@ -53,6 +54,24 @@ async function request<T>(functionName: string, init?: RequestInit, retry = true
 export async function getQuality(): Promise<{ quality: DataQualityReport; member: { role: MemberRole } }> {
   const result = await request<{ ok: true; quality: DataQualityReport; member: { role: MemberRole } }>('ci-quality');
   return { quality: result.quality, member: result.member };
+}
+
+export async function getOverview(filters: {
+  start: string;
+  end: string;
+  currency: string;
+  goal: number;
+}): Promise<{ overview: CommercialOverview; member: { role: MemberRole } }> {
+  const query = new URLSearchParams({
+    start: filters.start,
+    end: filters.end,
+    currency: filters.currency,
+    goal: String(filters.goal),
+  });
+  const result = await request<{ ok: true; overview: CommercialOverview; member: { role: MemberRole } }>(
+    `ci-overview?${query.toString()}`,
+  );
+  return { overview: result.overview, member: result.member };
 }
 
 export async function runSync(source: 'youtube' | 'hotmart'): Promise<void> {

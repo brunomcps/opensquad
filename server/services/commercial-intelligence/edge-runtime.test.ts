@@ -89,3 +89,14 @@ test('autorização Edge diferencia viewer, admin e Cron', async () => {
     { actor: 'cron' },
   );
 });
+
+test('endpoint de visão comercial agrega no servidor e não seleciona identificadores individuais', () => {
+  const source = fs.readFileSync(
+    path.resolve(directory, '../../../supabase/functions/ci-overview/index.ts'),
+    'utf8',
+  );
+  assert.match(source, /authorizeMember\(request, client, 'viewer'\)/);
+  assert.match(source, /buildCommercialOverview/);
+  const fields = source.match(/const TRANSACTION_FIELDS = \[([\s\S]*?)\]\.join/)?.[1] || '';
+  assert.doesNotMatch(fields, /transaction_id|subscription_id|offer_code/i);
+});
