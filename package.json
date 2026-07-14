@@ -20,6 +20,7 @@
     "ci:smoke:overview": "tsx server/scripts/commercial-intelligence/visual-overview-smoke.ts",
     "ci:smoke:decisions": "tsx server/scripts/commercial-intelligence/visual-decision-smoke.ts",
     "ci:smoke:overview:production": "tsx server/scripts/commercial-intelligence/production-overview-smoke.ts",
+    "ci:smoke:decisions:production": "tsx server/scripts/commercial-intelligence/production-decision-smoke.ts",
     "ci:validate:decisions": "tsx server/scripts/commercial-intelligence/validate-decision-data.ts",
     "ci:check:edge": "npx --yes deno check supabase/functions/ci-quality/index.ts supabase/functions/ci-overview/index.ts supabase/functions/ci-hotmart-webhook/index.ts supabase/functions/ci-sync-hotmart/index.ts supabase/functions/ci-sync-youtube/index.ts supabase/functions/ci-campaigns/index.ts supabase/functions/ci-attribution/index.ts supabase/functions/ci-association/index.ts supabase/functions/ci-campaign-redirect/index.ts",
     "ci:check": "npm test && npm run typecheck && npm run ci:build:web && npm run ci:verify-bundle && npm run ci:check:edge",

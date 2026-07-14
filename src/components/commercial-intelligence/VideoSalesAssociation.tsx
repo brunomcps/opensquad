@@ -18,15 +18,22 @@ export function VideoSalesAssociation() {
   const end = today();
   const [days, setDays] = useState(180);
   const [windowDays, setWindowDays] = useState(7);
+  const [baselineWeeks, setBaselineWeeks] = useState(2);
   const [data, setData] = useState<TemporalAssociationReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  async function load(nextDays = days, nextWindow = windowDays) {
+  async function load(nextDays = days, nextWindow = windowDays, nextBaselineWeeks = baselineWeeks) {
     setLoading(true);
     setError(null);
     try {
-      setData(await getAssociation({ start: shift(end, -nextDays), end, currency: 'BRL', window: nextWindow }));
+      setData(await getAssociation({
+        start: shift(end, -nextDays),
+        end,
+        currency: 'BRL',
+        window: nextWindow,
+        baselineWeeks: nextBaselineWeeks,
+      }));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível calcular a associação.');
     } finally {
@@ -46,8 +53,9 @@ export function VideoSalesAssociation() {
       <section className="ci-overview-toolbar">
         <div><strong>Vídeos × vendas</strong><span>{data?.method.description || 'Baseline por mesmos dias da semana'}</span></div>
         <div className="ci-filter-groups">
-          <div className="ci-segmented">{[90, 180, 365].map(value => <button type="button" key={value} className={days === value ? 'active' : ''} onClick={() => { setDays(value); void load(value, windowDays); }}>{value} dias</button>)}</div>
-          <label className="ci-select-label">Janela<select value={windowDays} onChange={event => { const value = Number(event.target.value); setWindowDays(value); void load(days, value); }}><option value={7}>7 dias</option><option value={14}>14 dias</option></select></label>
+          <div className="ci-segmented">{[90, 180, 365].map(value => <button type="button" key={value} className={days === value ? 'active' : ''} onClick={() => { setDays(value); void load(value, windowDays, baselineWeeks); }}>{value} dias</button>)}</div>
+          <label className="ci-select-label">Janela<select value={windowDays} onChange={event => { const value = Number(event.target.value); setWindowDays(value); void load(days, value, baselineWeeks); }}><option value={7}>7 dias</option><option value={14}>14 dias</option></select></label>
+          <label className="ci-select-label">Baseline<select value={baselineWeeks} onChange={event => { const value = Number(event.target.value); setBaselineWeeks(value); void load(days, windowDays, value); }}><option value={2}>2 semanas</option><option value={4}>4 semanas</option><option value={8}>8 semanas</option></select></label>
           <button className="ci-refresh" type="button" onClick={() => load()}>Atualizar</button>
         </div>
       </section>

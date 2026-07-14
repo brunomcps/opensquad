@@ -167,12 +167,14 @@ export async function getAssociation(filters: {
   end: string;
   currency: string;
   window: number;
+  baselineWeeks: number;
 }): Promise<TemporalAssociationReport> {
   const query = new URLSearchParams({
     start: filters.start,
     end: filters.end,
     currency: filters.currency,
     window: String(filters.window),
+    baselineWeeks: String(filters.baselineWeeks),
   });
   const result = await request<{ ok: true; association: TemporalAssociationReport }>(`ci-association?${query.toString()}`);
   return result.association;

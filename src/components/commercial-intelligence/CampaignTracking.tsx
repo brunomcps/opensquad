@@ -36,6 +36,11 @@ function percent(value: number | null): string {
   return value === null ? '—' : `${(value * 100).toFixed(1)}%`;
 }
 
+function displayText(value: string): string {
+  const entities: Record<string, string> = { amp: '&', quot: '"', '#39': "'", lt: '<', gt: '>' };
+  return value.replace(/&(amp|quot|#39|lt|gt);/g, match => entities[match.slice(1, -1)] || match);
+}
+
 function emptyForm(): CampaignInput {
   return {
     name: '', videoId: '', productId: '', productName: '', offerCode: null,
@@ -91,12 +96,12 @@ function CampaignForm({ catalog, onCreated }: { catalog: CampaignCatalog; onCrea
       <div className="ci-form-grid">
         <label>Nome da campanha<input value={form.name} required minLength={3} placeholder="Ex.: TDAH — descrição" onChange={event => setForm({ ...form, name: event.target.value })} /></label>
         <label>Vídeo<select value={form.videoId} required onChange={event => setForm({ ...form, videoId: event.target.value })}>
-          <option value="">Selecione</option>{catalog.videos.map(video => <option value={video.video_id} key={video.video_id}>{video.title}</option>)}
+          <option value="">Selecione</option>{catalog.videos.map(video => <option value={video.video_id} key={video.video_id}>{displayText(video.title)}</option>)}
         </select></label>
         <label>Produto<select value={form.productId} required onChange={event => {
           const product = catalog.products.find(item => item.productId === event.target.value);
           setForm({ ...form, productId: event.target.value, productName: product?.productName || '', offerCode: product?.offerCodes[0] || null });
-        }}><option value="">Selecione</option>{catalog.products.map(product => <option value={product.productId} key={product.productId}>{product.productName}</option>)}</select></label>
+        }}><option value="">Selecione</option>{catalog.products.map(product => <option value={product.productId} key={product.productId}>{displayText(product.productName)}</option>)}</select></label>
         <label>CTA<input value={form.ctaLabel} required minLength={2} placeholder="Ex.: Conheça o curso" onChange={event => setForm({ ...form, ctaLabel: event.target.value })} /></label>
         <label>Posição<select value={form.ctaPosition} onChange={event => setForm({ ...form, ctaPosition: event.target.value as CtaPosition, utmContent: event.target.value })}>
           {Object.entries(POSITION_LABELS).map(([value, label]) => <option value={value} key={value}>{label}</option>)}
@@ -206,10 +211,10 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
               const stats = attribution.campaigns.find(item => item.campaignId === campaign.campaign_id);
               return <article className="ci-campaign-row" key={campaign.campaign_id}>
                 <div className="ci-campaign-summary">
-                  <div><span className={`ci-status-pill ci-status-${campaign.status}`}>{campaign.status === 'active' ? 'Ativa' : campaign.status === 'inactive' ? 'Inativa' : 'Rascunho'}</span><strong>{campaign.name}</strong><small>{videoTitles.get(campaign.video_id) || campaign.video_id}</small></div>
+                  <div><span className={`ci-status-pill ci-status-${campaign.status}`}>{campaign.status === 'active' ? 'Ativa' : campaign.status === 'inactive' ? 'Inativa' : 'Rascunho'}</span><strong>{campaign.name}</strong><small>{displayText(videoTitles.get(campaign.video_id) || campaign.video_id)}</small></div>
                   <div className="ci-campaign-metrics"><span>{stats?.clicks || 0}<small>cliques</small></span><span>{stats?.sales || 0}<small>vendas</small></span><span>{money(stats?.netAfterFees || 0)}<small>líquido</small></span></div>
                 </div>
-                <div className="ci-campaign-meta"><span>{campaign.product_name}</span><span>{POSITION_LABELS[campaign.cta_position]}</span><code>{campaign.tracking_code}</code></div>
+                <div className="ci-campaign-meta"><span>{displayText(campaign.product_name)}</span><span>{POSITION_LABELS[campaign.cta_position]}</span><code>{campaign.tracking_code}</code></div>
                 <div className="ci-link-stack">
                   {campaign.redirectUrl && <div><label>Link rastreável</label><code>{campaign.redirectUrl}</code><button type="button" onClick={() => copy(`redirect-${campaign.campaign_id}`, campaign.redirectUrl!)}>{copied === `redirect-${campaign.campaign_id}` ? 'Copiado' : 'Copiar'}</button></div>}
                   <div><label>Link direto</label><code>{campaign.directUrl}</code><button type="button" onClick={() => copy(`direct-${campaign.campaign_id}`, campaign.directUrl)}>{copied === `direct-${campaign.campaign_id}` ? 'Copiado' : 'Copiar'}</button></div>
