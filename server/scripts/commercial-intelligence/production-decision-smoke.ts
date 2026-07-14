@@ -221,7 +221,7 @@ try {
       if (remaining.error || remaining.count !== 0) cleanupError = new Error('Temporary campaign still exists after cleanup.');
     }
   }
-  const signedOut = await anon.auth.signOut();
+  const signedOut = await anon.auth.signOut({ scope: 'local' });
   if (signedOut.error && !cleanupError) cleanupError = signedOut.error;
 }
 

@@ -155,7 +155,7 @@ async function main() {
       links,
     }));
   } finally {
-    await anon.auth.signOut();
+    await anon.auth.signOut({ scope: 'local' });
   }
 }
 

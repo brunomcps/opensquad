@@ -78,6 +78,6 @@ try {
 } finally {
   await browser.close();
 }
-const signedOut = await anon.auth.signOut();
+const signedOut = await anon.auth.signOut({ scope: 'local' });
 if (signedOut.error) throw signedOut.error;
 console.log(JSON.stringify({ ...report, sessionRevoked: true }));

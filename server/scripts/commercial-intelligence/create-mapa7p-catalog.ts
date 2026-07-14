@@ -285,7 +285,7 @@ async function main() {
       samples,
     }, null, 2));
   } finally {
-    await anon.auth.signOut();
+    await anon.auth.signOut({ scope: 'local' });
   }
 }
 
