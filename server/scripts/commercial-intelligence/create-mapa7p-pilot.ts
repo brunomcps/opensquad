@@ -7,7 +7,7 @@ const PRODUCT_NAME = 'MAPA-7P · Mapeamento de Padrões Dopaminérgico';
 const HOTLINK = 'https://go.hotmart.com/K103806991N';
 const POSITIONS = ['description', 'pinned_comment', 'comment_reply'] as const;
 const POSITION_CODES = { description: 'd', pinned_comment: 'p', comment_reply: 'r' } as const;
-const PUBLIC_LINK = /^https:\/\/link\.brunosallesphd\.com\.br\/m7p\/[a-z0-9]{8}$/;
+const PUBLIC_LINK = /^https:\/\/link\.brunosallesphd\.com\.br\/m7p\/0okxyzoxzuk-[dcr]$/;
 
 function requireEnv(name: string): string {
   const value = process.env[name]?.trim();

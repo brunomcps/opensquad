@@ -3,6 +3,7 @@ import {
   buildDestinationUrl,
   buildRedirectUrl,
   generateCampaignSlug,
+  generateMapa7pCampaignSlug,
   generateTrackingCode,
   parseCampaignBatchInput,
   parseCampaignInput,
@@ -19,6 +20,15 @@ const CAMPAIGN_FIELDS = [
   'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'status', 'starts_at', 'created_by',
   'created_at', 'updated_at',
 ].join(',');
+
+const MAPA7P_PRODUCT_ID = '6966825';
+
+function campaignSlug(productId: string, videoId: string, position: CtaPosition): string {
+  if (productId === MAPA7P_PRODUCT_ID && ['description', 'pinned_comment', 'comment_reply'].includes(position)) {
+    return generateMapa7pCampaignSlug(videoId, position);
+  }
+  return generateCampaignSlug();
+}
 
 function databaseFailure(): never {
   throw new CommercialIntelligenceError('database_error', 'Não foi possível acessar as campanhas.', 503);
@@ -81,7 +91,7 @@ async function createCampaign(request: Request, client: any, body: Record<string
 
   for (let attempt = 0; attempt < 6; attempt += 1) {
     const trackingCode = generateTrackingCode(input.videoId, input.ctaPosition);
-    const slug = generateCampaignSlug();
+    const slug = campaignSlug(input.productId, input.videoId, input.ctaPosition);
     const row = {
       tracking_code: trackingCode,
       slug,
@@ -146,7 +156,7 @@ async function createCampaignBatch(request: Request, client: any, body: Record<s
       let slug = '';
       for (let attempt = 0; attempt < 6; attempt += 1) {
         trackingCode = generateTrackingCode(videoId, position);
-        slug = generateCampaignSlug();
+        slug = campaignSlug(input.productId, videoId, position);
         if (!trackingCodes.has(trackingCode) && !slugs.has(slug)) break;
       }
       if (!trackingCode || !slug || trackingCodes.has(trackingCode) || slugs.has(slug)) {

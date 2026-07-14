@@ -5,6 +5,7 @@ import {
   buildRedirectUrl,
   classifyDevice,
   generateCampaignSlug,
+  generateMapa7pCampaignSlug,
   generateTrackingCode,
   parseCampaignBatchInput,
   parseCampaignInput,
@@ -21,6 +22,10 @@ test('gera código compacto aceito pela convenção da Hotmart', () => {
   assert.equal(generateTrackingCode('abc-123.DEF', 'comment_reply', 'x-9'), 'yt|abc123DEF|r|x9');
   assert.equal(generateCampaignSlug('A7K3D9QZ-extra'), 'a7k3d9qz');
   assert.match(generateCampaignSlug(), /^[a-z0-9]{8}$/);
+  assert.equal(generateMapa7pCampaignSlug('0OkxYzoxzUk', 'description'), '0okxyzoxzuk-d');
+  assert.equal(generateMapa7pCampaignSlug('0OkxYzoxzUk', 'pinned_comment'), '0okxyzoxzuk-c');
+  assert.equal(generateMapa7pCampaignSlug('0OkxYzoxzUk', 'comment_reply'), '0okxyzoxzuk-r');
+  assert.throws(() => generateMapa7pCampaignSlug('0OkxYzoxzUk', 'community'), (error: any) => error.code === 'invalid_mapa7p_position');
 });
 
 test('gera link público por caminho e preserva fallback com query string', () => {

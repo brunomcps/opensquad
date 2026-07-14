@@ -76,6 +76,12 @@ const POSITION_CODES: Record<CtaPosition, string> = {
   other: 'o',
 };
 
+const MAPA7P_PUBLIC_POSITION_CODES: Partial<Record<CtaPosition, string>> = {
+  description: 'd',
+  pinned_comment: 'c',
+  comment_reply: 'r',
+};
+
 function requiredText(value: unknown, label: string, min = 1, max = 120): string {
   const text = typeof value === 'string' ? value.trim() : '';
   if (text.length < min || text.length > max) {
@@ -197,6 +203,19 @@ export function generateTrackingCode(
 export function generateCampaignSlug(nonce = crypto.randomUUID().replace(/-/g, '').slice(0, 12)): string {
   const cleaned = compactSlugSegment(nonce, 20);
   return `${cleaned}00000000`.slice(0, 8);
+}
+
+export function generateMapa7pCampaignSlug(videoId: string, position: CtaPosition): string {
+  const positionCode = MAPA7P_PUBLIC_POSITION_CODES[position];
+  if (!positionCode) {
+    throw new CommercialIntelligenceError('invalid_mapa7p_position', 'Posição inválida para link MAPA-7P.', 400);
+  }
+  const videoSegment = compactSlugSegment(videoId, 45);
+  const slug = `${videoSegment}-${positionCode}`;
+  if (slug.length < 6 || slug.length > 48 || !/^[a-z0-9-]+$/.test(slug)) {
+    throw new CommercialIntelligenceError('campaign_slug_invalid', 'Não foi possível gerar o link MAPA-7P.', 500);
+  }
+  return slug;
 }
 
 export function buildDestinationUrl(campaign: Pick<CampaignRecord,

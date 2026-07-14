@@ -7,7 +7,7 @@ const env: WorkerEnv = {
 };
 
 test('Worker aceita somente o caminho curto do MAPA-7P', async () => {
-  assert.equal(extractSlug('https://link.example/m7p/a7k3d9qz'), 'a7k3d9qz');
+  assert.equal(extractSlug('https://link.example/m7p/0okxyzoxzuk-d'), '0okxyzoxzuk-d');
   assert.equal(extractSlug('https://link.example/'), null);
   assert.equal(extractSlug('https://link.example/m7p/invalido_'), null);
 
@@ -21,11 +21,11 @@ test('Worker aceita somente o caminho curto do MAPA-7P', async () => {
 });
 
 test('Worker preserva GET, headers mínimos e redirect válido', async () => {
-  const response = await handleRequest(new Request('https://link.example/m7p/a7k3d9qz', {
+  const response = await handleRequest(new Request('https://link.example/m7p/0okxyzoxzuk-d', {
     headers: { 'user-agent': 'Mozilla/5.0', referer: 'https://www.youtube.com/watch?v=video' },
   }), env, async (input, init) => {
     const url = new URL(String(input));
-    assert.equal(url.searchParams.get('slug'), 'a7k3d9qz');
+    assert.equal(url.searchParams.get('slug'), '0okxyzoxzuk-d');
     assert.equal(init?.method, 'GET');
     const headers = new Headers(init?.headers);
     assert.equal(headers.get('user-agent'), 'Mozilla/5.0');
@@ -38,7 +38,7 @@ test('Worker preserva GET, headers mínimos e redirect válido', async () => {
 });
 
 test('Worker preserva HEAD para validar sem registrar clique', async () => {
-  const response = await handleRequest(new Request('https://link.example/m7p/a7k3d9qz', { method: 'HEAD' }), env, async (_input, init) => {
+  const response = await handleRequest(new Request('https://link.example/m7p/0okxyzoxzuk-d', { method: 'HEAD' }), env, async (_input, init) => {
     assert.equal(init?.method, 'HEAD');
     return new Response(null, { status: 302, headers: { location: 'https://go.hotmart.com/K103806991N?src=fixture' } });
   });
@@ -47,12 +47,12 @@ test('Worker preserva HEAD para validar sem registrar clique', async () => {
 });
 
 test('Worker fecha métodos e falhas do backend sem vazar detalhes', async () => {
-  const method = await handleRequest(new Request('https://link.example/m7p/a7k3d9qz', { method: 'POST' }), env);
+  const method = await handleRequest(new Request('https://link.example/m7p/0okxyzoxzuk-d', { method: 'POST' }), env);
   assert.equal(method.status, 405);
 
-  const missing = await handleRequest(new Request('https://link.example/m7p/a7k3d9qz'), env, async () => new Response(null, { status: 404 }));
+  const missing = await handleRequest(new Request('https://link.example/m7p/0okxyzoxzuk-d'), env, async () => new Response(null, { status: 404 }));
   assert.equal(missing.status, 404);
 
-  const broken = await handleRequest(new Request('https://link.example/m7p/a7k3d9qz'), env, async () => new Response(null, { status: 302 }));
+  const broken = await handleRequest(new Request('https://link.example/m7p/0okxyzoxzuk-d'), env, async () => new Response(null, { status: 302 }));
   assert.equal(broken.status, 502);
 });

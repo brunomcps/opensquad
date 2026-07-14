@@ -237,3 +237,35 @@ Verificação independente posterior no banco:
 - credenciais e chaves existentes;
 - transações Hotmart e métricas do YouTube;
 - APIs pagas.
+
+## Correção — slugs agrupados por vídeo
+
+Horário da conclusão: 2026-07-14 18:04:02 -03:00.
+
+Após revisar a legibilidade operacional, o usuário aprovou substituir os slugs aleatórios pelo padrão determinístico `<video>-<posição>`. O usuário confirmou que os três links anteriores nunca foram publicados, portanto não foram criados aliases.
+
+Convenção pública:
+
+- `d`: descrição;
+- `c`: comentário fixado;
+- `r`: resposta a comentário.
+
+Links finais:
+
+| Posição | Link público | HTTP |
+| --- | --- | ---: |
+| Descrição | `https://link.brunosallesphd.com.br/m7p/0okxyzoxzuk-d` | 302 |
+| Comentário fixado | `https://link.brunosallesphd.com.br/m7p/0okxyzoxzuk-c` | 302 |
+| Resposta a comentário | `https://link.brunosallesphd.com.br/m7p/0okxyzoxzuk-r` | 302 |
+
+O gerador passou a aplicar a mesma convenção automaticamente a futuras campanhas MAPA-7P. Campanhas genéricas continuam usando slugs aleatórios.
+
+Validação:
+
+- `ci-campaigns`: `ACTIVE`, versão 5;
+- `npm run ci:check`: 79 testes aprovados e 0 falhas;
+- os três links novos retornaram HTTP 302 com os tracking codes anteriores preservados;
+- a validação `HEAD` não criou clique;
+- um GET técnico foi registrado como bot e removido;
+- eventos de clique residuais: 0;
+- `e5537092`, `7741f0ee` e `de5c1a8a` passaram a retornar HTTP 404, conforme autorizado.
