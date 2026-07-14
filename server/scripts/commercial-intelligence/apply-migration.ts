@@ -8,6 +8,7 @@ const migrationPaths = [
   path.join(__dirname, '001-base.sql'),
   path.resolve(__dirname, '../../../supabase/migrations/20260713180000_ci_edge_app.sql'),
   path.resolve(__dirname, '../../../supabase/migrations/20260713230000_ci_campaign_tracking.sql'),
+  path.resolve(__dirname, '../../../supabase/migrations/20260714193000_ci_campaign_comment_reply.sql'),
 ];
 const apply = process.argv.includes('--apply');
 const verify = process.argv.includes('--verify');

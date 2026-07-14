@@ -1,7 +1,7 @@
 import type { DataQualityReport } from '../../src/types/commercialIntelligence';
 import type { TemporalAssociationReport } from '../../supabase/functions/_shared/association';
 import type { DirectAttributionReport } from '../../supabase/functions/_shared/attribution';
-import type { CampaignInput, CampaignRecord, CampaignStatus } from '../../supabase/functions/_shared/campaigns';
+import type { CampaignBatchInput, CampaignInput, CampaignRecord, CampaignStatus } from '../../supabase/functions/_shared/campaigns';
 import type { CommercialOverview } from '../../supabase/functions/_shared/overview';
 import { functionsBaseUrl, supabase } from './supabase';
 
@@ -146,6 +146,23 @@ export async function createCampaign(input: CampaignInput): Promise<CampaignDto>
     }),
   });
   return result.campaign;
+}
+
+export async function createCampaignBatch(input: CampaignBatchInput): Promise<{
+  campaigns: CampaignDto[];
+  created: number;
+  skipped: number;
+}> {
+  const result = await request<{
+    ok: true;
+    campaigns: CampaignDto[];
+    created: number;
+    skipped: number;
+  }>('ci-campaigns', {
+    method: 'POST',
+    body: JSON.stringify({ mode: 'bulk', ...input }),
+  });
+  return { campaigns: result.campaigns, created: result.created, skipped: result.skipped };
 }
 
 export async function updateCampaignStatus(campaignId: string, status: Extract<CampaignStatus, 'active' | 'inactive'>): Promise<CampaignDto> {

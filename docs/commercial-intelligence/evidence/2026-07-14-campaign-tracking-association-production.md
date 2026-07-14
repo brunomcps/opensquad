@@ -131,3 +131,109 @@ Aviso não bloqueante: o bundle JavaScript possui aproximadamente 810 kB e o Vit
 ## Estado operacional
 
 A associação histórica já mostra dados reais. A atribuição direta está operacional, mas sua cobertura continuará em 0% até que os novos links sejam usados nos CTAs e a Hotmart devolva o respectivo `SCK`, `SRC` ou `XCOD` em vendas futuras.
+
+## Atualização — gerador de links MAPA-7P
+
+Horário da publicação: 2026-07-14 16:52:44 -03:00.
+
+Escopo autorizado nesta atualização: migration, `ci-campaigns`, `ci-campaign-redirect` e interface do aplicativo privado. DNS e campanhas reais ficaram fora do escopo.
+
+Pré-checagem e migration:
+
+- `ci_campaigns` tinha 0 registros e 0 códigos incompatíveis antes da alteração;
+- `20260714193000_ci_campaign_comment_reply.sql` foi aplicada isoladamente com `supabase db query --linked`;
+- as migrations `20260713180000`, `20260713230000` e `20260714193000` ficaram alinhadas entre histórico local e remoto;
+- `ci_campaigns_cta_position_check` foi validada com `comment_reply`;
+- `ci_campaigns_tracking_code_hotmart_safe_check` foi validada com `^[A-Za-z0-9|]+$`.
+
+Edge Functions publicadas:
+
+- `ci-campaigns`: `ACTIVE`, versão 2;
+- `ci-campaign-redirect`: `ACTIVE`, versão 2;
+- acesso sem sessão a `ci-campaigns`: HTTP 401;
+- slug inexistente no redirect: HTTP 404;
+- preflight CORS: HTTP 204.
+
+Cloudflare Pages:
+
+- produção: `https://opensquad-commercial-intelligence.pages.dev`;
+- deployment imutável: `https://088d40c7.opensquad-commercial-intelligence.pages.dev`;
+- asset: `/assets/index-DFGAWbJE.js`;
+- HTML e asset responderam HTTP 200;
+- `Gerador MAPA-7P`, `https://go.hotmart.com/K103806991N` e o projeto Supabase correto foram confirmados no bundle servido pela URL estável.
+
+Verificação completa:
+
+- `npm run ci:check`: 74 testes, 74 aprovados e 0 falhas;
+- `tsc -b`: aprovado;
+- bundle: 3 arquivos, 836.906 bytes e 7 verificações de secrets aprovadas;
+- `deno check`: 9 Edge Functions aprovadas;
+- estado posterior: `ci_campaigns=0` e `ci_click_events=0`.
+
+Não foram alterados DNS, domínio customizado, portal de membros, webhook Hotmart, credenciais, secrets, campanhas reais, cliques, transações Hotmart ou métricas do YouTube. Nenhuma API paga foi chamada.
+
+## Atualização — domínio próprio e piloto MAPA-7P
+
+Horário da conclusão: 2026-07-14 17:46:14 -03:00.
+
+Escopo aprovado: criar um Worker dedicado, ativar `link.brunosallesphd.com.br`, configurar a URL pública das campanhas e criar três links-piloto para o vídeo `0OkxYzoxzUk`.
+
+### Implementação e validação local
+
+- Worker isolado: `mapa7p-link-router`;
+- formato público: `https://link.brunosallesphd.com.br/m7p/<slug>`;
+- `HEAD` preserva o redirect sem gravar clique;
+- fallback anterior do Supabase com query string preservado;
+- `npm run ci:check`: 79 testes, 79 aprovados e 0 falhas;
+- `tsc -b`, build Vite, 7 verificações de secrets e 9 Edge Functions aprovados;
+- dry-run do Wrangler aprovado.
+
+### Supabase
+
+- `ci-campaigns`: `ACTIVE`, versão 4;
+- `ci-campaign-redirect`: `ACTIVE`, versão 4;
+- configuração pública: `CI_CAMPAIGN_REDIRECT_BASE_URL=https://link.brunosallesphd.com.br/m7p/{slug}`;
+- a configuração adicionada não é credencial nem contém segredo;
+- acesso anônimo a `ci-campaigns`: HTTP 401;
+- `HEAD` para slug inexistente: HTTP 404.
+
+### Cloudflare
+
+- Worker publicado: `mapa7p-link-router`;
+- version ID: `145db470-871f-48b6-be7d-68832a7d9c1b`;
+- custom domain: `link.brunosallesphd.com.br`;
+- DNS A e AAAA resolvendo pela Cloudflare;
+- TLS validado com `ssl_verify_result=0`;
+- raiz: HTTP 404;
+- slug inexistente: HTTP 404;
+- método POST: HTTP 405.
+
+A primeira tentativa de deploy usou o token customizado presente no processo e falhou com erro 10000 antes de publicar. A repetição usou a sessão OAuth já autenticada do Wrangler, sem editar ou substituir credenciais.
+
+### Piloto criado
+
+Vídeo: `0OkxYzoxzUk — O QUE REALMENTE É TDAH (Não é uma doença)`.
+
+| Posição | Link público | Tracking code | Estado |
+| --- | --- | --- | --- |
+| Descrição | `https://link.brunosallesphd.com.br/m7p/e5537092` | `yt\|0OkxYzoxzUk\|d\|165e` | active |
+| Comentário fixado | `https://link.brunosallesphd.com.br/m7p/7741f0ee` | `yt\|0OkxYzoxzUk\|p\|174e` | active |
+| Resposta a comentário | `https://link.brunosallesphd.com.br/m7p/de5c1a8a` | `yt\|0OkxYzoxzUk\|r\|5eff` | active |
+
+Os três links responderam HTTP 302 para `https://go.hotmart.com/K103806991N`, com `src` distinto e UTMs. A validação `HEAD` não criou cliques. Um GET técnico adicional foi registrado exatamente uma vez como bot e removido em seguida.
+
+Verificação independente posterior no banco:
+
+- campanhas do piloto: 3;
+- campanhas ativas: 3;
+- eventos de clique residuais: 0.
+
+### Sistemas deliberadamente preservados
+
+- landing page do MAPA-7P;
+- portal de membros;
+- Worker e rota `hub.brunosallesphd.com.br`;
+- webhook Hotmart;
+- credenciais e chaves existentes;
+- transações Hotmart e métricas do YouTube;
+- APIs pagas.

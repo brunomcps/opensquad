@@ -2,7 +2,7 @@ import { CommercialIntelligenceError } from './errors.ts';
 
 export type CampaignStatus = 'draft' | 'active' | 'inactive';
 export type TrackingParameter = 'sck' | 'src';
-export type CtaPosition = 'description' | 'pinned_comment' | 'video' | 'bio' | 'community' | 'other';
+export type CtaPosition = 'description' | 'pinned_comment' | 'comment_reply' | 'video' | 'bio' | 'community' | 'other';
 
 export interface CampaignRecord {
   campaign_id: string;
@@ -49,9 +49,27 @@ export interface CampaignInput {
   status: CampaignStatus;
 }
 
+export interface CampaignBatchInput {
+  namePrefix: string;
+  videoIds: string[];
+  productId: string;
+  productName: string;
+  offerCode: string | null;
+  destinationUrl: string;
+  trackingParameter: TrackingParameter;
+  ctaLabel: string;
+  positions: CtaPosition[];
+  utmSource: string;
+  utmMedium: string;
+  utmCampaign: string;
+  startsAt: string;
+  status: Extract<CampaignStatus, 'draft' | 'active'>;
+}
+
 const POSITION_CODES: Record<CtaPosition, string> = {
   description: 'd',
   pinned_comment: 'p',
+  comment_reply: 'r',
   video: 'v',
   bio: 'b',
   community: 'c',
@@ -123,12 +141,45 @@ export function parseCampaignInput(body: Record<string, unknown>): CampaignInput
   };
 }
 
-function compactSegment(value: string, max: number): string {
+function uniqueTextList(value: unknown, label: string, maxItems: number, maxLength: number): string[] {
+  if (!Array.isArray(value) || value.length === 0 || value.length > maxItems) {
+    throw new CommercialIntelligenceError('invalid_campaign_batch', `${label} inválido.`, 400);
+  }
+  const items = value.map(item => requiredText(item, label, 1, maxLength));
+  return [...new Set(items)];
+}
+
+export function parseCampaignBatchInput(body: Record<string, unknown>): CampaignBatchInput {
+  const positions = uniqueTextList(body.positions, 'Posições', 7, 32)
+    .map(position => enumValue(position, Object.keys(POSITION_CODES) as CtaPosition[], 'Posição do CTA'));
+  return {
+    namePrefix: requiredText(body.namePrefix || 'MAPA-7P', 'Prefixo', 3, 60),
+    videoIds: uniqueTextList(body.videoIds, 'Vídeos', 500, 32),
+    productId: requiredText(body.productId, 'Produto', 1, 160),
+    productName: requiredText(body.productName, 'Nome do produto', 1, 240),
+    offerCode: optionalText(body.offerCode, 160),
+    destinationUrl: validUrl(body.destinationUrl),
+    trackingParameter: enumValue(body.trackingParameter, ['sck', 'src'] as const, 'Parâmetro de rastreamento'),
+    ctaLabel: requiredText(body.ctaLabel, 'CTA', 2),
+    positions,
+    utmSource: requiredText(body.utmSource || 'youtube', 'UTM source', 1, 100),
+    utmMedium: requiredText(body.utmMedium || 'organic', 'UTM medium', 1, 100),
+    utmCampaign: requiredText(body.utmCampaign || 'mapa7p-youtube', 'UTM campaign', 1, 160),
+    startsAt: isoDate(body.startsAt),
+    status: enumValue(body.status || 'active', ['draft', 'active'] as const, 'Status'),
+  };
+}
+
+function compactTrackingSegment(value: string, max: number): string {
   return value
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^A-Za-z0-9.-]/g, '')
+    .replace(/[^A-Za-z0-9]/g, '')
     .slice(0, max) || 'x';
+}
+
+function compactSlugSegment(value: string, max: number): string {
+  return compactTrackingSegment(value, max).toLowerCase();
 }
 
 export function generateTrackingCode(
@@ -136,16 +187,16 @@ export function generateTrackingCode(
   position: CtaPosition,
   nonce = crypto.randomUUID().replace(/-/g, '').slice(0, 4),
 ): string {
-  const code = `yt|${compactSegment(videoId, 14)}|${POSITION_CODES[position]}|${compactSegment(nonce, 5)}`;
-  if (code.length > 30 || code.includes('_') || !/^[A-Za-z0-9|.-]+$/.test(code)) {
+  const code = `yt|${compactTrackingSegment(videoId, 14)}|${POSITION_CODES[position]}|${compactTrackingSegment(nonce, 5)}`;
+  if (code.length > 30 || !/^[A-Za-z0-9|]+$/.test(code)) {
     throw new CommercialIntelligenceError('tracking_code_invalid', 'Não foi possível gerar o código da campanha.', 500);
   }
   return code;
 }
 
 export function generateCampaignSlug(nonce = crypto.randomUUID().replace(/-/g, '').slice(0, 12)): string {
-  const cleaned = compactSegment(nonce, 20).toLowerCase();
-  return `ci-${cleaned}`;
+  const cleaned = compactSlugSegment(nonce, 20);
+  return `${cleaned}00000000`.slice(0, 8);
 }
 
 export function buildDestinationUrl(campaign: Pick<CampaignRecord,
@@ -163,6 +214,9 @@ export function buildDestinationUrl(campaign: Pick<CampaignRecord,
 
 export function buildRedirectUrl(baseUrl: string | null | undefined, slug: string): string | null {
   if (!baseUrl) return null;
+  if (baseUrl.includes('{slug}')) {
+    return new URL(baseUrl.replaceAll('{slug}', encodeURIComponent(slug))).toString();
+  }
   const url = new URL(baseUrl);
   url.searchParams.set('slug', slug);
   return url.toString();

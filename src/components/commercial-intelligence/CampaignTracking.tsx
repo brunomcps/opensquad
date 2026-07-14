@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import type { CampaignInput, CtaPosition, TrackingParameter } from '../../../supabase/functions/_shared/campaigns';
 import {
   createCampaign,
+  createCampaignBatch,
   getAttribution,
   getCampaigns,
   updateCampaignStatus,
@@ -14,11 +15,17 @@ import {
 const POSITION_LABELS: Record<CtaPosition, string> = {
   description: 'Descrição',
   pinned_comment: 'Comentário fixado',
+  comment_reply: 'Resposta a comentário',
   video: 'Dentro do vídeo',
   bio: 'Bio',
   community: 'Comunidade',
   other: 'Outro',
 };
+
+const MAPA7P_PRODUCT_ID = '6966825';
+const MAPA7P_PRODUCT_NAME = 'MAPA-7P · Mapeamento de Padrões Dopaminérgico';
+const MAPA7P_HOTLINK = 'https://go.hotmart.com/K103806991N';
+const MAPA7P_POSITIONS: CtaPosition[] = ['description', 'pinned_comment', 'comment_reply'];
 
 function dateInput(date = new Date()): string {
   return date.toISOString().slice(0, 10);
@@ -44,7 +51,7 @@ function displayText(value: string): string {
 function emptyForm(): CampaignInput {
   return {
     name: '', videoId: '', productId: '', productName: '', offerCode: null,
-    destinationUrl: '', trackingParameter: 'sck', ctaLabel: '', ctaPosition: 'description',
+    destinationUrl: MAPA7P_HOTLINK, trackingParameter: 'src', ctaLabel: '', ctaPosition: 'description',
     utmSource: 'youtube', utmMedium: 'organic', utmCampaign: '', utmContent: 'descricao',
     utmTerm: null, startsAt: new Date().toISOString(), status: 'active',
   };
@@ -124,6 +131,125 @@ function CampaignForm({ catalog, onCreated }: { catalog: CampaignCatalog; onCrea
   );
 }
 
+function BulkCampaignGenerator({
+  catalog,
+  campaigns,
+  onCreated,
+}: {
+  catalog: CampaignCatalog;
+  campaigns: CampaignDto[];
+  onCreated: () => Promise<void>;
+}) {
+  const [query, setQuery] = useState('');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const mapaProduct = useMemo(() => catalog.products.find(product => product.productId === MAPA7P_PRODUCT_ID)
+    || catalog.products.find(product => product.productName.toLocaleLowerCase('pt-BR').includes('mapa-7p')), [catalog.products]);
+  const existingKeys = useMemo(() => new Set(campaigns
+    .filter(campaign => campaign.product_id === MAPA7P_PRODUCT_ID)
+    .map(campaign => `${campaign.video_id}|${campaign.cta_position}`)), [campaigns]);
+  const missingPositions = (videoId: string) => MAPA7P_POSITIONS
+    .filter(position => !existingKeys.has(`${videoId}|${position}`));
+  const eligibleVideos = useMemo(() => catalog.videos
+    .filter(video => MAPA7P_POSITIONS.some(position => !existingKeys.has(`${video.video_id}|${position}`))), [catalog.videos, existingKeys]);
+  const filteredVideos = useMemo(() => {
+    const normalized = query.trim().toLocaleLowerCase('pt-BR');
+    if (!normalized) return eligibleVideos;
+    return eligibleVideos.filter(video => displayText(video.title).toLocaleLowerCase('pt-BR').includes(normalized)
+      || video.video_id.toLocaleLowerCase('pt-BR').includes(normalized));
+  }, [eligibleVideos, query]);
+  const selectedLinkCount = useMemo(() => eligibleVideos
+    .filter(video => selected.has(video.video_id))
+    .reduce((total, video) => total + missingPositions(video.video_id).length, 0), [eligibleVideos, existingKeys, selected]);
+
+  useEffect(() => {
+    setSelected(new Set(eligibleVideos.map(video => video.video_id)));
+  }, [eligibleVideos]);
+
+  function toggleVideo(videoId: string) {
+    setSelected(current => {
+      const next = new Set(current);
+      if (next.has(videoId)) next.delete(videoId);
+      else next.add(videoId);
+      return next;
+    });
+  }
+
+  function selectVisible() {
+    setSelected(current => new Set([...current, ...filteredVideos.map(video => video.video_id)]));
+  }
+
+  async function createBatch() {
+    setSaving(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const result = await createCampaignBatch({
+        namePrefix: 'MAPA-7P',
+        videoIds: [...selected],
+        productId: MAPA7P_PRODUCT_ID,
+        productName: MAPA7P_PRODUCT_NAME,
+        offerCode: mapaProduct?.offerCodes.find(code => code === 'vyqym0gx') || null,
+        destinationUrl: MAPA7P_HOTLINK,
+        trackingParameter: 'src',
+        ctaLabel: 'Conheça o MAPA-7P',
+        positions: MAPA7P_POSITIONS,
+        utmSource: 'youtube',
+        utmMedium: 'organic',
+        utmCampaign: 'mapa7p-youtube',
+        startsAt: new Date().toISOString(),
+        status: 'active',
+      });
+      setMessage(`${result.created} link(s) criado(s); ${result.skipped} já existia(m).`);
+      await onCreated();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível gerar os links do MAPA-7P.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="ci-campaign-form ci-bulk-generator">
+      <header>
+        <div><span>Gerador MAPA-7P</span><small>Cria descrição, comentário fixado e resposta para cada vídeo selecionado</small></div>
+        <span className="ci-evidence-badge ci-evidence-direct">HotLink verificado</span>
+      </header>
+      <div className="ci-bulk-summary">
+        <div><strong>{eligibleVideos.length}</strong><span>vídeo(s) ainda têm links pendentes</span></div>
+        <div><strong>{selectedLinkCount}</strong><span>link(s) serão criados neste lote</span></div>
+        <code>{MAPA7P_HOTLINK}</code>
+      </div>
+      <div className="ci-bulk-controls">
+        <label>Filtrar vídeos<input value={query} placeholder="Título ou ID do vídeo" onChange={event => setQuery(event.target.value)} /></label>
+        <div>
+          <button type="button" onClick={selectVisible}>Selecionar visíveis</button>
+          <button type="button" onClick={() => setSelected(new Set())}>Limpar seleção</button>
+        </div>
+      </div>
+      <div className="ci-bulk-video-list">
+        {filteredVideos.map(video => {
+          const pending = missingPositions(video.video_id);
+          return <label key={video.video_id}>
+            <input type="checkbox" checked={selected.has(video.video_id)} onChange={() => toggleVideo(video.video_id)} />
+            <span><strong>{displayText(video.title)}</strong><small>{video.video_id} · {pending.map(position => POSITION_LABELS[position]).join(' · ')}</small></span>
+          </label>;
+        })}
+        {!filteredVideos.length && <div className="ci-bulk-empty">Nenhum vídeo pendente nesse filtro.</div>}
+      </div>
+      {error && <div className="ci-form-error" role="alert">{error}</div>}
+      {message && <div className="ci-form-message" role="status">{message}</div>}
+      <div className="ci-form-footer">
+        <span>Reexecução segura: combinações que já existem são ignoradas.</span>
+        <button type="button" disabled={saving || !selected.size} onClick={createBatch}>{saving ? 'Gerando...' : `Gerar ${selectedLinkCount} link(s)`}</button>
+      </div>
+    </section>
+  );
+}
+
 export function CampaignTracking({ role }: { role: MemberRole }) {
   const today = dateInput();
   const [start, setStart] = useState(shift(today, -180));
@@ -136,6 +262,18 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
   const [copied, setCopied] = useState<string | null>(null);
 
   const videoTitles = useMemo(() => new Map(catalog.videos.map(video => [video.video_id, video.title])), [catalog.videos]);
+  const campaignGroups = useMemo(() => {
+    const groups = new Map<string, CampaignDto[]>();
+    for (const campaign of campaigns) {
+      const group = groups.get(campaign.video_id) || [];
+      group.push(campaign);
+      groups.set(campaign.video_id, group);
+    }
+    return [...groups.entries()].map(([videoId, items]) => ({ videoId, items }));
+  }, [campaigns]);
+  const attributionByCampaign = useMemo(() => new Map(
+    (attribution?.campaigns || []).map(item => [item.campaignId, item]),
+  ), [attribution]);
 
   async function load() {
     setLoading(true);
@@ -181,7 +319,10 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
         <p>O crédito só existe quando a Hotmart devolve o mesmo SCK, SRC ou XCOD cadastrado. Venda sem origem continua sem atribuição.</p>
       </section>
 
-      {role === 'admin' && <CampaignForm catalog={catalog} onCreated={load} />}
+      {role === 'admin' && <>
+        <BulkCampaignGenerator catalog={catalog} campaigns={campaigns} onCreated={load} />
+        <CampaignForm catalog={catalog} onCreated={load} />
+      </>}
 
       <section className="ci-overview-toolbar">
         <div><strong>Cobertura da atribuição</strong><span>Filtro aplicado às vendas e aos cliques</span></div>
@@ -207,21 +348,27 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
         {!!campaigns.length && <section className="ci-panel">
           <header><div><span>Campanhas e links</span><small>Use o link rastreável para medir clique; o link direto preserva a origem Hotmart como fallback</small></div></header>
           <div className="ci-campaign-list">
-            {campaigns.map(campaign => {
-              const stats = attribution.campaigns.find(item => item.campaignId === campaign.campaign_id);
-              return <article className="ci-campaign-row" key={campaign.campaign_id}>
-                <div className="ci-campaign-summary">
-                  <div><span className={`ci-status-pill ci-status-${campaign.status}`}>{campaign.status === 'active' ? 'Ativa' : campaign.status === 'inactive' ? 'Inativa' : 'Rascunho'}</span><strong>{campaign.name}</strong><small>{displayText(videoTitles.get(campaign.video_id) || campaign.video_id)}</small></div>
-                  <div className="ci-campaign-metrics"><span>{stats?.clicks || 0}<small>cliques</small></span><span>{stats?.sales || 0}<small>vendas</small></span><span>{money(stats?.netAfterFees || 0)}<small>líquido</small></span></div>
-                </div>
-                <div className="ci-campaign-meta"><span>{displayText(campaign.product_name)}</span><span>{POSITION_LABELS[campaign.cta_position]}</span><code>{campaign.tracking_code}</code></div>
-                <div className="ci-link-stack">
-                  {campaign.redirectUrl && <div><label>Link rastreável</label><code>{campaign.redirectUrl}</code><button type="button" onClick={() => copy(`redirect-${campaign.campaign_id}`, campaign.redirectUrl!)}>{copied === `redirect-${campaign.campaign_id}` ? 'Copiado' : 'Copiar'}</button></div>}
-                  <div><label>Link direto</label><code>{campaign.directUrl}</code><button type="button" onClick={() => copy(`direct-${campaign.campaign_id}`, campaign.directUrl)}>{copied === `direct-${campaign.campaign_id}` ? 'Copiado' : 'Copiar'}</button></div>
-                </div>
-                {role === 'admin' && <button type="button" className="ci-text-action" onClick={() => toggle(campaign)}>{campaign.status === 'active' ? 'Desativar campanha' : 'Reativar campanha'}</button>}
-              </article>;
-            })}
+            {campaignGroups.map(group => <section className="ci-video-campaign-group" key={group.videoId}>
+              <header>
+                <div><strong>{displayText(videoTitles.get(group.videoId) || group.videoId)}</strong><small>{group.videoId}</small></div>
+                <span>{group.items.length} link(s)</span>
+              </header>
+              {group.items.map(campaign => {
+                const stats = attributionByCampaign.get(campaign.campaign_id);
+                return <article className="ci-campaign-row" key={campaign.campaign_id}>
+                  <div className="ci-campaign-summary">
+                    <div><span className={`ci-status-pill ci-status-${campaign.status}`}>{campaign.status === 'active' ? 'Ativa' : campaign.status === 'inactive' ? 'Inativa' : 'Rascunho'}</span><strong>{POSITION_LABELS[campaign.cta_position]}</strong><small>{campaign.name}</small></div>
+                    <div className="ci-campaign-metrics"><span>{stats?.clicks || 0}<small>cliques</small></span><span>{stats?.sales || 0}<small>vendas</small></span><span>{money(stats?.netAfterFees || 0)}<small>líquido</small></span></div>
+                  </div>
+                  <div className="ci-campaign-meta"><span>{displayText(campaign.product_name)}</span><code>{campaign.tracking_code}</code></div>
+                  <div className="ci-link-stack">
+                    {campaign.redirectUrl && <div><label>Link para colar</label><code>{campaign.redirectUrl}</code><button type="button" onClick={() => copy(`redirect-${campaign.campaign_id}`, campaign.redirectUrl!)}>{copied === `redirect-${campaign.campaign_id}` ? 'Copiado' : 'Copiar'}</button></div>}
+                    <div><label>HotLink direto</label><code>{campaign.directUrl}</code><button type="button" onClick={() => copy(`direct-${campaign.campaign_id}`, campaign.directUrl)}>{copied === `direct-${campaign.campaign_id}` ? 'Copiado' : 'Copiar'}</button></div>
+                  </div>
+                  {role === 'admin' && <button type="button" className="ci-text-action" onClick={() => toggle(campaign)}>{campaign.status === 'active' ? 'Desativar campanha' : 'Reativar campanha'}</button>}
+                </article>;
+              })}
+            </section>)}
           </div>
         </section>}
 

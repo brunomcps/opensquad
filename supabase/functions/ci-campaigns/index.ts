@@ -4,7 +4,9 @@ import {
   buildRedirectUrl,
   generateCampaignSlug,
   generateTrackingCode,
+  parseCampaignBatchInput,
   parseCampaignInput,
+  type CtaPosition,
   type CampaignRecord,
 } from '../_shared/campaigns.ts';
 import { serviceClient } from '../_shared/client.ts';
@@ -70,9 +72,9 @@ async function listCampaigns(client: any) {
   };
 }
 
-async function createCampaign(request: Request, client: any) {
+async function createCampaign(request: Request, client: any, body: Record<string, unknown>) {
   const member = await authorizeMember(request, client, 'admin');
-  const input = parseCampaignInput(await readJson(request));
+  const input = parseCampaignInput(body);
   const video = await client.from('ci_youtube_videos').select('video_id').eq('video_id', input.videoId).maybeSingle();
   if (video.error) databaseFailure();
   if (!video.data) throw new CommercialIntelligenceError('video_not_found', 'Vídeo não encontrado no catálogo sincronizado.', 400);
@@ -109,6 +111,92 @@ async function createCampaign(request: Request, client: any) {
   throw new CommercialIntelligenceError('campaign_code_collision', 'Não foi possível gerar um código único. Tente novamente.', 409);
 }
 
+function batchCampaignName(prefix: string, videoId: string, position: CtaPosition): string {
+  return `${prefix} | ${videoId} | ${position}`.slice(0, 120);
+}
+
+async function createCampaignBatch(request: Request, client: any, body: Record<string, unknown>) {
+  const member = await authorizeMember(request, client, 'admin');
+  const input = parseCampaignBatchInput(body);
+  const [videoResult, existingResult] = await Promise.all([
+    client.from('ci_youtube_videos').select('video_id').in('video_id', input.videoIds),
+    client.from('ci_campaigns').select('video_id,cta_position')
+      .eq('product_id', input.productId)
+      .in('video_id', input.videoIds)
+      .in('cta_position', input.positions),
+  ]);
+  if (videoResult.error || existingResult.error) databaseFailure();
+
+  const foundVideos = new Set((videoResult.data || []).map((video: { video_id: string }) => video.video_id));
+  const missingVideos = input.videoIds.filter(videoId => !foundVideos.has(videoId));
+  if (missingVideos.length) {
+    throw new CommercialIntelligenceError('video_not_found', 'Um ou mais vídeos não existem no catálogo sincronizado.', 400);
+  }
+
+  const existingKeys = new Set((existingResult.data || [])
+    .map((campaign: { video_id: string; cta_position: CtaPosition }) => `${campaign.video_id}|${campaign.cta_position}`));
+  const trackingCodes = new Set<string>();
+  const slugs = new Set<string>();
+  const rows: Array<Record<string, unknown>> = [];
+
+  for (const videoId of input.videoIds) {
+    for (const position of input.positions) {
+      if (existingKeys.has(`${videoId}|${position}`)) continue;
+      let trackingCode = '';
+      let slug = '';
+      for (let attempt = 0; attempt < 6; attempt += 1) {
+        trackingCode = generateTrackingCode(videoId, position);
+        slug = generateCampaignSlug();
+        if (!trackingCodes.has(trackingCode) && !slugs.has(slug)) break;
+      }
+      if (!trackingCode || !slug || trackingCodes.has(trackingCode) || slugs.has(slug)) {
+        throw new CommercialIntelligenceError('campaign_code_collision', 'Não foi possível gerar códigos únicos para o lote.', 409);
+      }
+      trackingCodes.add(trackingCode);
+      slugs.add(slug);
+      rows.push({
+        tracking_code: trackingCode,
+        slug,
+        name: batchCampaignName(input.namePrefix, videoId, position),
+        channel: 'youtube',
+        video_id: videoId,
+        product_id: input.productId,
+        product_name: input.productName,
+        offer_code: input.offerCode,
+        destination_url: input.destinationUrl,
+        tracking_parameter: input.trackingParameter,
+        cta_label: input.ctaLabel,
+        cta_position: position,
+        utm_source: input.utmSource,
+        utm_medium: input.utmMedium,
+        utm_campaign: input.utmCampaign,
+        utm_content: `${videoId}-${position}`.slice(0, 160),
+        utm_term: null,
+        status: input.status,
+        starts_at: input.startsAt,
+        created_by: member.userId,
+      });
+    }
+  }
+
+  if (!rows.length) {
+    return { campaigns: [], created: 0, skipped: existingKeys.size, member };
+  }
+  const inserted = await client.from('ci_campaigns').insert(rows).select(CAMPAIGN_FIELDS);
+  if (inserted.error) {
+    if (inserted.error.code === '23505') {
+      throw new CommercialIntelligenceError('campaign_code_collision', 'Já existe uma campanha equivalente ou houve colisão de código.', 409);
+    }
+    databaseFailure();
+  }
+  return {
+    campaigns: (inserted.data || []).map((campaign: CampaignRecord) => campaignDto(campaign)),
+    created: inserted.data?.length || 0,
+    skipped: input.videoIds.length * input.positions.length - rows.length,
+    member,
+  };
+}
+
 async function updateCampaign(request: Request, client: any) {
   const member = await authorizeMember(request, client, 'admin');
   const body = await readJson(request);
@@ -135,7 +223,18 @@ Deno.serve(async request => {
       return json(request, { ok: true, ...(await listCampaigns(client)), member: { role: member.role } });
     }
     if (request.method === 'POST') {
-      const result = await createCampaign(request, client);
+      const body = await readJson(request);
+      if (body.mode === 'bulk') {
+        const result = await createCampaignBatch(request, client, body);
+        return json(request, {
+          ok: true,
+          campaigns: result.campaigns,
+          created: result.created,
+          skipped: result.skipped,
+          member: { role: result.member.role },
+        }, 201);
+      }
+      const result = await createCampaign(request, client, body);
       return json(request, { ok: true, campaign: result.campaign, member: { role: result.member.role } }, 201);
     }
     if (request.method === 'PATCH') {

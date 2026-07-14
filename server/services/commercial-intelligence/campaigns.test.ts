@@ -2,9 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   buildDestinationUrl,
+  buildRedirectUrl,
   classifyDevice,
   generateCampaignSlug,
   generateTrackingCode,
+  parseCampaignBatchInput,
   parseCampaignInput,
   probableBot,
   referrerHost,
@@ -15,8 +17,40 @@ test('gera código compacto aceito pela convenção da Hotmart', () => {
   assert.equal(code, 'yt|OHmYcSx33FY|d|a1b2');
   assert.ok(code.length <= 30);
   assert.doesNotMatch(code, /_/);
-  assert.match(code, /^[A-Za-z0-9|.-]+$/);
-  assert.equal(generateCampaignSlug('ABCDEF123456'), 'ci-abcdef123456');
+  assert.match(code, /^[A-Za-z0-9|]+$/);
+  assert.equal(generateTrackingCode('abc-123.DEF', 'comment_reply', 'x-9'), 'yt|abc123DEF|r|x9');
+  assert.equal(generateCampaignSlug('A7K3D9QZ-extra'), 'a7k3d9qz');
+  assert.match(generateCampaignSlug(), /^[a-z0-9]{8}$/);
+});
+
+test('gera link público por caminho e preserva fallback com query string', () => {
+  assert.equal(
+    buildRedirectUrl('https://link.brunosallesphd.com.br/m7p/{slug}', 'a7k3d9qz'),
+    'https://link.brunosallesphd.com.br/m7p/a7k3d9qz',
+  );
+  assert.equal(
+    buildRedirectUrl('https://example.supabase.co/functions/v1/ci-campaign-redirect', 'a7k3d9qz'),
+    'https://example.supabase.co/functions/v1/ci-campaign-redirect?slug=a7k3d9qz',
+  );
+});
+
+test('valida lote, remove vídeos duplicados e aceita as três posições do MAPA-7P', () => {
+  const batch = parseCampaignBatchInput({
+    namePrefix: 'MAPA-7P',
+    videoIds: ['video1', 'video1', 'video2'],
+    productId: '6966825',
+    productName: 'MAPA-7P · Mapeamento de Padrões Dopaminérgico',
+    offerCode: null,
+    destinationUrl: 'https://go.hotmart.com/K103806991N',
+    trackingParameter: 'src',
+    ctaLabel: 'Conheça o MAPA-7P',
+    positions: ['description', 'pinned_comment', 'comment_reply'],
+    utmCampaign: 'mapa7p-youtube',
+  });
+  assert.deepEqual(batch.videoIds, ['video1', 'video2']);
+  assert.deepEqual(batch.positions, ['description', 'pinned_comment', 'comment_reply']);
+  assert.equal(batch.destinationUrl, 'https://go.hotmart.com/K103806991N');
+  assert.equal(batch.trackingParameter, 'src');
 });
 
 test('gera link preservando destino, origem e UTMs', () => {

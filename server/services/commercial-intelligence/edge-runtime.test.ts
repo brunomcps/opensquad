@@ -120,6 +120,8 @@ test('redirect prioriza destino e não persiste IP ou URL completa de referênci
   );
   assert.match(source, /status:\s*302/);
   assert.match(source, /location:\s*destination/);
+  assert.match(source, /request\.method !== 'GET' && request\.method !== 'HEAD'/);
+  assert.match(source, /if \(request\.method === 'GET'\)/);
   assert.match(source, /referrerHost\(request\.headers\.get\('referer'\)\)/);
   assert.doesNotMatch(source, /\bip(address)?\b/i);
 });
