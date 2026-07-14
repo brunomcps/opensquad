@@ -21,7 +21,15 @@ Disponibilizar três links rastreáveis e curtos para o vídeo `0OkxYzoxzUk`, um
 Formato público:
 
 ```text
-https://link.brunosallesphd.com.br/m7p/<codigo-curto>
+https://link.brunosallesphd.com.br/m7p/<video>-<posicao>
+```
+
+Para o piloto:
+
+```text
+https://link.brunosallesphd.com.br/m7p/0okxyzoxzuk-d
+https://link.brunosallesphd.com.br/m7p/0okxyzoxzuk-c
+https://link.brunosallesphd.com.br/m7p/0okxyzoxzuk-r
 ```
 
 ## Fora do escopo
@@ -90,7 +98,9 @@ Embora armazenada como variável da Edge Function, essa URL não é credencial n
 
 Não haverá nova tabela. Cada posição do CTA continua sendo uma campanha independente em `ci_campaigns`.
 
-O slug público terá oito caracteres alfanuméricos minúsculos em base 36, respeitando a constraint atual e mantendo baixa probabilidade de colisão. A constraint única e as tentativas já existentes continuam sendo a proteção definitiva contra colisões.
+Para campanhas MAPA-7P, o slug público é determinístico: o ID do vídeo normalizado em minúsculas, seguido por `d` para descrição, `c` para comentário fixado ou `r` para resposta. A base comum deixa evidente que os três links pertencem ao mesmo vídeo sem expor por extenso a função de cada código.
+
+Campanhas genéricas continuam usando slugs aleatórios. A constraint única permanece como proteção definitiva. Os três slugs aleatórios criados na primeira versão do piloto serão substituídos, sem aliases, porque o usuário confirmou que nunca foram publicados.
 
 ## Fluxo de dados
 
@@ -121,7 +131,7 @@ Configuração comum:
 - UTM campaign: `mapa7p-youtube`;
 - status: ativo.
 
-Cada campanha recebe um tracking code distinto com o código da posição `d`, `p` ou `r`.
+Cada campanha recebe um tracking code distinto com o código interno da posição `d`, `p` ou `r`. O slug público usa `d`, `c` ou `r`; a diferença de `p` para `c` fica restrita ao código interno já existente e não aparece no link usado no YouTube.
 
 ## Segurança e privacidade
 
@@ -161,7 +171,8 @@ Nenhuma campanha será criada antes de domínio, TLS e testes negativos estarem 
 
 ### Automatizados
 
-- geração de slug curto dentro da constraint;
+- geração determinística dos slugs MAPA-7P no padrão `video-d/c/r`;
+- preservação de slugs aleatórios para campanhas genéricas;
 - substituição segura de `{slug}` no modelo público;
 - preservação do fallback atual com query string;
 - `HEAD` devolvendo o redirect sem criar clique;
@@ -188,7 +199,7 @@ Se falhar depois da criação, as três campanhas são desativadas antes da remo
 
 ## Critérios de aceitação
 
-- existem três links no formato aprovado;
+- existem três links no formato `0okxyzoxzuk-d`, `0okxyzoxzuk-c` e `0okxyzoxzuk-r`;
 - os links são distintos por posição;
 - todos resolvem por HTTPS e retornam o destino oficial correto;
 - cliques humanos futuros são registrados por campanha;
