@@ -11,6 +11,8 @@ import {
   type CampaignDto,
   type MemberRole,
 } from '../../../ci-app/src/api';
+import { buildVideoCampaignBundles } from './campaignBundleModel';
+import { VideoCampaignBundle } from './VideoCampaignBundle';
 
 const POSITION_LABELS: Record<CtaPosition, string> = {
   description: 'Descrição',
@@ -260,20 +262,13 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [copyError, setCopyError] = useState<string | null>(null);
 
-  const videoTitles = useMemo(() => new Map(catalog.videos.map(video => [video.video_id, video.title])), [catalog.videos]);
-  const campaignGroups = useMemo(() => {
-    const groups = new Map<string, CampaignDto[]>();
-    for (const campaign of campaigns) {
-      const group = groups.get(campaign.video_id) || [];
-      group.push(campaign);
-      groups.set(campaign.video_id, group);
-    }
-    return [...groups.entries()].map(([videoId, items]) => ({ videoId, items }));
-  }, [campaigns]);
-  const attributionByCampaign = useMemo(() => new Map(
-    (attribution?.campaigns || []).map(item => [item.campaignId, item]),
-  ), [attribution]);
+  const campaignBundles = useMemo(() => buildVideoCampaignBundles(
+    campaigns,
+    catalog.videos,
+    attribution?.campaigns || [],
+  ), [campaigns, catalog.videos, attribution]);
 
   async function load() {
     setLoading(true);
@@ -295,9 +290,15 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
   useEffect(() => { void load(); }, []);
 
   async function copy(label: string, value: string) {
-    await navigator.clipboard.writeText(value);
-    setCopied(label);
-    window.setTimeout(() => setCopied(current => current === label ? null : current), 1_500);
+    setCopyError(null);
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(label);
+      window.setTimeout(() => setCopied(current => current === label ? null : current), 1_500);
+    } catch {
+      setCopied(null);
+      setCopyError(label);
+    }
   }
 
   async function toggle(campaign: CampaignDto) {
@@ -348,27 +349,15 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
         {!!campaigns.length && <section className="ci-panel">
           <header><div><span>Campanhas e links</span><small>Use o link rastreável para medir clique; o link direto preserva a origem Hotmart como fallback</small></div></header>
           <div className="ci-campaign-list">
-            {campaignGroups.map(group => <section className="ci-video-campaign-group" key={group.videoId}>
-              <header>
-                <div><strong>{displayText(videoTitles.get(group.videoId) || group.videoId)}</strong><small>{group.videoId}</small></div>
-                <span>{group.items.length} link(s)</span>
-              </header>
-              {group.items.map(campaign => {
-                const stats = attributionByCampaign.get(campaign.campaign_id);
-                return <article className="ci-campaign-row" key={campaign.campaign_id}>
-                  <div className="ci-campaign-summary">
-                    <div><span className={`ci-status-pill ci-status-${campaign.status}`}>{campaign.status === 'active' ? 'Ativa' : campaign.status === 'inactive' ? 'Inativa' : 'Rascunho'}</span><strong>{POSITION_LABELS[campaign.cta_position]}</strong><small>{campaign.name}</small></div>
-                    <div className="ci-campaign-metrics"><span>{stats?.clicks || 0}<small>cliques</small></span><span>{stats?.sales || 0}<small>vendas</small></span><span>{money(stats?.netAfterFees || 0)}<small>líquido</small></span></div>
-                  </div>
-                  <div className="ci-campaign-meta"><span>{displayText(campaign.product_name)}</span><code>{campaign.tracking_code}</code></div>
-                  <div className="ci-link-stack">
-                    {campaign.redirectUrl && <div><label>Link para colar</label><code>{campaign.redirectUrl}</code><button type="button" onClick={() => copy(`redirect-${campaign.campaign_id}`, campaign.redirectUrl!)}>{copied === `redirect-${campaign.campaign_id}` ? 'Copiado' : 'Copiar'}</button></div>}
-                    <div><label>HotLink direto</label><code>{campaign.directUrl}</code><button type="button" onClick={() => copy(`direct-${campaign.campaign_id}`, campaign.directUrl)}>{copied === `direct-${campaign.campaign_id}` ? 'Copiado' : 'Copiar'}</button></div>
-                  </div>
-                  {role === 'admin' && <button type="button" className="ci-text-action" onClick={() => toggle(campaign)}>{campaign.status === 'active' ? 'Desativar campanha' : 'Reativar campanha'}</button>}
-                </article>;
-              })}
-            </section>)}
+            {campaignBundles.map(bundle => <VideoCampaignBundle
+              key={bundle.videoId}
+              bundle={bundle}
+              role={role}
+              copied={copied}
+              copyError={copyError}
+              onCopy={copy}
+              onToggle={toggle}
+            />)}
           </div>
         </section>}
 
