@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   authErrorMessage,
   hasRecoveryContext,
+  isSamePasswordError,
   recoveryRedirectUrl,
 } from '../../../ci-app/src/authRecovery.ts';
 
@@ -25,7 +26,9 @@ test('traduz erros de autenticação em mensagens úteis e seguras', () => {
   assert.equal(authErrorMessage('login', { code: 'invalid_credentials', status: 400 }), 'E-mail ou senha inválidos.');
   assert.match(authErrorMessage('reset', { code: 'over_email_send_rate_limit', status: 429 }), /Muitas solicitações/);
   assert.match(authErrorMessage('update', { code: 'otp_expired', status: 401 }), /link expirou/);
-  assert.match(authErrorMessage('update', { code: 'same_password', status: 422 }), /diferente/);
+  assert.match(authErrorMessage('update', { code: 'same_password', status: 422 }), /senha atual/);
+  assert.equal(isSamePasswordError({ code: 'same_password', status: 422 }), true);
+  assert.equal(isSamePasswordError({ code: 'weak_password', status: 422 }), false);
 });
 
 test('interface encerra apenas a sessão local do navegador', async () => {

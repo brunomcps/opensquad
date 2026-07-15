@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { authErrorMessage, recoveryRedirectUrl, type AuthMode } from './authRecovery';
+import { authErrorMessage, isSamePasswordError, recoveryRedirectUrl, type AuthMode } from './authRecovery';
 import { supabase } from './supabase';
 
 export function AuthScreen({
@@ -44,7 +44,7 @@ export function AuthScreen({
       }
       if (password.length < 8) throw new Error('Use uma senha com pelo menos 8 caracteres.');
       const result = await supabase.auth.updateUser({ password });
-      if (result.error) throw result.error;
+      if (result.error && !isSamePasswordError(result.error)) throw result.error;
       setPassword('');
       onRecoveryComplete?.();
     } catch (caught) {

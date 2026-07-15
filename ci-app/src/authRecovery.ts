@@ -19,6 +19,10 @@ function errorCode(error: unknown): string {
   return String(candidate.code || candidate.name || '').toLowerCase();
 }
 
+export function isSamePasswordError(error: unknown): boolean {
+  return errorCode(error) === 'same_password';
+}
+
 function errorStatus(error: unknown): number | null {
   if (!error || typeof error !== 'object') return null;
   const status = Number((error as AuthErrorLike).status);
@@ -61,7 +65,7 @@ export function authErrorMessage(mode: AuthMode, error: unknown): string {
     return 'Não foi possível enviar as instruções agora. Verifique sua conexão e tente novamente.';
   }
 
-  if (code === 'same_password') return 'A nova senha precisa ser diferente da senha anterior.';
+  if (code === 'same_password') return 'Essa já é sua senha atual. Você pode continuar com ela.';
   if (code === 'weak_password') return 'Use uma senha mais forte, com pelo menos oito caracteres.';
   if (['otp_expired', 'session_not_found', 'refresh_token_not_found'].includes(code) || status === 401 || status === 403) {
     return 'Esse link expirou ou já foi usado. Solicite um novo link de recuperação.';
