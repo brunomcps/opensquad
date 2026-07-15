@@ -1,7 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { authErrorMessage, recoveryRedirectUrl, type AuthMode } from './authRecovery';
 import { supabase } from './supabase';
-
-type Mode = 'login' | 'reset' | 'update';
 
 export function AuthScreen({
   recoveryMode = false,
@@ -10,12 +9,19 @@ export function AuthScreen({
   recoveryMode?: boolean;
   onRecoveryComplete?: () => void;
 }) {
-  const [mode, setMode] = useState<Mode>(recoveryMode ? 'update' : 'login');
+  const [mode, setMode] = useState<AuthMode>(recoveryMode ? 'update' : 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!recoveryMode) return;
+    setMode('update');
+    setError(null);
+    setMessage(null);
+  }, [recoveryMode]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -30,7 +36,7 @@ export function AuthScreen({
       }
       if (mode === 'reset') {
         const result = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin,
+          redirectTo: recoveryRedirectUrl(window.location.origin),
         });
         if (result.error) throw result.error;
         setMessage('Se o e-mail estiver autorizado, você receberá as instruções de recuperação.');
@@ -39,11 +45,10 @@ export function AuthScreen({
       if (password.length < 8) throw new Error('Use uma senha com pelo menos 8 caracteres.');
       const result = await supabase.auth.updateUser({ password });
       if (result.error) throw result.error;
+      setPassword('');
       onRecoveryComplete?.();
-    } catch {
-      setError(mode === 'login'
-        ? 'Não foi possível entrar com essas credenciais.'
-        : 'Não foi possível concluir a solicitação. Tente novamente.');
+    } catch (caught) {
+      setError(authErrorMessage(mode, caught));
     } finally {
       setLoading(false);
     }
@@ -94,19 +99,18 @@ export function AuthScreen({
           </button>
         </form>
 
-        {mode !== 'update' && (
-          <button
-            type="button"
-            className="ci-link-button"
-            onClick={() => {
-              setMode(mode === 'login' ? 'reset' : 'login');
-              setError(null);
-              setMessage(null);
-            }}
-          >
-            {mode === 'login' ? 'Esqueci minha senha' : 'Voltar para o login'}
-          </button>
-        )}
+        <button
+          type="button"
+          className="ci-link-button"
+          onClick={() => {
+            setMode(mode === 'login' || mode === 'update' ? 'reset' : 'login');
+            setPassword('');
+            setError(null);
+            setMessage(null);
+          }}
+        >
+          {mode === 'login' ? 'Esqueci minha senha' : mode === 'update' ? 'Solicitar novo link' : 'Voltar para o login'}
+        </button>
       </section>
     </main>
   );

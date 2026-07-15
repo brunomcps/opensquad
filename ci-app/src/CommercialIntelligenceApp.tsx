@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { configureCommercialIntelligenceQualityLoader, useCommercialIntelligenceStore } from '../../src/store/useCommercialIntelligenceStore';
 import { CommercialIntelligenceApiError, getQuality, runSync, type MemberRole } from './api';
+import { cleanRecoveryUrl, hasRecoveryContext } from './authRecovery';
 import { AuthScreen } from './AuthScreen';
 import { StandaloneCommercialIntelligenceView } from './StandaloneCommercialIntelligenceView';
 import { configurationError, supabase } from './supabase';
@@ -13,7 +14,7 @@ export function CommercialIntelligenceApp() {
   const [role, setRole] = useState<MemberRole | null>(null);
   const [booting, setBooting] = useState(true);
   const [accessError, setAccessError] = useState<string | null>(null);
-  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [recoveryMode, setRecoveryMode] = useState(() => hasRecoveryContext(window.location.href));
   const [syncing, setSyncing] = useState<'youtube' | 'hotmart' | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const fetchQuality = useCommercialIntelligenceStore(state => state.fetchQuality);
@@ -84,14 +85,17 @@ export function CommercialIntelligenceApp() {
   }
   if (booting) return <main className="ci-state"><span className="loading-pulse">Validando acesso...</span></main>;
   if (!session || recoveryMode) {
-    return <AuthScreen recoveryMode={recoveryMode} onRecoveryComplete={() => setRecoveryMode(false)} />;
+    return <AuthScreen recoveryMode={recoveryMode} onRecoveryComplete={() => {
+      cleanRecoveryUrl(window.location.origin);
+      setRecoveryMode(false);
+    }} />;
   }
   if (accessError || !role) {
     return (
       <main className="ci-state">
         <strong>Acesso indisponível</strong>
         <span>{accessError || 'Sua conta não possui associação ativa.'}</span>
-        <button type="button" onClick={() => supabase.auth.signOut()}>Sair</button>
+        <button type="button" onClick={() => supabase.auth.signOut({ scope: 'local' })}>Sair</button>
       </main>
     );
   }
@@ -109,7 +113,7 @@ export function CommercialIntelligenceApp() {
         </>
       )}
       <span>{session.user.email} · {role}</span>
-      <button type="button" className="ci-secondary" onClick={() => supabase.auth.signOut()}>Sair</button>
+      <button type="button" className="ci-secondary" onClick={() => supabase.auth.signOut({ scope: 'local' })}>Sair</button>
     </div>
   );
 

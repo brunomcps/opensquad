@@ -26,6 +26,23 @@ try {
   await desktop.locator('input[type="password"]').waitFor();
   await desktop.screenshot({ path: path.join(evidence, 'login-desktop.png'), fullPage: true });
 
+  await desktop.getByRole('button', { name: 'Esqueci minha senha' }).click();
+  await desktop.getByRole('button', { name: 'Enviar instruções' }).waitFor();
+  if (await desktop.locator('input[type="password"]').count()) {
+    throw new Error('Tela de solicitação de recuperação exibiu campo de senha.');
+  }
+  await desktop.screenshot({ path: path.join(evidence, 'reset-desktop.png'), fullPage: true });
+
+  const recovery = await browser.newPage({ viewport: { width: 1440, height: 960 } });
+  await recovery.goto(`${baseUrl}/?recovery=1`, { waitUntil: 'networkidle' });
+  await recovery.getByRole('button', { name: 'Salvar nova senha' }).waitFor();
+  await recovery.locator('input[type="password"]').waitFor();
+  if (await recovery.locator('input[type="email"]').count()) {
+    throw new Error('Tela de definição de senha exibiu campo de e-mail.');
+  }
+  await recovery.getByRole('button', { name: 'Solicitar novo link' }).waitFor();
+  await recovery.screenshot({ path: path.join(evidence, 'update-password-desktop.png'), fullPage: true });
+
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await mobile.goto(baseUrl, { waitUntil: 'networkidle' });
   await mobile.getByRole('heading', { name: 'Inteligência Comercial' }).waitFor();
@@ -37,6 +54,8 @@ try {
     ok: true,
     browser: path.basename(executablePath),
     desktop: 'login-desktop.png',
+    reset: 'reset-desktop.png',
+    updatePassword: 'update-password-desktop.png',
     mobile: 'login-mobile.png',
     mobileOverflowPx: overflow,
   }));
