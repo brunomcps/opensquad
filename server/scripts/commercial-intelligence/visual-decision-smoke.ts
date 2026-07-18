@@ -333,6 +333,21 @@ async function capture(page: Page, prefix: string) {
   const associationPanel = page.locator('.ci-association-panel').first();
   await associationPanel.scrollIntoViewIfNeeded();
   await associationPanel.screenshot({ path: path.join(evidence, `${prefix}-association-ranking.png`) });
+
+  await page.getByRole('button', { name: 'Projeções' }).click();
+  await page.getByText('Simulador: quanto tempo até a meta').waitFor();
+  const projecoesSimples = await page.locator('.ci-proj-cartao').count();
+  if (projecoesSimples !== 3) throw new Error(`Projeções (simples) exibiu ${projecoesSimples} cartões de futuro, esperado 3.`);
+  await page.screenshot({ path: path.join(evidence, `${prefix}-projecoes-simples.png`), fullPage: true });
+  await page.getByRole('button', { name: 'Avançado' }).click();
+  await page.getByText('4 · Monte Carlo (2.000 futuros)').waitFor();
+  const projecoesMotores = await page.locator('.ci-proj-motor').count();
+  if (projecoesMotores !== 4) throw new Error(`Projeções (avançado) exibiu ${projecoesMotores} motores, esperado 4.`);
+  await page.screenshot({ path: path.join(evidence, `${prefix}-projecoes-avancado.png`), fullPage: true });
+  const blocoMotores = page.locator('.ci-proj-bloco').nth(2);
+  await blocoMotores.scrollIntoViewIfNeeded();
+  await blocoMotores.screenshot({ path: path.join(evidence, `${prefix}-projecoes-motores.png`) });
+  await page.getByRole('button', { name: 'Simples', exact: true }).click();
   const navBox = await page.locator('.ci-main-tabs').boundingBox();
   const visibleTabs = await page.locator('.ci-main-tabs button').evaluateAll(buttons => buttons.filter(button => {
     const rect = button.getBoundingClientRect();
@@ -360,7 +375,7 @@ try {
   await prepare(desktop);
   const desktopResult = await capture(desktop, 'desktop-1366');
   if (desktopResult.overflow > 1) throw new Error(`Layout desktop possui overflow horizontal de ${desktopResult.overflow}px.`);
-  if (desktopResult.visibleTabs !== 4 || desktopResult.navHeight < 30) throw new Error('Navegação desktop não está totalmente visível.');
+  if (desktopResult.visibleTabs !== 5 || desktopResult.navHeight < 30) throw new Error('Navegação desktop não está totalmente visível.');
   await desktopContext.close();
 
   const mobileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, permissions: ['clipboard-read', 'clipboard-write'] });
@@ -368,7 +383,7 @@ try {
   await prepare(mobile);
   const mobileResult = await capture(mobile, 'mobile-390');
   if (mobileResult.overflow > 1) throw new Error(`Layout mobile possui overflow horizontal de ${mobileResult.overflow}px.`);
-  if (mobileResult.visibleTabs !== 4 || mobileResult.navHeight < 60) throw new Error('Navegação mobile não está totalmente visível.');
+  if (mobileResult.visibleTabs !== 5 || mobileResult.navHeight < 60) throw new Error('Navegação mobile não está totalmente visível.');
   await mobileContext.close();
 
   const failureContext = await browser.newContext({ viewport: { width: 1024, height: 768 } });

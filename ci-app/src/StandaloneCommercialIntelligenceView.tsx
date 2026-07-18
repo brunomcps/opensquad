@@ -2,6 +2,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 import { CampaignTracking } from '../../src/components/commercial-intelligence/CampaignTracking';
 import { CommercialOverview } from '../../src/components/commercial-intelligence/CommercialOverview';
 import { DataQualityTab } from '../../src/components/commercial-intelligence/DataQualityTab';
+import { ProjecoesSimulador } from '../../src/components/commercial-intelligence/ProjecoesSimulador';
 import { VideoSalesAssociation } from '../../src/components/commercial-intelligence/VideoSalesAssociation';
 import type { MemberRole } from './api';
 
@@ -16,12 +17,13 @@ const container: CSSProperties = {
   gap: '18px',
 };
 
-type Tab = 'overview' | 'tracking' | 'association' | 'quality';
+type Tab = 'overview' | 'tracking' | 'association' | 'projecoes' | 'quality';
 
 const TAB_COPY: Record<Tab, string> = {
   overview: 'O que vendeu, quanto entrou e quais produtos sustentaram o período.',
   tracking: 'Quais campanhas possuem origem comprovada, clique e venda atribuída.',
   association: 'Quais vídeos foram seguidos por mudança nas vendas, sem fingir causalidade.',
+  projecoes: 'Quanto tempo até cada meta de receita, em cenários calibrados com o histórico real.',
   quality: 'Qualidade da ingestão e confiança dos fatos observados.',
 };
 
@@ -42,11 +44,13 @@ export function StandaloneCommercialIntelligenceView({ actions, role }: { action
         <button type="button" className={tab === 'overview' ? 'active' : ''} onClick={() => setTab('overview')}>Visão comercial</button>
         <button type="button" className={tab === 'tracking' ? 'active' : ''} onClick={() => setTab('tracking')}>Rastreamento</button>
         <button type="button" className={tab === 'association' ? 'active' : ''} onClick={() => setTab('association')}>Vídeos × vendas</button>
+        <button type="button" className={tab === 'projecoes' ? 'active' : ''} onClick={() => setTab('projecoes')}>Projeções</button>
         <button type="button" className={tab === 'quality' ? 'active' : ''} onClick={() => setTab('quality')}>Qualidade dos dados</button>
       </nav>
       {tab === 'overview' && <CommercialOverview />}
       {tab === 'tracking' && <CampaignTracking role={role} />}
       {tab === 'association' && <VideoSalesAssociation />}
+      {tab === 'projecoes' && <ProjecoesSimulador />}
       {tab === 'quality' && <DataQualityTab />}
     </div>
   );

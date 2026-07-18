@@ -2415,3 +2415,310 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ===== Aba Projeções (simulador de metas) ===== */
+.ci-proj {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ci-proj-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+
+.ci-proj-cabecalho h2 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.ci-proj-cabecalho p {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  max-width: 640px;
+}
+
+.ci-proj-modo {
+  display: flex;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--bg-secondary);
+}
+
+.ci-proj-modo button {
+  padding: 8px 14px;
+}
+
+.ci-proj-bloco {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ci-proj-rotulo {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ci-proj-ajuda {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.ci-proj-meta-linha {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ci-proj-meta-linha input[type='number'] {
+  width: 170px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font: 600 14px var(--font-body);
+}
+
+.ci-proj-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ci-proj-presets button {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font: 600 12px var(--font-body);
+  cursor: pointer;
+}
+
+.ci-proj-presets button.active {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-strong, var(--border));
+}
+
+.ci-proj-cartoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.ci-proj-cartao {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  cursor: pointer;
+  color: var(--text-secondary);
+  font: 400 12px/1.5 var(--font-body);
+}
+
+.ci-proj-cartao strong {
+  font-size: 13.5px;
+  color: var(--text-primary);
+}
+
+.ci-proj-cartao.active {
+  border-color: var(--accent, #b8860b);
+  box-shadow: 0 0 0 1px var(--accent, #b8860b);
+  background: var(--bg-card);
+}
+
+.ci-proj-resposta {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ci-proj-resposta > span {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.ci-proj-resposta > strong {
+  font-size: 34px;
+  line-height: 1.1;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.ci-proj-resposta > p {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.ci-proj-controles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px 22px;
+}
+
+.ci-proj-controle {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ci-proj-controle-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.ci-proj-controle-topo label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ci-proj-controle-topo output {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ci-proj-controle input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent, #b8860b);
+}
+
+.ci-proj-motor {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.ci-proj-motor-topo {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.ci-proj-motor-topo span {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.ci-proj-motor-topo strong {
+  color: var(--text-primary);
+}
+
+.ci-proj-motor-topo small {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.ci-proj-barra {
+  position: relative;
+  height: 10px;
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.ci-proj-barra-faixa {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: #85b7eb;
+  opacity: 0.45;
+  border-radius: 4px;
+}
+
+.ci-proj-barra-valor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: #2f7fd6;
+  border-radius: 4px;
+}
+
+.ci-proj-barra-valor.estourou {
+  opacity: 0.35;
+}
+
+.ci-proj-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.ci-proj-check input {
+  margin-top: 2px;
+}
+
+.ci-proj-glossario {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+
+.ci-proj-glossario summary {
+  cursor: pointer;
+  font: 700 13px var(--font-body);
+  color: var(--text-primary);
+}
+
+.ci-proj-glossario dl {
+  margin: 10px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ci-proj-glossario dt {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ci-proj-glossario dd {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
