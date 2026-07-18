@@ -453,6 +453,23 @@ export function TrackingHistoryExplorer({
   const { hasClicks, hasSales } = useMemo(() => trackingChartAvailability(chartData), [chartData]);
   const hasRevenue = useMemo(() => chartData.some(item => item.revenue !== 0), [chartData]);
   const hasChartData = hasClicks || hasSales || hasRevenue;
+  // Frações (0..1) da largura útil onde começa cada dia (BRT). Com granularidade
+  // por hora, marca só as viradas de dia (03:00Z = meia-noite BRT); nas demais,
+  // cada bucket é um dia/semana e ganha linha própria. Escala "point": índice i
+  // fica em i/(n-1) da largura.
+  const dayBoundaryFractions = useMemo(() => {
+    if (chartData.length < 2) return [];
+    const lastIndex = chartData.length - 1;
+    const indexes = visibleSeries?.granularity === 'hour'
+      ? chartData
+        .map((item, index) => (new Date(item.bucketStart).getUTCHours() === 3 ? index : -1))
+        .filter(index => index >= 0)
+      : chartData.map((_, index) => index);
+    return indexes.map(index => index / lastIndex);
+  }, [chartData, visibleSeries?.granularity]);
+  const dayGridGenerator = useCallback(({ offset }: { offset: { left: number; width: number } }) => (
+    offset?.width ? dayBoundaryFractions.map(fraction => offset.left + fraction * offset.width) : []
+  ), [dayBoundaryFractions]);
 
   function toggleSeries(key: SeriesKey) {
     setHiddenSeries(current => {
@@ -620,6 +637,12 @@ export function TrackingHistoryExplorer({
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData} margin={{ top: 10, right: 6, left: 0, bottom: 0 }}>
             <CartesianGrid stroke="var(--border)" vertical={false} />
+            {dayBoundaryFractions.length > 0 && <CartesianGrid
+              horizontal={false}
+              stroke="var(--border)"
+              strokeOpacity={0.55}
+              verticalCoordinatesGenerator={dayGridGenerator}
+            />}
             <XAxis dataKey="bucketStart" tickFormatter={value => formatBucket(value, visibleSeries.granularity)} tick={{ fontSize: 10 }} minTickGap={24} />
             <YAxis yAxisId="counts" allowDecimals={false} tick={{ fontSize: 10 }} width={36} />
             <YAxis
