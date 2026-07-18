@@ -26,11 +26,18 @@ function attribution(input: {
   clicks: number;
   sales: number;
   netAfterFees: number;
+  additionalSales?: number;
+  additionalNetAfterFees?: number;
 }): AttributionDto['campaigns'][number] {
+  const additionalSales = input.additionalSales || 0;
+  const additionalNetAfterFees = input.additionalNetAfterFees || 0;
   return {
     campaignId: input.campaignId, campaignName: input.campaignId, trackingCode: input.campaignId,
     videoId: input.videoId, productName: 'MAPA-7P', ctaLabel: 'Conheça', ctaPosition: 'description',
-    clicks: input.clicks, sales: input.sales, netAfterFees: input.netAfterFees,
+    clicks: input.clicks, sales: input.sales, additionalSales,
+    financialDataIncompleteSales: 0, additionalFinancialDataIncompleteSales: 0,
+    netAfterFees: input.netAfterFees, additionalNetAfterFees,
+    orderNetAfterFees: input.netAfterFees + additionalNetAfterFees,
     clickToSale: input.clicks ? input.sales / input.clicks : null,
   };
 }
@@ -40,22 +47,24 @@ const videos: CampaignCatalog['videos'] = [{
   content_type: 'long', thumbnail_url: 'https://i.ytimg.com/vi/0OkxYzoxzUk/hqdefault.jpg',
 }];
 
-test('agrupa campanhas por vídeo, ordena D/C/R e agrega métricas', () => {
+test('agrupa campanhas por vídeo, ordena D/C/R/V e agrega métricas', () => {
   const campaigns = [
     campaign({ campaign_id: 'reply', video_id: '0OkxYzoxzUk', cta_position: 'comment_reply' }),
     campaign({ campaign_id: 'description', video_id: '0OkxYzoxzUk', cta_position: 'description' }),
     campaign({ campaign_id: 'comment', video_id: '0OkxYzoxzUk', cta_position: 'pinned_comment' }),
+    campaign({ campaign_id: 'video-card', video_id: '0OkxYzoxzUk', cta_position: 'video' }),
   ];
   const bundles = buildVideoCampaignBundles(campaigns, videos, [
-    attribution({ campaignId: 'description', videoId: '0OkxYzoxzUk', clicks: 10, sales: 2, netAfterFees: 199.9 }),
-    attribution({ campaignId: 'comment', videoId: '0OkxYzoxzUk', clicks: 5, sales: 1, netAfterFees: 99.95 }),
+    attribution({ campaignId: 'description', videoId: '0OkxYzoxzUk', clicks: 10, sales: 2, netAfterFees: 199.9, additionalSales: 1, additionalNetAfterFees: 20 }),
+    attribution({ campaignId: 'comment', videoId: '0OkxYzoxzUk', clicks: 5, sales: 1, netAfterFees: 99.95, additionalSales: 2, additionalNetAfterFees: 10 }),
   ]);
 
   assert.equal(bundles.length, 1);
-  assert.deepEqual(bundles[0].items.map(item => item.code), ['D', 'C', 'R']);
-  assert.deepEqual(bundles[0].totals, { clicks: 15, sales: 3, netAfterFees: 299.85 });
-  assert.deepEqual(bundles[0].items[2].metrics, { clicks: 0, sales: 0, netAfterFees: 0 });
-  assert.equal(bundles[0].statusSummary, '3 links ativos');
+  assert.deepEqual(bundles[0].items.map(item => item.code), ['D', 'C', 'R', 'V']);
+  assert.equal(bundles[0].items[3].label, 'Card do vídeo');
+  assert.deepEqual(bundles[0].totals, { clicks: 15, sales: 3, additionalSales: 3, netAfterFees: 329.85 });
+  assert.deepEqual(bundles[0].items[2].metrics, { clicks: 0, sales: 0, additionalSales: 0, netAfterFees: 0 });
+  assert.equal(bundles[0].statusSummary, '4 links ativos');
   assert.equal(bundles[0].statusTone, 'active');
   assert.equal(bundles[0].thumbnailUrl, videos[0].thumbnail_url);
 });

@@ -3,6 +3,21 @@ import { CommercialIntelligenceError } from './errors.ts';
 export type CampaignStatus = 'draft' | 'active' | 'inactive';
 export type TrackingParameter = 'sck' | 'src';
 export type CtaPosition = 'description' | 'pinned_comment' | 'comment_reply' | 'video' | 'bio' | 'community' | 'other';
+export type TrafficClassification = 'qualified' | 'bot' | 'scanner' | 'technical' | 'duplicate' | 'unknown';
+
+export interface TrafficSignals {
+  userAgent: string | null;
+  accept?: string | null;
+  secFetchMode?: string | null;
+  secFetchDest?: string | null;
+  technical?: boolean;
+}
+
+export interface TrafficClassificationResult {
+  classification: TrafficClassification;
+  exclusionReason: string | null;
+  isBot: boolean;
+}
 
 export interface CampaignRecord {
   campaign_id: string;
@@ -80,6 +95,7 @@ const MAPA7P_PUBLIC_POSITION_CODES: Partial<Record<CtaPosition, string>> = {
   description: 'd',
   pinned_comment: 'c',
   comment_reply: 'r',
+  video: 'v',
 };
 
 function requiredText(value: unknown, label: string, min = 1, max = 120): string {
@@ -223,6 +239,12 @@ export function buildDestinationUrl(campaign: Pick<CampaignRecord,
   'utm_campaign' | 'utm_content' | 'utm_term'>): string {
   const url = new URL(campaign.destination_url);
   url.searchParams.set(campaign.tracking_parameter, campaign.tracking_code);
+  if (campaign.tracking_parameter === 'src' && url.hostname.toLowerCase().endsWith('.hotmart.com')) {
+    // Hotmart uses SRC on HotLinks and SCK on producer checkout links. Carrying
+    // both lets an intermediate sales page explicitly forward SCK to checkout
+    // without changing or invalidating the existing SRC attribution flow.
+    url.searchParams.set('sck', campaign.tracking_code);
+  }
   url.searchParams.set('utm_source', campaign.utm_source);
   url.searchParams.set('utm_medium', campaign.utm_medium);
   url.searchParams.set('utm_campaign', campaign.utm_campaign);
@@ -255,6 +277,36 @@ export function classifyDevice(userAgent: string | null): 'desktop' | 'mobile' |
   return 'desktop';
 }
 
+const SCANNER_USER_AGENT = /facebookexternalhit|meta-externalagent|whatsapp|telegrambot|slackbot|discordbot|skypeuripreview|linkedinbot|twitterbot|pinterestbot|microsoft office existence discovery|proofpoint|mimecast|barracuda|safelinks|urlscan|virustotal/i;
+const AUTOMATION_USER_AGENT = /\bbot\b|crawler|spider|headlesschrome|phantomjs|selenium|playwright|puppeteer|curl\/|wget\/|python-requests|python-urllib|axios\/|postmanruntime|insomnia|lighthouse|uptimerobot|monitoring/i;
+const BROWSER_USER_AGENT = /mozilla\/5\.0|chrome\/|crios\/|firefox\/|fxios\/|safari\/|edg\/|opr\//i;
+
+export function classifyTraffic(signals: TrafficSignals): TrafficClassificationResult {
+  if (signals.technical) {
+    return { classification: 'technical', exclusionReason: 'explicit_test_request', isBot: false };
+  }
+
+  const userAgent = signals.userAgent?.trim() || '';
+  if (!userAgent) {
+    return { classification: 'unknown', exclusionReason: 'missing_user_agent', isBot: false };
+  }
+  if (SCANNER_USER_AGENT.test(userAgent)) {
+    return { classification: 'scanner', exclusionReason: 'preview_or_security_scanner', isBot: true };
+  }
+  if (AUTOMATION_USER_AGENT.test(userAgent)) {
+    return { classification: 'bot', exclusionReason: 'automated_user_agent', isBot: true };
+  }
+
+  const navigationSignal = signals.secFetchMode?.toLowerCase() === 'navigate'
+    || signals.secFetchDest?.toLowerCase() === 'document'
+    || signals.accept?.toLowerCase().includes('text/html');
+  if (BROWSER_USER_AGENT.test(userAgent) && (navigationSignal || (!signals.accept && !signals.secFetchMode && !signals.secFetchDest))) {
+    return { classification: 'qualified', exclusionReason: null, isBot: false };
+  }
+
+  return { classification: 'unknown', exclusionReason: 'insufficient_browser_signals', isBot: false };
+}
+
 export function probableBot(userAgent: string | null): boolean {
-  return /bot|crawler|spider|preview|facebookexternalhit|whatsapp|telegram/i.test(userAgent || '');
+  return classifyTraffic({ userAgent }).isBot;
 }

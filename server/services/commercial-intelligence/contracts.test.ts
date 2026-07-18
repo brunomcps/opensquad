@@ -23,6 +23,12 @@ test('migration contém schema base, atomicidade e RLS sem operação destrutiva
   }
   assert.match(sql, /create or replace function public\.ci_apply_hotmart_event/i);
   assert.match(sql, /on conflict \(event_key\) do nothing/i);
+  assert.match(sql, /if not v_inserted and p_event->>'source' <> 'reconciliation'/i);
+  assert.match(sql, /gross_currency = case[\s\S]*p_event->>'source' = 'reconciliation'[\s\S]*coalesce/i);
+  assert.match(sql, /when v_current_src_is_campaign then ci_hotmart_transactions\.tracking_src/i);
+  assert.match(sql, /when v_incoming_src_is_campaign then excluded\.tracking_src/i);
+  assert.match(sql, /return query select v_inserted, v_updated, v_repaired/i);
+  assert.match(sql, /last_event_at = greatest\(excluded\.last_event_at, ci_hotmart_transactions\.last_event_at\)/i);
   assert.doesNotMatch(sql, /\bdrop\s+(table|function|schema)\b/i);
 });
 

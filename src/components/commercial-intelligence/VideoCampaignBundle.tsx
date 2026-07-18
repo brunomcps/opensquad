@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import type { CampaignDto, MemberRole } from '../../../ci-app/src/api';
+import type { CampaignCatalog, CampaignDto, MemberRole } from '../../../ci-app/src/api';
 import type { VideoCampaignBundleModel } from './campaignBundleModel';
+import { TrackingHistoryExplorer } from './TrackingHistoryExplorer';
 
 function money(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -64,6 +65,11 @@ export function VideoCampaignBundle({
   copyError,
   onCopy,
   onToggle,
+  historyExpanded,
+  historyVideos,
+  historyStart,
+  historyEnd,
+  onHistoryToggle,
 }: {
   bundle: VideoCampaignBundleModel;
   role: MemberRole;
@@ -71,6 +77,11 @@ export function VideoCampaignBundle({
   copyError: string | null;
   onCopy: (key: string, value: string) => Promise<void>;
   onToggle: (campaign: CampaignDto) => Promise<void>;
+  historyExpanded: boolean;
+  historyVideos: CampaignCatalog['videos'];
+  historyStart: string;
+  historyEnd: string;
+  onHistoryToggle: (videoId: string) => void;
 }) {
   const title = displayText(bundle.title);
 
@@ -86,8 +97,9 @@ export function VideoCampaignBundle({
         <span className={`ci-video-link-status ci-video-link-status-${bundle.statusTone}`}>{bundle.statusSummary}</span>
         <div className="ci-video-total-metrics" aria-label="Métricas totais do vídeo">
           <span><strong>{bundle.totals.clicks}</strong><small>cliques</small></span>
-          <span><strong>{bundle.totals.sales}</strong><small>vendas</small></span>
-          <span><strong>{money(bundle.totals.netAfterFees)}</strong><small>líquido</small></span>
+          <span><strong>{bundle.totals.sales}</strong><small>vendas MAPA</small></span>
+          <span><strong>{bundle.totals.additionalSales}</strong><small>adicionais</small></span>
+          <span><strong>{money(bundle.totals.netAfterFees)}</strong><small>líquido originado</small></span>
         </div>
       </div>
     </header>
@@ -111,12 +123,27 @@ export function VideoCampaignBundle({
           {publicUrl && <button type="button" className="ci-copy-button" onClick={() => onCopy(publicKey, publicUrl)}>{copied === publicKey ? 'Copiado' : 'Copiar'}</button>}
           <div className="ci-position-metrics" aria-label={`Métricas de ${item.label}`}>
             <span><strong>{item.metrics.clicks}</strong><small>cliques</small></span>
-            <span><strong>{item.metrics.sales}</strong><small>vendas</small></span>
-            <span><strong>{money(item.metrics.netAfterFees)}</strong><small>líquido</small></span>
+            <span><strong>{item.metrics.sales}</strong><small>vendas MAPA</small></span>
+            <span><strong>{item.metrics.additionalSales}</strong><small>adicionais</small></span>
+            <span><strong>{money(item.metrics.netAfterFees)}</strong><small>líquido originado</small></span>
           </div>
         </section>;
       })}
     </div>
+
+    <div className="ci-video-history-control">
+      <button type="button" aria-expanded={historyExpanded} onClick={() => onHistoryToggle(bundle.videoId)}>
+        {historyExpanded ? 'Recolher histórico' : 'Ver histórico de cliques e compras'}
+      </button>
+    </div>
+
+    {historyExpanded && <TrackingHistoryExplorer
+      videos={historyVideos}
+      fixedVideoId={bundle.videoId}
+      compact
+      initialStart={historyStart}
+      initialEnd={historyEnd}
+    />}
 
     <details className="ci-bundle-details">
       <summary>Detalhes técnicos</summary>

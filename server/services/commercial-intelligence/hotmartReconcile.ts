@@ -76,6 +76,7 @@ export async function reconcileHotmart(input: ReconcileHotmartInput): Promise<Re
   let repairs = 0;
   const warningSet = new Set<string>();
   const failedStatuses: string[] = [];
+  const readStatuses: string[] = [];
 
   try {
     for (const status of RECONCILIATION_STATUSES) {
@@ -87,6 +88,7 @@ export async function reconcileHotmart(input: ReconcileHotmartInput): Promise<Re
         continue;
       }
 
+      readStatuses.push(status);
       rowsRead += rows.length;
       for (const row of rows) {
         try {
@@ -118,7 +120,17 @@ export async function reconcileHotmart(input: ReconcileHotmartInput): Promise<Re
     if (failedStatuses.length) {
       warningSet.add(`hotmart_partial_statuses:${failedStatuses.join(',')}`);
     }
-    const resultStatus = failedStatuses.length ? 'partial' : 'success';
+    if (!readStatuses.length) {
+      warningSet.add('hotmart_no_statuses_read');
+      throw new CommercialIntelligenceError(
+        'hotmart_no_statuses_read',
+        'A Hotmart não devolveu nenhum grupo de status; a reconciliação falhou.',
+        502,
+      );
+    }
+    const resultStatus = failedStatuses.length || warningSet.has('invalid_hotmart_row')
+      ? 'partial'
+      : 'success';
     const warnings = [...warningSet];
     await input.repository.finishSyncRun(runId, {
       status: resultStatus,

@@ -69,6 +69,7 @@ export function CommercialIntelligenceApp() {
     try {
       await runSync(source);
       await fetchQuality();
+      window.dispatchEvent(new CustomEvent('ci:data-updated', { detail: { source } }));
       setActionMessage(`Sincronização ${source === 'youtube' ? 'YouTube' : 'Hotmart'} concluída.`);
     } catch (error) {
       const message = error instanceof CommercialIntelligenceApiError && error.code === 'sync_in_progress'
@@ -105,10 +106,10 @@ export function CommercialIntelligenceApp() {
       {role === 'admin' && (
         <>
           <button type="button" disabled={Boolean(syncing)} onClick={() => triggerSync('youtube')}>
-            {syncing === 'youtube' ? 'Sincronizando...' : 'Sincronizar YouTube'}
+            {syncing === 'youtube' ? 'Sincronizando...' : 'Sincronizar dados do YouTube'}
           </button>
           <button type="button" disabled={Boolean(syncing)} onClick={() => triggerSync('hotmart')}>
-            {syncing === 'hotmart' ? 'Sincronizando...' : 'Reconciliar Hotmart'}
+            {syncing === 'hotmart' ? 'Buscando vendas...' : 'Buscar vendas na Hotmart agora'}
           </button>
         </>
       )}

@@ -5,9 +5,9 @@ const VIDEO_TITLE = 'O QUE REALMENTE É TDAH (Não é uma doença)';
 const PRODUCT_ID = '6966825';
 const PRODUCT_NAME = 'MAPA-7P · Mapeamento de Padrões Dopaminérgico';
 const HOTLINK = 'https://go.hotmart.com/K103806991N';
-const POSITIONS = ['description', 'pinned_comment', 'comment_reply'] as const;
-const POSITION_CODES = { description: 'd', pinned_comment: 'p', comment_reply: 'r' } as const;
-const PUBLIC_LINK = /^https:\/\/link\.brunosallesphd\.com\.br\/m7p\/0okxyzoxzuk-[dcr]$/;
+const POSITIONS = ['description', 'pinned_comment', 'comment_reply', 'video'] as const;
+const POSITION_CODES = { description: 'd', pinned_comment: 'p', comment_reply: 'r', video: 'v' } as const;
+const PUBLIC_LINK = /^https:\/\/link\.brunosallesphd\.com\.br\/m7p\/0okxyzoxzuk-[dcrv]$/;
 
 function requireEnv(name: string): string {
   const value = process.env[name]?.trim();
@@ -82,7 +82,7 @@ async function main() {
     const campaigns = listed.campaigns
       .filter((campaign: any) => campaign.video_id === VIDEO_ID && campaign.product_id === PRODUCT_ID && POSITIONS.includes(campaign.cta_position))
       .sort((left: any, right: any) => POSITIONS.indexOf(left.cta_position) - POSITIONS.indexOf(right.cta_position));
-    if (campaigns.length !== 3) throw new Error(`Expected 3 pilot campaigns, found ${campaigns.length}.`);
+    if (campaigns.length !== 4) throw new Error(`Expected 4 pilot campaigns, found ${campaigns.length}.`);
 
     const campaignIds = campaigns.map((campaign: any) => campaign.campaign_id);
     const beforeClicks = await admin.from('ci_click_events').select('*', { count: 'exact', head: true }).in('campaign_id', campaignIds);

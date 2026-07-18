@@ -21,10 +21,13 @@
     "ci:smoke:decisions": "tsx server/scripts/commercial-intelligence/visual-decision-smoke.ts",
     "ci:smoke:overview:production": "tsx server/scripts/commercial-intelligence/production-overview-smoke.ts",
     "ci:smoke:decisions:production": "tsx server/scripts/commercial-intelligence/production-decision-smoke.ts",
+    "ci:smoke:tracking:production": "tsx server/scripts/commercial-intelligence/production-tracking-control-smoke.ts",
     "ci:pilot:mapa7p": "tsx server/scripts/commercial-intelligence/create-mapa7p-pilot.ts",
     "ci:catalog:mapa7p": "tsx server/scripts/commercial-intelligence/create-mapa7p-catalog.ts",
+    "ci:audit:youtube-links": "tsx server/scripts/commercial-intelligence/audit-youtube-mapa7p-links.ts",
+    "ci:apply:youtube-links": "tsx server/scripts/commercial-intelligence/apply-youtube-mapa7p-links.ts",
     "ci:validate:decisions": "tsx server/scripts/commercial-intelligence/validate-decision-data.ts",
-    "ci:check:edge": "npx --yes deno check supabase/functions/ci-quality/index.ts supabase/functions/ci-overview/index.ts supabase/functions/ci-hotmart-webhook/index.ts supabase/functions/ci-sync-hotmart/index.ts supabase/functions/ci-sync-youtube/index.ts supabase/functions/ci-campaigns/index.ts supabase/functions/ci-attribution/index.ts supabase/functions/ci-association/index.ts supabase/functions/ci-campaign-redirect/index.ts",
+    "ci:check:edge": "npx --yes deno check supabase/functions/ci-quality/index.ts supabase/functions/ci-overview/index.ts supabase/functions/ci-hotmart-webhook/index.ts supabase/functions/ci-sync-hotmart/index.ts supabase/functions/ci-sync-youtube/index.ts supabase/functions/ci-campaigns/index.ts supabase/functions/ci-attribution/index.ts supabase/functions/ci-association/index.ts supabase/functions/ci-campaign-redirect/index.ts supabase/functions/ci-tracking-series/index.ts supabase/functions/ci-tracking-events/index.ts",
     "ci:check": "npm test && npm run typecheck && npm run ci:build:web && npm run ci:verify-bundle && npm run ci:check:edge",
     "ci:migrate": "tsx server/scripts/commercial-intelligence/apply-migration.ts",
     "ci:sync": "tsx server/scripts/commercial-intelligence/run-initial-sync.ts",
@@ -49,6 +52,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.4",
     "@types/express": "^5.0.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",

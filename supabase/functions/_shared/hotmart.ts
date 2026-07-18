@@ -63,6 +63,16 @@ function producerCommission(data: JsonRecord) {
   };
 }
 
+function trackingOrigin(purchase: JsonRecord) {
+  const origin = asRecord(purchase.origin);
+  const tracking = asRecord(purchase.tracking);
+  return {
+    src: asString(origin.src ?? tracking.src ?? tracking.source ?? purchase.src ?? purchase.source),
+    sck: asString(origin.sck ?? tracking.sck ?? purchase.sck),
+    xcod: asString(origin.xcod ?? tracking.xcod ?? purchase.xcod),
+  };
+}
+
 export async function normalizeHotmartPayload(
   payload: unknown,
   options: {
@@ -79,7 +89,7 @@ export async function normalizeHotmartPayload(
   const payment = asRecord(purchase.payment);
   const fee = asRecord(purchase.hotmart_fee);
   const price = asRecord(purchase.price);
-  const origin = asRecord(purchase.origin ?? purchase.tracking);
+  const origin = trackingOrigin(purchase);
   const offer = asRecord(purchase.offer ?? data.offer);
   const subscription = asRecord(data.subscription ?? purchase.subscription);
   const transactionId = asString(purchase.transaction ?? purchase.transaction_id);
@@ -122,18 +132,18 @@ export async function normalizeHotmartPayload(
       orderDate,
       approvedDate,
       grossValue: asNumber(price.value),
-      grossCurrency: asString(price.currency_code),
+      grossCurrency: asString(price.currency_code ?? price.currency_value),
       feeValue: asNumber(fee.total),
-      feeCurrency: asString(fee.currency_code),
+      feeCurrency: asString(fee.currency_code ?? fee.currency_value),
       producerNetValue: commission.value,
       producerNetCurrency: commission.currency,
       paymentType: asString(payment.type),
       offerCode: asString(offer.code),
     },
     origin: {
-      src: asString(origin.src ?? purchase.src),
-      sck: asString(origin.sck ?? purchase.sck),
-      xcod: asString(origin.xcod ?? purchase.xcod),
+      src: origin.src,
+      sck: origin.sck,
+      xcod: origin.xcod,
     },
     subscription: { id: subscriptionId, isRenewal },
   };
@@ -159,18 +169,18 @@ export async function normalizeHotmartPayload(
       order_date: orderDate,
       approved_date: approvedDate,
       gross_value: asNumber(price.value),
-      gross_currency: asString(price.currency_code),
+      gross_currency: asString(price.currency_code ?? price.currency_value),
       fee_value: asNumber(fee.total),
-      fee_currency: asString(fee.currency_code),
+      fee_currency: asString(fee.currency_code ?? fee.currency_value),
       producer_net_value: commission.value,
       producer_net_currency: commission.currency,
       payment_type: asString(payment.type),
       offer_code: asString(offer.code),
       subscription_id: subscriptionId,
       is_renewal: isRenewal,
-      tracking_src: asString(origin.src ?? purchase.src),
-      tracking_sck: asString(origin.sck ?? purchase.sck),
-      tracking_xcod: asString(origin.xcod ?? purchase.xcod),
+      tracking_src: origin.src,
+      tracking_sck: origin.sck,
+      tracking_xcod: origin.xcod,
       last_event_at: occurredAt,
       last_reconciled_at: options.source === 'reconciliation' ? now.toISOString() : null,
     },
@@ -291,12 +301,13 @@ export async function reconcileHotmart(input: {
   };
   await input.repository.createSyncRun(run);
   let rowsRead = 0; let rowsWritten = 0; let rowsSkipped = 0; let repairs = 0;
-  const warnings = new Set<string>(); const failedStatuses: string[] = [];
+  const warnings = new Set<string>(); const failedStatuses: string[] = []; const readStatuses: string[] = [];
   try {
     for (const status of RECONCILIATION_STATUSES) {
       let rows: unknown[];
       try { rows = await reader(range.startDate, range.endDate, status); }
       catch { failedStatuses.push(status); continue; }
+      readStatuses.push(status);
       rowsRead += rows.length;
       for (const row of rows) {
         try {
@@ -317,7 +328,15 @@ export async function reconcileHotmart(input: {
       }
     }
     if (failedStatuses.length) warnings.add(`hotmart_partial_statuses:${failedStatuses.join(',')}`);
-    const status = failedStatuses.length ? 'partial' : 'success';
+    if (!readStatuses.length) {
+      warnings.add('hotmart_no_statuses_read');
+      throw new CommercialIntelligenceError(
+        'hotmart_no_statuses_read',
+        'A Hotmart não devolveu nenhum grupo de status; a reconciliação falhou.',
+        502,
+      );
+    }
+    const status = failedStatuses.length || warnings.has('invalid_hotmart_row') ? 'partial' : 'success';
     await input.repository.finishSyncRun(runId, {
       status, source_watermark: range.endDate, rows_read: rowsRead, rows_written: rowsWritten,
       rows_skipped: rowsSkipped, repairs, warnings: [...warnings], finished_at: new Date().toISOString(),
@@ -326,7 +345,8 @@ export async function reconcileHotmart(input: {
   } catch (error) {
     await input.repository.finishSyncRun(runId, {
       status: 'failed', rows_read: rowsRead, rows_written: rowsWritten, rows_skipped: rowsSkipped,
-      repairs, warnings: [...warnings], error_code: 'hotmart_reconciliation_failed',
+      repairs, warnings: [...warnings],
+      error_code: error instanceof CommercialIntelligenceError ? error.code : 'hotmart_reconciliation_failed',
       error_message: 'Falha durante a reconciliação Hotmart.', finished_at: new Date().toISOString(),
     }).catch(() => undefined);
     throw error;

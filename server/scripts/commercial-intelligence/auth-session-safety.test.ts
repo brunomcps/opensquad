@@ -7,6 +7,7 @@ const OPERATIONAL_SCRIPTS = [
   'create-mapa7p-pilot.ts',
   'production-decision-smoke.ts',
   'production-overview-smoke.ts',
+  'production-tracking-control-smoke.ts',
 ];
 
 test('sessões administrativas temporárias encerram somente a sessão local', async () => {

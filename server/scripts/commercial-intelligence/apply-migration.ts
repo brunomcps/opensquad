@@ -9,6 +9,9 @@ const migrationPaths = [
   path.resolve(__dirname, '../../../supabase/migrations/20260713180000_ci_edge_app.sql'),
   path.resolve(__dirname, '../../../supabase/migrations/20260713230000_ci_campaign_tracking.sql'),
   path.resolve(__dirname, '../../../supabase/migrations/20260714193000_ci_campaign_comment_reply.sql'),
+  path.resolve(__dirname, '../../../supabase/migrations/20260715120000_ci_tracking_history.sql'),
+  path.resolve(__dirname, '../../../supabase/migrations/20260715130000_ci_hotmart_reconciliation_repair.sql'),
+  path.resolve(__dirname, '../../../supabase/migrations/20260717021000_ci_youtube_card_tracking.sql'),
 ];
 const apply = process.argv.includes('--apply');
 const verify = process.argv.includes('--verify');
@@ -21,6 +24,12 @@ function requireEnv(name: string): string {
 
 function assertMigrations(sqlByName: Array<{ name: string; sql: string }>): void {
   const combined = sqlByName.map(item => item.sql).join('\n');
+  if (!sqlByName.some(item => item.name === '20260715130000_ci_hotmart_reconciliation_repair.sql')) {
+    throw new Error('Unexpected migrations: Hotmart reconciliation repair is missing');
+  }
+  if (!sqlByName.some(item => item.name === '20260717021000_ci_youtube_card_tracking.sql')) {
+    throw new Error('Unexpected migrations: YouTube card tracking is missing');
+  }
   if (!combined.includes('create table if not exists public.ci_youtube_videos')) {
     throw new Error('Unexpected migrations: ci_youtube_videos is missing');
   }
@@ -38,6 +47,15 @@ function assertMigrations(sqlByName: Array<{ name: string; sql: string }>): void
   }
   if (!combined.includes('create table if not exists public.ci_click_events')) {
     throw new Error('Unexpected migrations: ci_click_events is missing');
+  }
+  if (!combined.includes('create table if not exists public.ci_operational_events')) {
+    throw new Error('Unexpected migrations: ci_operational_events is missing');
+  }
+  if (!combined.includes('create or replace function public.ci_tracking_series')) {
+    throw new Error('Unexpected migrations: ci_tracking_series is missing');
+  }
+  if (!combined.includes('create or replace function public.ci_tracking_events')) {
+    throw new Error('Unexpected migrations: ci_tracking_events is missing');
   }
   if (/\bdrop\s+(table|schema|function)\b/i.test(combined)) {
     throw new Error('Destructive DROP statement found');
@@ -88,6 +106,7 @@ async function main(): Promise<void> {
     'ci_sync_locks',
     'ci_campaigns',
     'ci_click_events',
+    'ci_operational_events',
   ] as const;
   const counts: Record<string, number | null> = {};
 

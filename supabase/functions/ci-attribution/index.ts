@@ -42,9 +42,9 @@ Deno.serve(async request => {
     const [campaigns, transactions, clicks] = await Promise.all([
       loadAll((from, to) => client.from('ci_campaigns').select('*').order('campaign_id').range(from, to)),
       loadAll((from, to) => client.from('ci_hotmart_transactions')
-        .select('transaction_id,status,approved_date,gross_value,gross_currency,fee_value,fee_currency,tracking_src,tracking_sck,tracking_xcod')
+        .select('transaction_id,product_id,offer_code,status,approved_date,gross_value,gross_currency,fee_value,fee_currency,producer_net_value,producer_net_currency,tracking_src,tracking_sck,tracking_xcod')
         .gte('approved_date', startIso).lte('approved_date', endIso).order('transaction_id').range(from, to)),
-      loadAll((from, to) => client.from('ci_click_events').select('campaign_id,is_bot')
+      loadAll((from, to) => client.from('ci_click_events').select('campaign_id,is_bot,traffic_classification')
         .gte('clicked_at', startIso).lte('clicked_at', endIso).order('click_id').range(from, to)),
     ]);
     const attribution = buildDirectAttributionReport({ campaigns, transactions, clicks, currency });

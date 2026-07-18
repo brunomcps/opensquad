@@ -3,9 +3,9 @@ import { createClient } from '@supabase/supabase-js';
 const PRODUCT_ID = '6966825';
 const PRODUCT_NAME = 'MAPA-7P · Mapeamento de Padrões Dopaminérgico';
 const HOTLINK = 'https://go.hotmart.com/K103806991N';
-const POSITIONS = ['description', 'pinned_comment', 'comment_reply'] as const;
-const TRACKING_POSITION_CODES = { description: 'd', pinned_comment: 'p', comment_reply: 'r' } as const;
-const PUBLIC_POSITION_CODES = { description: 'd', pinned_comment: 'c', comment_reply: 'r' } as const;
+const POSITIONS = ['description', 'pinned_comment', 'comment_reply', 'video'] as const;
+const TRACKING_POSITION_CODES = { description: 'd', pinned_comment: 'p', comment_reply: 'r', video: 'v' } as const;
+const PUBLIC_POSITION_CODES = { description: 'd', pinned_comment: 'c', comment_reply: 'r', video: 'v' } as const;
 const PUBLIC_BASE = 'https://link.brunosallesphd.com.br/m7p/';
 
 type Position = typeof POSITIONS[number];

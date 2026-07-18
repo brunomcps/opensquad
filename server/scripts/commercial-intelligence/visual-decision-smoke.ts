@@ -16,7 +16,9 @@ if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL é necessária para prepara
 const projectRef = new URL(supabaseUrl).hostname.split('.')[0];
 const storageKey = `sb-${projectRef}-auth-token`;
 const evidence = path.resolve(process.cwd(), 'docs/commercial-intelligence/evidence/campaign-tracking-association');
+const trackingEvidence = path.resolve(process.cwd(), 'docs/commercial-intelligence/evidence/tracking-control');
 fs.mkdirSync(evidence, { recursive: true });
+fs.mkdirSync(trackingEvidence, { recursive: true });
 
 const now = new Date('2026-07-13T18:00:00.000Z');
 const thumbnailDataUrl = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1280" height="720"%3E%3Crect width="1280" height="720" fill="%2323262b"/%3E%3Crect x="48" y="48" width="1184" height="624" rx="28" fill="%23f0ba3c"/%3E%3Ctext x="640" y="330" fill="%231a1a1a" font-family="Arial" font-size="72" font-weight="700" text-anchor="middle"%3EO QUE REALMENTE É TDAH%3C/text%3E%3Ctext x="640" y="415" fill="%231a1a1a" font-family="Arial" font-size="38" text-anchor="middle"%3EMiniatura controlada para smoke%3C/text%3E%3C/svg%3E';
@@ -89,6 +91,15 @@ const campaigns = {
       redirectUrl: 'https://link.brunosallesphd.com.br/m7p/0okxyzoxzuk-r', humanClicks: 12,
     },
     {
+      campaign_id: 'c5', tracking_code: 'yt|0OkxYzoxzUk|v|c4rd', slug: '0okxyzoxzuk-v', name: 'MAPA-7P piloto | 0OkxYzoxzUk | video', channel: 'youtube',
+      video_id: '0OkxYzoxzUk', product_id: '6966825', product_name: 'MAPA-7P · Mapeamento de Padrões Dopaminérgico', offer_code: 'vyqym0gx',
+      destination_url: 'https://go.hotmart.com/K103806991N', tracking_parameter: 'src', cta_label: 'Conheça o MAPA-7P', cta_position: 'video',
+      utm_source: 'youtube', utm_medium: 'organic', utm_campaign: 'mapa7p-youtube', utm_content: '0OkxYzoxzUk-video', utm_term: null,
+      status: 'active', starts_at: now.toISOString(), created_at: now.toISOString(), updated_at: now.toISOString(),
+      directUrl: 'https://go.hotmart.com/K103806991N?src=yt%7C0OkxYzoxzUk%7Cv%7Cc4rd&utm_source=youtube&utm_medium=organic&utm_campaign=mapa7p-youtube&utm_content=0OkxYzoxzUk-video',
+      redirectUrl: 'https://link.brunosallesphd.com.br/m7p/0okxyzoxzuk-v', humanClicks: 7,
+    },
+    {
       campaign_id: 'c4', tracking_code: 'yt|abc123|d|ffff', slug: 'fallback-d', name: 'Campanha com metadado incompleto', channel: 'youtube',
       video_id: 'abc123', product_id: '6966825', product_name: 'MAPA-7P · Mapeamento de Padrões Dopaminérgico', offer_code: null,
       destination_url: 'https://go.hotmart.com/K103806991N', tracking_parameter: 'src', cta_label: 'Conheça o MAPA-7P', cta_position: 'description',
@@ -103,15 +114,109 @@ const campaigns = {
 const attribution = {
   ok: true, member: { role: 'admin' }, attribution: {
     period: { start: '2026-01-14', end: '2026-07-13' }, currency: 'BRL',
-    totals: { approvedSales: 483, trackedOriginSales: 14, attributedSales: 12, unattributedSales: 471, ambiguousOriginSales: 0, attributedNetAfterFees: 1354.5, coverage: 0.0248, humanClicks: 131 },
+    totals: { approvedSales: 483, trackedOriginSales: 15, attributedSales: 13, additionalProductSales: 2, unattributedSales: 470, ambiguousOriginSales: 0, financialDataIncompleteSales: 0, additionalFinancialDataIncompleteSales: 0, attributedNetAfterFees: 1464.5, attributedAdditionalNetAfterFees: 67.5, attributedOrderNetAfterFees: 1532, coverage: 0.0269, humanClicks: 138 },
     campaigns: [
-      { campaignId: 'c1', campaignName: 'Descrição', trackingCode: 'yt|0OkxYzoxzUk|d|165e', videoId: '0OkxYzoxzUk', productName: 'MAPA-7P', ctaLabel: 'Conheça o MAPA-7P', ctaPosition: 'description', clicks: 82, sales: 8, netAfterFees: 932.5, clickToSale: 0.0976 },
-      { campaignId: 'c2', campaignName: 'Comentário', trackingCode: 'yt|0OkxYzoxzUk|p|174e', videoId: '0OkxYzoxzUk', productName: 'MAPA-7P', ctaLabel: 'Conheça o MAPA-7P', ctaPosition: 'pinned_comment', clicks: 34, sales: 2, netAfterFees: 202, clickToSale: 0.0588 },
-      { campaignId: 'c3', campaignName: 'Resposta', trackingCode: 'yt|0OkxYzoxzUk|r|5eff', videoId: '0OkxYzoxzUk', productName: 'MAPA-7P', ctaLabel: 'Conheça o MAPA-7P', ctaPosition: 'comment_reply', clicks: 12, sales: 1, netAfterFees: 110, clickToSale: 0.0833 },
-      { campaignId: 'c4', campaignName: 'Fallback', trackingCode: 'yt|abc123|d|ffff', videoId: 'abc123', productName: 'MAPA-7P', ctaLabel: 'Conheça o MAPA-7P', ctaPosition: 'description', clicks: 3, sales: 1, netAfterFees: 110, clickToSale: 0.3333 },
+      { campaignId: 'c1', campaignName: 'Descrição', trackingCode: 'yt|0OkxYzoxzUk|d|165e', videoId: '0OkxYzoxzUk', productName: 'MAPA-7P', ctaLabel: 'Conheça o MAPA-7P', ctaPosition: 'description', clicks: 82, sales: 8, additionalSales: 1, financialDataIncompleteSales: 0, additionalFinancialDataIncompleteSales: 0, netAfterFees: 932.5, additionalNetAfterFees: 28.5, orderNetAfterFees: 961, clickToSale: 0.0976 },
+      { campaignId: 'c2', campaignName: 'Comentário', trackingCode: 'yt|0OkxYzoxzUk|p|174e', videoId: '0OkxYzoxzUk', productName: 'MAPA-7P', ctaLabel: 'Conheça o MAPA-7P', ctaPosition: 'pinned_comment', clicks: 34, sales: 2, additionalSales: 0, financialDataIncompleteSales: 0, additionalFinancialDataIncompleteSales: 0, netAfterFees: 202, additionalNetAfterFees: 0, orderNetAfterFees: 202, clickToSale: 0.0588 },
+      { campaignId: 'c3', campaignName: 'Resposta', trackingCode: 'yt|0OkxYzoxzUk|r|5eff', videoId: '0OkxYzoxzUk', productName: 'MAPA-7P', ctaLabel: 'Conheça o MAPA-7P', ctaPosition: 'comment_reply', clicks: 12, sales: 1, additionalSales: 1, financialDataIncompleteSales: 0, additionalFinancialDataIncompleteSales: 0, netAfterFees: 110, additionalNetAfterFees: 39, orderNetAfterFees: 149, clickToSale: 0.0833 },
+      { campaignId: 'c5', campaignName: 'Card do vídeo', trackingCode: 'yt|0OkxYzoxzUk|v|c4rd', videoId: '0OkxYzoxzUk', productName: 'MAPA-7P', ctaLabel: 'Conheça o MAPA-7P', ctaPosition: 'video', clicks: 7, sales: 1, additionalSales: 0, financialDataIncompleteSales: 0, additionalFinancialDataIncompleteSales: 0, netAfterFees: 110, additionalNetAfterFees: 0, orderNetAfterFees: 110, clickToSale: 0.1429 },
+      { campaignId: 'c4', campaignName: 'Fallback', trackingCode: 'yt|abc123|d|ffff', videoId: 'abc123', productName: 'MAPA-7P', ctaLabel: 'Conheça o MAPA-7P', ctaPosition: 'description', clicks: 3, sales: 1, additionalSales: 0, financialDataIncompleteSales: 0, additionalFinancialDataIncompleteSales: 0, netAfterFees: 110, additionalNetAfterFees: 0, orderNetAfterFees: 110, clickToSale: 0.3333 },
     ],
     unknownCodes: [{ code: 'legado-externo', sales: 2, netAfterFees: 180 }],
   },
+};
+
+const trackingSeries = {
+  ok: true,
+  member: { role: 'admin' },
+  series: {
+    period: {
+      start: '2026-07-09', end: '2026-07-15',
+      startIso: '2026-07-09T03:00:00.000Z', endExclusiveIso: '2026-07-16T03:00:00.000Z',
+      timezone: 'America/Sao_Paulo',
+    },
+    granularity: 'day',
+    generatedAt: '2026-07-15T15:00:00.000Z',
+    filters: { videoId: null, position: 'all', traffic: 'qualified' },
+    freshness: {
+      consultedAt: '2026-07-15T15:00:00.000Z',
+      lastClickAt: '2026-07-15T14:59:42.000Z',
+      lastQualifiedClickAt: '2026-07-15T14:59:42.000Z',
+      lastHotmartWebhookAt: '2026-07-15T14:54:10.000Z',
+      lastHotmartReconciliationAt: '2026-07-15T09:42:31.000Z',
+      lastHotmartReconciliationAttemptAt: '2026-07-15T09:42:31.000Z',
+      lastHotmartReconciliationSuccessAt: '2026-07-15T09:42:31.000Z',
+      lastHotmartReconciliationPartialAt: null,
+      lastHotmartReconciliationStatus: 'success',
+      lastHotmartReconciliationWarnings: [],
+      lastHotmartReconciliationErrorCode: null,
+      lastHotmartReconciliationErrorMessage: null,
+      hotmartScheduleActive: true,
+      hotmartScheduleExpression: '40 9 * * *',
+      nextHotmartReconciliationAt: '2026-07-16T09:40:00.000Z',
+      latestOperationalFailureAt: null,
+      unresolvedOperationalFailures: 0,
+    },
+    totals: {
+      qualifiedClicks: 9, technicalClicks: 3, unknownClicks: 2, totalClicks: 14, selectedClicks: 9,
+      attributedSales: 2, additionalProducts: 1, unattributedSales: 1, ambiguousSales: 0,
+      financialDataIncomplete: 0, netAfterFees: 280.9,
+    },
+    buckets: [
+      {
+        bucketStart: '2026-07-13T03:00:00.000Z',
+        clicks: { description: 2, pinnedComment: 1, commentReply: 0, video: 0, other: 0, total: 3, unknown: 0 },
+        sales: { description: 0, pinnedComment: 0, commentReply: 0, video: 0, additional: 0, unattributed: 0, ambiguous: 0, total: 0 },
+        financialDataIncomplete: 0,
+        netAfterFees: 0,
+      },
+      {
+        bucketStart: '2026-07-14T03:00:00.000Z',
+        clicks: { description: 2, pinnedComment: 1, commentReply: 1, video: 1, other: 0, total: 5, unknown: 0 },
+        sales: { description: 1, pinnedComment: 0, commentReply: 0, video: 1, additional: 1, unattributed: 0, ambiguous: 0, total: 3 },
+        financialDataIncomplete: 0,
+        netAfterFees: 201.03,
+      },
+      {
+        bucketStart: '2026-07-15T03:00:00.000Z',
+        clicks: { description: 1, pinnedComment: 0, commentReply: 1, video: 0, other: 0, total: 2, unknown: 0 },
+        sales: { description: 0, pinnedComment: 1, commentReply: 0, video: 0, additional: 0, unattributed: 1, ambiguous: 0, total: 2 },
+        financialDataIncomplete: 0,
+        netAfterFees: 79.87,
+      },
+    ],
+  },
+};
+
+const trackingEvents = {
+  ok: true,
+  member: { role: 'admin' },
+  timezone: 'America/Sao_Paulo',
+  generatedAt: '2026-07-15T15:00:00.000Z',
+  events: [
+    {
+      eventId: 'click:101', type: 'click', occurredAt: '2026-07-15T14:59:42.000Z',
+      videoId: '0OkxYzoxzUk', videoTitle: 'O QUE REALMENTE É TDAH (Não é uma doença)', thumbnailUrl: thumbnailDataUrl,
+      ctaPosition: 'description', trackingCode: 'yt|0OkxYzoxzUk|d|165e', traffic: 'qualified', trafficGroup: 'qualified',
+      referrerHost: 'youtube.com', deviceType: 'mobile', technicalReason: null,
+      attribution: null, status: null, amount: null, currency: null, productName: 'MAPA-7P',
+    },
+    {
+      eventId: 'sale:HP-9001', type: 'sale', occurredAt: '2026-07-15T14:54:10.000Z',
+      videoId: '0OkxYzoxzUk', videoTitle: 'O QUE REALMENTE É TDAH (Não é uma doença)', thumbnailUrl: thumbnailDataUrl,
+      ctaPosition: 'pinned_comment', trackingCode: 'yt|0OkxYzoxzUk|p|174e', traffic: null, trafficGroup: null,
+      referrerHost: null, deviceType: null, technicalReason: null,
+      attribution: 'direct_primary', status: 'approved', amount: 127.03, currency: 'BRL', productName: 'MAPA-7P',
+    },
+    {
+      eventId: 'click:100', type: 'click', occurredAt: '2026-07-15T14:50:00.000Z',
+      videoId: '0OkxYzoxzUk', videoTitle: 'O QUE REALMENTE É TDAH (Não é uma doença)', thumbnailUrl: thumbnailDataUrl,
+      ctaPosition: 'pinned_comment', trackingCode: 'yt|0OkxYzoxzUk|p|174e', traffic: 'scanner', trafficGroup: 'technical',
+      referrerHost: null, deviceType: 'unknown', technicalReason: 'preview_or_security_scanner',
+      attribution: null, status: null, amount: null, currency: null, productName: 'MAPA-7P',
+    },
+  ],
+  nextCursor: null,
 };
 
 const association = {
@@ -126,7 +231,7 @@ const association = {
   },
 };
 
-async function prepare(page: Page) {
+async function prepare(page: Page, options: { trackingFailure?: boolean } = {}) {
   await page.addInitScript(([key, value]) => localStorage.setItem(key, JSON.stringify(value)), [storageKey, session] as const);
   await page.route('https://www.youtube-nocookie.com/embed/**', route => route.fulfill({
     status: 200,
@@ -137,23 +242,56 @@ async function prepare(page: Page) {
   await page.route('**/functions/v1/ci-overview*', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(overview) }));
   await page.route('**/functions/v1/ci-campaigns*', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(campaigns) }));
   await page.route('**/functions/v1/ci-attribution*', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(attribution) }));
+  await page.route('**/functions/v1/ci-tracking-series*', route => route.fulfill(options.trackingFailure
+    ? { status: 503, contentType: 'application/json', body: JSON.stringify({ error: { code: 'tracking_query_failed', message: 'Falha controlada pelo smoke.' } }) }
+    : { status: 200, contentType: 'application/json', body: JSON.stringify(trackingSeries) }));
+  await page.route('**/functions/v1/ci-tracking-events*', route => route.fulfill(options.trackingFailure
+    ? { status: 503, contentType: 'application/json', body: JSON.stringify({ error: { code: 'tracking_query_failed', message: 'Falha controlada pelo smoke.' } }) }
+    : { status: 200, contentType: 'application/json', body: JSON.stringify(trackingEvents) }));
   await page.route('**/functions/v1/ci-association*', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(association) }));
   await page.goto(baseUrl, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Rastreamento' }).waitFor();
 }
 
+async function validateTrackingFailureState(page: Page) {
+  await page.getByRole('button', { name: 'Rastreamento' }).click();
+  const explorer = page.locator('.ci-tracking-explorer').first();
+  await explorer.getByText('Histórico indisponível', { exact: true }).waitFor();
+  if (await explorer.locator('.ci-history-kpis').count()) throw new Error('Falha de API exibiu KPIs zerados como se fossem dados reais.');
+  if (await explorer.locator('.ci-history-charts').count()) throw new Error('Falha de API exibiu gráficos vazios como se fossem dados reais.');
+  if (await explorer.locator('.ci-event-ledger').count()) throw new Error('Falha de API exibiu livro-caixa vazio como se fosse dado real.');
+  const content = await explorer.textContent();
+  if (content?.includes('Ainda não registrado')) throw new Error('Falha de API foi confundida com fonte sem atualização registrada.');
+}
+
 async function capture(page: Page, prefix: string) {
   await page.getByRole('button', { name: 'Rastreamento' }).click();
   await page.getByText('Campanhas e links', { exact: true }).waitFor();
+  const trackingExplorer = page.locator('.ci-tracking-explorer').first();
+  await trackingExplorer.getByText('Como os dados chegam', { exact: true }).waitFor();
+  await trackingExplorer.getByText('Varredura automática diária às 06:40 BRT e também manual.', { exact: true }).waitFor();
+  await trackingExplorer.getByLabel('Tráfego').selectOption('all');
+  await trackingExplorer.locator('.ci-history-kpis article').first().locator('strong').getByText('14', { exact: true }).waitFor();
+  const dataFlowSteps = await trackingExplorer.locator('.ci-data-flow-guide li').count();
+  const trackingKpis = await trackingExplorer.locator('.ci-history-kpis article').count();
+  const freshnessFields = await trackingExplorer.locator('.ci-freshness-grid > span').count();
+  const ledgerRows = await trackingExplorer.locator('.ci-event-table-desktop tbody tr').count();
+  if (dataFlowSteps !== 4) throw new Error(`Fluxo de atualização exibiu ${dataFlowSteps} etapas, esperado 4.`);
+  if (trackingKpis !== 5) throw new Error(`Histórico exibiu ${trackingKpis} KPIs, esperado 5.`);
+  if (freshnessFields !== 8) throw new Error(`Atualidade exibiu ${freshnessFields} campos, esperado 8.`);
+  if (ledgerRows !== 3) throw new Error(`Livro-caixa exibiu ${ledgerRows} eventos, esperado 3.`);
+  await trackingExplorer.screenshot({ path: path.join(trackingEvidence, `${prefix}-tracking-control.png`) });
+  await trackingExplorer.locator('.ci-history-charts').screenshot({ path: path.join(trackingEvidence, `${prefix}-tracking-charts.png`) });
+  await trackingExplorer.locator('.ci-event-ledger').screenshot({ path: path.join(trackingEvidence, `${prefix}-tracking-ledger.png`) });
   await page.screenshot({ path: path.join(evidence, `${prefix}-tracking-top.png`) });
   const campaignPanel = page.locator('.ci-campaign-list').first();
   const bundleCount = await campaignPanel.locator('.ci-video-bundle').count();
   if (bundleCount !== 2) throw new Error(`Rastreamento exibiu ${bundleCount} conjuntos de vídeo, esperado 2.`);
   const firstBundle = campaignPanel.locator('[data-video-id="0OkxYzoxzUk"]');
   const positionCount = await firstBundle.locator('.ci-position-row').count();
-  if (positionCount !== 3) throw new Error(`Vídeo piloto exibiu ${positionCount} posições, esperado 3.`);
+  if (positionCount !== 4) throw new Error(`Vídeo piloto exibiu ${positionCount} posições, esperado 4.`);
   const positionCodes = await firstBundle.locator('.ci-position-code').allTextContents();
-  if (positionCodes.join(',') !== 'D,C,R') throw new Error(`Ordem das posições ficou ${positionCodes.join(',')}, esperado D,C,R.`);
+  if (positionCodes.join(',') !== 'D,C,R,V') throw new Error(`Ordem das posições ficou ${positionCodes.join(',')}, esperado D,C,R,V.`);
   if (await firstBundle.locator('iframe').count()) throw new Error('Player foi carregado antes da interação explícita.');
   const details = firstBundle.locator('.ci-bundle-details');
   if (await details.evaluate(element => (element as HTMLDetailsElement).open)) throw new Error('Detalhes técnicos começaram abertos.');
@@ -186,7 +324,7 @@ async function capture(page: Page, prefix: string) {
   await summary.press('Enter');
   if (!(await details.evaluate(element => (element as HTMLDetailsElement).open))) throw new Error('Detalhes técnicos não abriram pelo teclado.');
   const adminActions = await details.getByRole('button', { name: /campanha$/ }).count();
-  if (adminActions !== 3) throw new Error(`Detalhes exibiram ${adminActions} ações administrativas, esperado 3.`);
+  if (adminActions !== 4) throw new Error(`Detalhes exibiram ${adminActions} ações administrativas, esperado 4.`);
   await firstBundle.screenshot({ path: path.join(evidence, `${prefix}-tracking-details.png`) });
 
   await page.getByRole('button', { name: 'Vídeos × vendas' }).click();
@@ -206,6 +344,10 @@ async function capture(page: Page, prefix: string) {
     visibleTabs,
     bundleCount,
     positionCount,
+    dataFlowSteps,
+    trackingKpis,
+    freshnessFields,
+    ledgerRows,
     copiedLink,
     iframeSource,
   };
@@ -229,6 +371,12 @@ try {
   if (mobileResult.visibleTabs !== 4 || mobileResult.navHeight < 60) throw new Error('Navegação mobile não está totalmente visível.');
   await mobileContext.close();
 
+  const failureContext = await browser.newContext({ viewport: { width: 1024, height: 768 } });
+  const failurePage = await failureContext.newPage();
+  await prepare(failurePage, { trackingFailure: true });
+  await validateTrackingFailureState(failurePage);
+  await failureContext.close();
+
   console.log(JSON.stringify({
     ok: true,
     browser: path.basename(executablePath),
@@ -244,11 +392,22 @@ try {
       'mobile-390-tracking-top.png', 'mobile-390-tracking-campaigns.png',
       'mobile-390-tracking-player.png', 'mobile-390-tracking-details.png',
       'mobile-390-association-top.png', 'mobile-390-association-ranking.png',
+      'tracking-control/desktop-1366-tracking-control.png',
+      'tracking-control/desktop-1366-tracking-charts.png',
+      'tracking-control/desktop-1366-tracking-ledger.png',
+      'tracking-control/mobile-390-tracking-control.png',
+      'tracking-control/mobile-390-tracking-charts.png',
+      'tracking-control/mobile-390-tracking-ledger.png',
     ],
     directAttributionLabel: true,
     temporalAssociationLabel: true,
     videoBundles: desktopResult.bundleCount,
     pilotPositions: desktopResult.positionCount,
+    trackingDataFlowSteps: desktopResult.dataFlowSteps,
+    trackingKpis: desktopResult.trackingKpis,
+    trackingFreshnessFields: desktopResult.freshnessFields,
+    trackingLedgerRows: desktopResult.ledgerRows,
+    trackingFailureState: true,
     copiedLink: desktopResult.copiedLink,
     iframeSource: desktopResult.iframeSource,
     campaignLinks: 4,

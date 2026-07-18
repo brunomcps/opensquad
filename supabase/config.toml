@@ -26,3 +26,9 @@ verify_jwt = false
 
 [functions.ci-campaign-redirect]
 verify_jwt = false
+
+[functions.ci-tracking-series]
+verify_jwt = false
+
+[functions.ci-tracking-events]
+verify_jwt = false

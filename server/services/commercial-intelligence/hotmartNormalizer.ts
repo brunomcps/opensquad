@@ -72,6 +72,16 @@ function producerCommission(data: JsonRecord): { value: number | null; currency:
   };
 }
 
+function trackingOrigin(purchase: JsonRecord) {
+  const origin = asRecord(purchase.origin);
+  const tracking = asRecord(purchase.tracking);
+  return {
+    src: asString(origin.src ?? tracking.src ?? tracking.source ?? purchase.src ?? purchase.source),
+    sck: asString(origin.sck ?? tracking.sck ?? purchase.sck),
+    xcod: asString(origin.xcod ?? tracking.xcod ?? purchase.xcod),
+  };
+}
+
 function buyerKey(data: JsonRecord, secret?: string): { key: string | null; warning?: string } {
   if (!secret) return { key: null, warning: 'buyer_hmac_secret_missing' };
   const buyer = asRecord(data.buyer);
@@ -106,7 +116,7 @@ export function normalizeHotmartPayload(
   const payment = asRecord(purchase.payment);
   const fee = asRecord(purchase.hotmart_fee);
   const price = asRecord(purchase.price);
-  const origin = asRecord(purchase.origin ?? purchase.tracking);
+  const origin = trackingOrigin(purchase);
   const offer = asRecord(purchase.offer ?? data.offer);
   const subscription = asRecord(data.subscription ?? purchase.subscription);
 
@@ -139,9 +149,9 @@ export function normalizeHotmartPayload(
         .update(JSON.stringify([eventType, transactionId, rawStatus, occurredAt]))
         .digest('hex')}`;
   const grossValue = asNumber(price.value);
-  const grossCurrency = asString(price.currency_code);
+  const grossCurrency = asString(price.currency_code ?? price.currency_value);
   const feeValue = asNumber(fee.total);
-  const feeCurrency = asString(fee.currency_code);
+  const feeCurrency = asString(fee.currency_code ?? fee.currency_value);
   const productId = asString(product.id);
   const productName = asString(product.name) || 'Desconhecido';
   const paymentType = asString(payment.type);
@@ -149,9 +159,9 @@ export function normalizeHotmartPayload(
   const subscriptionId = asString(subscription.subscriber_code ?? subscription.id);
   const isRenewal = /RECURR|RENEW/i.test(eventType)
     || Boolean(subscriptionId && purchase.recurrence_number && Number(purchase.recurrence_number) > 1);
-  const trackingSrc = asString(origin.src ?? purchase.src);
-  const trackingSck = asString(origin.sck ?? purchase.sck);
-  const trackingXcod = asString(origin.xcod ?? purchase.xcod);
+  const trackingSrc = origin.src;
+  const trackingSck = origin.sck;
+  const trackingXcod = origin.xcod;
 
   const sanitizedPayload: Record<string, unknown> = {
     eventType,

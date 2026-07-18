@@ -24,7 +24,7 @@ const CAMPAIGN_FIELDS = [
 const MAPA7P_PRODUCT_ID = '6966825';
 
 function campaignSlug(productId: string, videoId: string, position: CtaPosition): string {
-  if (productId === MAPA7P_PRODUCT_ID && ['description', 'pinned_comment', 'comment_reply'].includes(position)) {
+  if (productId === MAPA7P_PRODUCT_ID && ['description', 'pinned_comment', 'comment_reply', 'video'].includes(position)) {
     return generateMapa7pCampaignSlug(videoId, position);
   }
   return generateCampaignSlug();

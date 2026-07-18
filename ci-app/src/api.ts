@@ -32,6 +32,113 @@ export interface AttributionDto extends DirectAttributionReport {
   period: { start: string; end: string };
 }
 
+export type TrackingGranularity = 'auto' | 'hour' | 'day' | 'week';
+export type TrackingTrafficFilter = 'qualified' | 'technical' | 'all';
+export type TrackingPositionFilter = 'all' | 'description' | 'pinned_comment' | 'comment_reply' | 'video';
+export type TrackingEventType = 'click' | 'sale';
+
+export interface TrackingHistoryFilters {
+  start: string;
+  end: string;
+  granularity: TrackingGranularity;
+  videoId?: string | null;
+  position: TrackingPositionFilter;
+  traffic: TrackingTrafficFilter;
+}
+
+export interface TrackingFreshnessDto {
+  consultedAt: string;
+  lastClickAt: string | null;
+  lastQualifiedClickAt?: string | null;
+  lastHotmartWebhookAt: string | null;
+  /** Legacy alias for the most recent fully successful reconciliation. */
+  lastHotmartReconciliationAt: string | null;
+  lastHotmartReconciliationAttemptAt?: string | null;
+  lastHotmartReconciliationSuccessAt?: string | null;
+  lastHotmartReconciliationPartialAt?: string | null;
+  lastHotmartReconciliationStatus?: 'running' | 'success' | 'partial' | 'failed' | null;
+  lastHotmartReconciliationWarnings?: string[];
+  lastHotmartReconciliationErrorCode?: string | null;
+  lastHotmartReconciliationErrorMessage?: string | null;
+  nextHotmartReconciliationAt: string | null;
+  latestOperationalFailureAt?: string | null;
+  unresolvedOperationalFailures?: number;
+  hotmartScheduleActive?: boolean;
+  hotmartScheduleExpression?: string | null;
+}
+
+export interface TrackingSeriesBucketDto {
+  bucketStart: string;
+  clicks: {
+    description: number;
+    pinnedComment: number;
+    commentReply: number;
+    video: number;
+    other: number;
+    total: number;
+    unknown: number;
+  };
+  sales: {
+    description: number;
+    pinnedComment: number;
+    commentReply: number;
+    video: number;
+    additional: number;
+    unattributed: number;
+    ambiguous: number;
+    total: number;
+  };
+  financialDataIncomplete: number;
+  netAfterFees: number;
+}
+
+export interface TrackingSeriesDto {
+  period: { start: string; end: string };
+  granularity: Exclude<TrackingGranularity, 'auto'>;
+  generatedAt: string;
+  freshness: TrackingFreshnessDto;
+  totals: {
+    qualifiedClicks: number;
+    technicalClicks: number;
+    unknownClicks: number;
+    totalClicks: number;
+    selectedClicks: number;
+    attributedSales: number;
+    additionalProducts: number;
+    unattributedSales: number;
+    ambiguousSales: number;
+    financialDataIncomplete: number;
+    netAfterFees: number;
+  };
+  buckets: TrackingSeriesBucketDto[];
+}
+
+export interface TrackingEventDto {
+  eventId: string;
+  type: TrackingEventType;
+  occurredAt: string;
+  videoId: string | null;
+  videoTitle: string | null;
+  thumbnailUrl: string | null;
+  ctaPosition: Exclude<TrackingPositionFilter, 'all'> | null;
+  trackingCode: string | null;
+  traffic: 'qualified' | 'bot' | 'scanner' | 'technical' | 'duplicate' | 'unknown' | null;
+  trafficGroup: 'qualified' | 'technical' | 'unknown' | null;
+  referrerHost: string | null;
+  deviceType: string | null;
+  technicalReason: string | null;
+  attribution: 'attributed' | 'unattributed' | 'ambiguous' | 'direct_primary' | 'direct_additional' | null;
+  status: string | null;
+  amount: number | null;
+  currency: string | null;
+  productName: string | null;
+}
+
+export interface TrackingEventsDto {
+  events: TrackingEventDto[];
+  nextCursor: string | null;
+}
+
 interface FunctionErrorPayload {
   error?: { code?: string; message?: string } | string;
 }
@@ -177,6 +284,37 @@ export async function getAttribution(filters: { start: string; end: string; curr
   const query = new URLSearchParams(filters);
   const result = await request<{ ok: true; attribution: AttributionDto }>(`ci-attribution?${query.toString()}`);
   return result.attribution;
+}
+
+function trackingQuery(filters: TrackingHistoryFilters): URLSearchParams {
+  const query = new URLSearchParams({
+    start: filters.start,
+    end: filters.end,
+    granularity: filters.granularity,
+    position: filters.position,
+    traffic: filters.traffic,
+  });
+  if (filters.videoId) query.set('videoId', filters.videoId);
+  return query;
+}
+
+export async function getTrackingSeries(filters: TrackingHistoryFilters): Promise<TrackingSeriesDto> {
+  const query = trackingQuery(filters);
+  const result = await request<{ ok: true; series: TrackingSeriesDto }>(`ci-tracking-series?${query.toString()}`);
+  return result.series;
+}
+
+export async function getTrackingEvents(
+  filters: TrackingHistoryFilters,
+  options: { cursor?: string | null; limit?: number } = {},
+): Promise<TrackingEventsDto> {
+  const query = trackingQuery(filters);
+  query.set('limit', String(options.limit || 50));
+  if (options.cursor) query.set('cursor', options.cursor);
+  const result = await request<{ ok: true; events: TrackingEventDto[]; nextCursor: string | null }>(
+    `ci-tracking-events?${query.toString()}`,
+  );
+  return { events: result.events, nextCursor: result.nextCursor };
 }
 
 export async function getAssociation(filters: {

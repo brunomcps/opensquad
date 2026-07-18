@@ -5,7 +5,7 @@ const POSITION_PRESENTATION: Record<CtaPosition, { code: string; label: string; 
   description: { code: 'D', label: 'Descrição', order: 0 },
   pinned_comment: { code: 'C', label: 'Comentário fixado', order: 1 },
   comment_reply: { code: 'R', label: 'Resposta a comentário', order: 2 },
-  video: { code: 'V', label: 'Dentro do vídeo', order: 3 },
+  video: { code: 'V', label: 'Card do vídeo', order: 3 },
   bio: { code: 'B', label: 'Bio', order: 4 },
   community: { code: 'CM', label: 'Comunidade', order: 5 },
   other: { code: 'O', label: 'Outro', order: 6 },
@@ -18,6 +18,7 @@ export interface CampaignPositionItem {
   metrics: {
     clicks: number;
     sales: number;
+    additionalSales: number;
     netAfterFees: number;
   };
 }
@@ -32,6 +33,7 @@ export interface VideoCampaignBundleModel {
   totals: {
     clicks: number;
     sales: number;
+    additionalSales: number;
     netAfterFees: number;
   };
   items: CampaignPositionItem[];
@@ -100,7 +102,8 @@ export function buildVideoCampaignBundles(
           metrics: {
             clicks: stats?.clicks || 0,
             sales: stats?.sales || 0,
-            netAfterFees: stats?.netAfterFees || 0,
+            additionalSales: stats?.additionalSales || 0,
+            netAfterFees: stats?.orderNetAfterFees || 0,
           },
         };
       });
@@ -108,8 +111,9 @@ export function buildVideoCampaignBundles(
     const totals = items.reduce((result, item) => ({
       clicks: result.clicks + item.metrics.clicks,
       sales: result.sales + item.metrics.sales,
+      additionalSales: result.additionalSales + item.metrics.additionalSales,
       netAfterFees: result.netAfterFees + item.metrics.netAfterFees,
-    }), { clicks: 0, sales: 0, netAfterFees: 0 });
+    }), { clicks: 0, sales: 0, additionalSales: 0, netAfterFees: 0 });
 
     return {
       videoId,

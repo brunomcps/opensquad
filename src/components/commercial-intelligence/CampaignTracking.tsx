@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import type { CampaignInput, CtaPosition, TrackingParameter } from '../../../supabase/functions/_shared/campaigns';
 import {
   createCampaign,
@@ -12,13 +12,15 @@ import {
   type MemberRole,
 } from '../../../ci-app/src/api';
 import { buildVideoCampaignBundles } from './campaignBundleModel';
+import { TrackingHistoryExplorer } from './TrackingHistoryExplorer';
+import { brtDateInput } from './trackingHistoryModel';
 import { VideoCampaignBundle } from './VideoCampaignBundle';
 
 const POSITION_LABELS: Record<CtaPosition, string> = {
   description: 'Descrição',
   pinned_comment: 'Comentário fixado',
   comment_reply: 'Resposta a comentário',
-  video: 'Dentro do vídeo',
+  video: 'Card do vídeo',
   bio: 'Bio',
   community: 'Comunidade',
   other: 'Outro',
@@ -27,11 +29,7 @@ const POSITION_LABELS: Record<CtaPosition, string> = {
 const MAPA7P_PRODUCT_ID = '6966825';
 const MAPA7P_PRODUCT_NAME = 'MAPA-7P · Mapeamento de Padrões Dopaminérgico';
 const MAPA7P_HOTLINK = 'https://go.hotmart.com/K103806991N';
-const MAPA7P_POSITIONS: CtaPosition[] = ['description', 'pinned_comment', 'comment_reply'];
-
-function dateInput(date = new Date()): string {
-  return date.toISOString().slice(0, 10);
-}
+const MAPA7P_POSITIONS: CtaPosition[] = ['description', 'pinned_comment', 'comment_reply', 'video'];
 
 function shift(date: string, days: number): string {
   return new Date(Date.parse(`${date}T12:00:00.000Z`) + days * 86_400_000).toISOString().slice(0, 10);
@@ -39,10 +37,6 @@ function shift(date: string, days: number): string {
 
 function money(value: number, currency = 'BRL'): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(value);
-}
-
-function percent(value: number | null): string {
-  return value === null ? '—' : `${(value * 100).toFixed(1)}%`;
 }
 
 function displayText(value: string): string {
@@ -156,6 +150,7 @@ function BulkCampaignGenerator({
   const missingPositions = (videoId: string) => MAPA7P_POSITIONS
     .filter(position => !existingKeys.has(`${videoId}|${position}`));
   const eligibleVideos = useMemo(() => catalog.videos
+    .filter(video => video.content_type !== 'short')
     .filter(video => MAPA7P_POSITIONS.some(position => !existingKeys.has(`${video.video_id}|${position}`))), [catalog.videos, existingKeys]);
   const filteredVideos = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase('pt-BR');
@@ -217,7 +212,7 @@ function BulkCampaignGenerator({
   return (
     <section className="ci-campaign-form ci-bulk-generator">
       <header>
-        <div><span>Gerador MAPA-7P</span><small>Cria descrição, comentário fixado e resposta para cada vídeo selecionado</small></div>
+        <div><span>Gerador MAPA-7P</span><small>Cria descrição, comentário fixado, resposta e card para cada vídeo não Short selecionado</small></div>
         <span className="ci-evidence-badge ci-evidence-direct">HotLink verificado</span>
       </header>
       <div className="ci-bulk-summary">
@@ -253,41 +248,65 @@ function BulkCampaignGenerator({
 }
 
 export function CampaignTracking({ role }: { role: MemberRole }) {
-  const today = dateInput();
-  const [start, setStart] = useState(shift(today, -180));
+  const today = brtDateInput();
+  const [start, setStart] = useState(shift(today, -6));
   const [end, setEnd] = useState(today);
   const [campaigns, setCampaigns] = useState<CampaignDto[]>([]);
   const [catalog, setCatalog] = useState<CampaignCatalog>({ videos: [], products: [] });
   const [attribution, setAttribution] = useState<AttributionDto | null>(null);
+  const [loadedAttributionKey, setLoadedAttributionKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [copyError, setCopyError] = useState<string | null>(null);
+  const [expandedVideoId, setExpandedVideoId] = useState<string | null>(null);
+  const loadSequence = useRef(0);
+  const attributionKey = `${start}|${end}`;
+  const visibleAttribution = loadedAttributionKey === attributionKey ? attribution : null;
 
   const campaignBundles = useMemo(() => buildVideoCampaignBundles(
     campaigns,
     catalog.videos,
-    attribution?.campaigns || [],
-  ), [campaigns, catalog.videos, attribution]);
+    visibleAttribution?.campaigns || [],
+  ), [campaigns, catalog.videos, visibleAttribution]);
 
-  async function load() {
+  const load = useCallback(async () => {
+    const requestId = ++loadSequence.current;
+    const requestAttributionKey = attributionKey;
     setLoading(true);
     setError(null);
     try {
-      const [campaignResult, attributionResult] = await Promise.all([
-        getCampaigns(), getAttribution({ start, end, currency: 'BRL' }),
-      ]);
+      const campaignResult = await getCampaigns();
+      if (requestId !== loadSequence.current) return;
+      const attributionResult = await getAttribution({ start, end, currency: 'BRL' });
+      if (requestId !== loadSequence.current) return;
       setCampaigns(campaignResult.campaigns);
       setCatalog(campaignResult.catalog);
       setAttribution(attributionResult);
+      setLoadedAttributionKey(requestAttributionKey);
     } catch (cause) {
+      if (requestId !== loadSequence.current) return;
       setError(cause instanceof Error ? cause.message : 'Não foi possível carregar o rastreamento.');
     } finally {
-      setLoading(false);
+      if (requestId === loadSequence.current) setLoading(false);
     }
-  }
+  }, [attributionKey, end, start]);
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load();
+    return () => { loadSequence.current += 1; };
+  }, [load]);
+
+  useEffect(() => {
+    const reloadAfterSync = () => { void load(); };
+    window.addEventListener('ci:data-updated', reloadAfterSync);
+    return () => window.removeEventListener('ci:data-updated', reloadAfterSync);
+  }, [load]);
+
+  const handlePeriodChange = useCallback((nextStart: string, nextEnd: string) => {
+    setStart(nextStart);
+    setEnd(nextEnd);
+  }, []);
 
   async function copy(label: string, value: string) {
     setCopyError(null);
@@ -311,7 +330,7 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
     }
   }
 
-  if (loading && !attribution) return <div className="ci-overview-state"><span className="loading-pulse">Carregando rastreamento...</span></div>;
+  if (loading && !visibleAttribution) return <div className="ci-overview-state"><span className="loading-pulse">Carregando rastreamento...</span></div>;
 
   return (
     <div className="ci-decision-view">
@@ -325,25 +344,15 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
         <CampaignForm catalog={catalog} onCreated={load} />
       </>}
 
-      <section className="ci-overview-toolbar">
-        <div><strong>Cobertura da atribuição</strong><span>Filtro aplicado às vendas e aos cliques</span></div>
-        <div className="ci-filter-groups">
-          <label className="ci-select-label">De<input type="date" value={start} onChange={event => setStart(event.target.value)} /></label>
-          <label className="ci-select-label">Até<input type="date" value={end} onChange={event => setEnd(event.target.value)} /></label>
-          <button className="ci-refresh" type="button" onClick={load}>Atualizar</button>
-        </div>
-      </section>
+      <TrackingHistoryExplorer
+        videos={catalog.videos}
+        onPanelRefresh={load}
+        onPeriodChange={handlePeriodChange}
+      />
 
       {error && <div className="ci-warning-box" role="alert"><strong>Rastreamento indisponível</strong><span>{error}</span></div>}
 
-      {attribution && <>
-        <section className="ci-kpi-grid ci-kpi-grid-four">
-          <article className="ci-kpi-card ci-kpi-primary"><span>Cobertura direta</span><strong>{percent(attribution.totals.coverage)}</strong><small>{attribution.totals.attributedSales} de {attribution.totals.approvedSales} vendas aprovadas</small></article>
-          <article className="ci-kpi-card"><span>Cliques humanos</span><strong>{attribution.totals.humanClicks}</strong><small>Pré-visualizações e bots ficam fora</small></article>
-          <article className="ci-kpi-card"><span>Vendas atribuídas</span><strong>{attribution.totals.attributedSales}</strong><small>{attribution.totals.unattributedSales} sem crédito · {attribution.totals.ambiguousOriginSales} com origem conflitante</small></article>
-          <article className="ci-kpi-card"><span>Líquido atribuído</span><strong>{money(attribution.totals.attributedNetAfterFees)}</strong><small>Bruto menos taxas das vendas atribuídas</small></article>
-        </section>
-
+      {visibleAttribution && <>
         {!campaigns.length && <section className="ci-empty-action"><strong>Ainda não existe campanha rastreável</strong><span>Crie a primeira campanha acima. As transações históricas que chegaram sem código de origem permanecem sem atribuição.</span></section>}
 
         {!!campaigns.length && <section className="ci-panel">
@@ -357,11 +366,16 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
               copyError={copyError}
               onCopy={copy}
               onToggle={toggle}
+              historyExpanded={expandedVideoId === bundle.videoId}
+              historyVideos={catalog.videos}
+              historyStart={start}
+              historyEnd={end}
+              onHistoryToggle={videoId => setExpandedVideoId(current => current === videoId ? null : videoId)}
             />)}
           </div>
         </section>}
 
-        {!!attribution.unknownCodes.length && <section className="ci-warning-box"><strong>Códigos de origem ainda não cadastrados</strong>{attribution.unknownCodes.map(item => <span key={item.code}><code>{item.code}</code> · {item.sales} venda(s) · {money(item.netAfterFees)}</span>)}</section>}
+        {!!visibleAttribution.unknownCodes.length && <section className="ci-warning-box"><strong>Códigos de origem ainda não cadastrados</strong>{visibleAttribution.unknownCodes.map(item => <span key={item.code}><code>{item.code}</code> · {item.sales} venda(s) · {money(item.netAfterFees)}</span>)}</section>}
       </>}
     </div>
   );

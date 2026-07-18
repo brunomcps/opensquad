@@ -1,17 +1,47 @@
-import { buildDestinationUrl, classifyDevice, probableBot, referrerHost } from '../_shared/campaigns.ts';
+import { buildDestinationUrl, classifyDevice, classifyTraffic, referrerHost, type TrafficClassificationResult } from '../_shared/campaigns.ts';
+import { claimClickIngestNonce, verifyClickIngestRequest } from '../_shared/clickIngest.ts';
 import { serviceClient } from '../_shared/client.ts';
+import { CommercialIntelligenceError } from '../_shared/errors.ts';
 import { errorResponse, json, preflight } from '../_shared/http.ts';
+
+function validFingerprint(value: string | null): string | null {
+  const normalized = value?.trim().toLowerCase() || '';
+  return /^[a-f0-9]{64}$/.test(normalized) ? normalized : null;
+}
+
+async function recordOperationalFailure(client: any, campaignId: string, code: string | null) {
+  const operational = await client.from('ci_operational_events').insert({
+    event_type: 'click_persistence_failed',
+    severity: 'error',
+    details: { campaign_id: campaignId, error_code: code || 'unknown' },
+  });
+  if (operational.error) {
+    console.error(JSON.stringify({ event: 'click_persistence_failed', campaignId, operationalEventPersisted: false }));
+  }
+}
 
 Deno.serve(async request => {
   const options = preflight(request);
   if (options) return options;
   if (request.method !== 'GET' && request.method !== 'HEAD') return json(request, { ok: false, error: { code: 'method_not_allowed', message: 'Método não permitido.' } }, 405);
   try {
-    const slug = new URL(request.url).searchParams.get('slug')?.trim();
+    const requestUrl = new URL(request.url);
+    const slug = requestUrl.searchParams.get('slug')?.trim();
     if (!slug || !/^[a-z0-9-]{6,48}$/.test(slug)) {
       return json(request, { ok: false, error: { code: 'campaign_not_found', message: 'Link indisponível.' } }, 404);
     }
+    if (requestUrl.searchParams.has('ci_test')) {
+      throw new CommercialIntelligenceError('click_ingest_unauthorized', 'Origem do clique não autorizada.', 401);
+    }
+    const ciTest = false;
+    const ingestClaim = await verifyClickIngestRequest(
+      request,
+      Deno.env.get('CLICK_INGEST_SECRET'),
+      slug,
+      ciTest,
+    );
     const client = serviceClient();
+    await claimClickIngestNonce(client, ingestClaim);
     const result = await client.from('ci_campaigns').select('*')
       .eq('slug', slug).eq('status', 'active').lte('starts_at', new Date().toISOString()).maybeSingle();
     if (result.error || !result.data) {
@@ -19,17 +49,43 @@ Deno.serve(async request => {
     }
     const destination = buildDestinationUrl(result.data);
     const userAgent = request.headers.get('user-agent');
+    const fingerprintHash = request.method === 'GET'
+      ? validFingerprint(request.headers.get('x-ci-fingerprint'))
+      : null;
+    if (request.method === 'GET' && !fingerprintHash) {
+      throw new CommercialIntelligenceError(
+        'click_fingerprint_missing',
+        'Não foi possível validar o clique.',
+        401,
+      );
+    }
     if (request.method === 'GET') {
       try {
-        const click = await client.from('ci_click_events').insert({
-          campaign_id: result.data.campaign_id,
-          referrer_host: referrerHost(request.headers.get('referer')),
-          device_type: classifyDevice(userAgent),
-          is_bot: probableBot(userAgent),
+        const traffic: TrafficClassificationResult = classifyTraffic({
+          userAgent,
+          accept: request.headers.get('accept'),
+          secFetchMode: request.headers.get('sec-fetch-mode'),
+          secFetchDest: request.headers.get('sec-fetch-dest'),
+          technical: ciTest,
         });
-        if (click.error) console.error('[commercial-intelligence] click_persistence_failed');
-      } catch {
-        console.error('[commercial-intelligence] click_persistence_failed');
+        const click = await client.rpc('ci_record_campaign_click', {
+          p_campaign_id: result.data.campaign_id,
+          p_referrer_host: referrerHost(request.headers.get('referer')),
+          p_device_type: classifyDevice(userAgent),
+          p_is_bot: traffic.isBot,
+          p_traffic_classification: traffic.classification,
+          p_exclusion_reason: traffic.exclusionReason,
+          p_fingerprint_hash: fingerprintHash,
+        });
+        if (click.error || !Array.isArray(click.data) || click.data.length !== 1) {
+          await recordOperationalFailure(
+            client,
+            result.data.campaign_id,
+            click.error?.code || 'empty_click_rpc_result',
+          );
+        }
+      } catch (cause) {
+        await recordOperationalFailure(client, result.data.campaign_id, cause instanceof Error ? cause.name : null).catch(() => undefined);
       }
     }
     return new Response(null, {
