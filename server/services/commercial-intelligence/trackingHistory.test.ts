@@ -93,6 +93,7 @@ test('cursor preserva timestamp e desempate UTF-8 sem expor formato SQL', () => 
 test('disponibilidade do gráfico depende dos valores e reconhece adicional e ambígua', () => {
   const zero = {
     bucketStart: '2026-07-15T03:00:00.000Z',
+    clicks: 0, sales: 0, revenue: 0,
     clickDescription: 0, clickPinned: 0, clickReply: 0, clickVideo: 0, clickOther: 0,
     saleDescription: 0, salePinned: 0, saleReply: 0, saleVideo: 0,
     saleAdditional: 0, saleUnattributed: 0, saleAmbiguous: 0,

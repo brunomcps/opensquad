@@ -52,13 +52,14 @@ function campaignDto(campaign: CampaignRecord, clicks = 0) {
 }
 
 async function listCampaigns(client: any) {
-  const [campaignResult, videoResult, productResult, clickResult] = await Promise.all([
+  const [campaignResult, videoResult, productResult, clickResult, statsResult] = await Promise.all([
     client.from('ci_campaigns').select(CAMPAIGN_FIELDS).order('created_at', { ascending: false }),
     client.from('ci_youtube_videos').select('video_id,title,published_at,content_type,thumbnail_url').order('published_at', { ascending: false }),
     client.from('ci_hotmart_transactions').select('product_id,product_name,offer_code').not('product_id', 'is', null),
     client.from('ci_click_events').select('campaign_id,is_bot'),
+    client.from('ci_youtube_video_stats').select('video_id,views,likes,comments'),
   ]);
-  if (campaignResult.error || videoResult.error || productResult.error || clickResult.error) databaseFailure();
+  if (campaignResult.error || videoResult.error || productResult.error || clickResult.error || statsResult.error) databaseFailure();
 
   const clickCounts = new Map<string, number>();
   for (const click of clickResult.data || []) {
@@ -71,11 +72,22 @@ async function listCampaigns(client: any) {
     if (row.offer_code) product.offerCodes.add(row.offer_code);
     products.set(row.product_id, product);
   }
+  const videoStats = new Map<string, { views: number; likes: number; comments: number }>();
+  for (const row of statsResult.data || []) {
+    videoStats.set(row.video_id, {
+      views: Number(row.views) || 0,
+      likes: Number(row.likes) || 0,
+      comments: Number(row.comments) || 0,
+    });
+  }
 
   return {
     campaigns: (campaignResult.data || []).map((campaign: CampaignRecord) => campaignDto(campaign, clickCounts.get(campaign.campaign_id) || 0)),
     catalog: {
-      videos: videoResult.data || [],
+      videos: (videoResult.data || []).map((video: Record<string, unknown>) => ({
+        ...video,
+        stats: videoStats.get(String(video.video_id)) || { views: 0, likes: 0, comments: 0 },
+      })),
       products: [...products.values()].map(product => ({ ...product, offerCodes: [...product.offerCodes].sort() }))
         .sort((left, right) => left.productName.localeCompare(right.productName, 'pt-BR')),
     },

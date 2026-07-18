@@ -1,5 +1,8 @@
 export interface TrackingChartDatum {
   bucketStart: string;
+  clicks: number;
+  sales: number;
+  revenue: number;
   clickDescription: number;
   clickPinned: number;
   clickReply: number;
@@ -65,6 +68,7 @@ export function trackingFiltersKey(filters: {
   videoId?: string | null;
   position: string;
   traffic: string;
+  products?: string[] | null;
 }): string {
   return [
     filters.start,
@@ -73,6 +77,7 @@ export function trackingFiltersKey(filters: {
     filters.videoId || '',
     filters.position,
     filters.traffic,
+    (filters.products || []).slice().sort().join(','),
   ].join('|');
 }
 

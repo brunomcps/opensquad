@@ -84,6 +84,14 @@ export function VideoCampaignBundle({
   onHistoryToggle: (videoId: string) => void;
 }) {
   const title = displayText(bundle.title);
+  const catalogVideo = historyVideos.find(video => video.video_id === bundle.videoId);
+  const stats = catalogVideo?.stats;
+  const publishedLabel = catalogVideo?.published_at
+    ? new Date(catalogVideo.published_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    : null;
+  const compactNumber = (value: number) => new Intl.NumberFormat('pt-BR', {
+    notation: 'compact', maximumFractionDigits: 1,
+  }).format(value);
 
   return <article className="ci-video-bundle" data-video-id={bundle.videoId}>
     <header className="ci-video-bundle-header">
@@ -93,6 +101,11 @@ export function VideoCampaignBundle({
           <span className="ci-video-eyebrow">Vídeo do YouTube</span>
           <h3>{title}</h3>
           <code>{bundle.videoId}</code>
+          {(stats || publishedLabel) && <small className="ci-video-audience">
+            {stats ? `${compactNumber(stats.views)} views · ${compactNumber(stats.likes)} likes · ${compactNumber(stats.comments)} comentários` : ''}
+            {stats && publishedLabel ? ' · ' : ''}
+            {publishedLabel ? `publicado ${publishedLabel}` : ''}
+          </small>}
         </div>
         <span className={`ci-video-link-status ci-video-link-status-${bundle.statusTone}`}>{bundle.statusSummary}</span>
         <div className="ci-video-total-metrics" aria-label="Métricas totais do vídeo">

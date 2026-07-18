@@ -19,6 +19,7 @@ export interface TrackingFilters {
   videoId: string | null;
   position: TrackingPosition | null;
   traffic: TrackingTraffic;
+  products: string[] | null;
 }
 
 export interface TrackingCursor {
@@ -127,6 +128,16 @@ function optionalVideoId(value: string | null): string | null {
   return value;
 }
 
+function optionalProducts(value: string | null): string[] | null {
+  if (!value || value === 'all') return null;
+  const products = [...new Set(value.split(',').map(item => item.trim()).filter(Boolean))];
+  if (!products.length) return null;
+  if (products.length > 20 || products.some(product => !/^[A-Za-z0-9_-]{1,40}$/.test(product))) {
+    throw new CommercialIntelligenceError('invalid_tracking_filter', 'Produto inválido.', 400);
+  }
+  return products;
+}
+
 export function parseTrackingFilters(url: URL, now = new Date()): TrackingFilters {
   const today = businessDate(now);
   const rawStart = url.searchParams.get('start') || shiftDate(today, -29);
@@ -160,6 +171,7 @@ export function parseTrackingFilters(url: URL, now = new Date()): TrackingFilter
     videoId: optionalVideoId(url.searchParams.get('videoId') || url.searchParams.get('video')),
     position,
     traffic: enumValue(url.searchParams.get('traffic'), TRACKING_TRAFFIC, 'all'),
+    products: optionalProducts(url.searchParams.get('products') || url.searchParams.get('product')),
   };
 }
 

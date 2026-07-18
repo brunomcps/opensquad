@@ -195,7 +195,7 @@ async function validateTrackingViewport(page: Page, width: number, height: numbe
     dataFlowSteps: await tracking.locator('.ci-data-flow-guide li').count(),
     kpis: await tracking.locator('.ci-history-kpis > article').count(),
     freshnessFields: await tracking.locator('.ci-freshness-grid > span').count(),
-    chartPanels: await tracking.locator('.ci-history-charts > article').count(),
+    chartPanels: await tracking.locator('.ci-unified-chart-panel').count(),
     hasEventLedger: await tracking.locator('.ci-event-ledger').isVisible(),
     has0640ScheduleText: await tracking.locator('.ci-data-flow-guide').getByText(/06:40/).isVisible(),
     screenshot: path.join(evidenceDirectory, `${runStamp}-${width}x${height}-tracking.png`),

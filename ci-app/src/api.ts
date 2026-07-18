@@ -13,6 +13,12 @@ export type CampaignDto = Omit<CampaignRecord, 'created_by'> & {
   humanClicks: number;
 };
 
+export interface CatalogVideoStats {
+  views: number;
+  likes: number;
+  comments: number;
+}
+
 export interface CampaignCatalog {
   videos: Array<{
     video_id: string;
@@ -20,6 +26,7 @@ export interface CampaignCatalog {
     published_at: string | null;
     content_type: string;
     thumbnail_url: string | null;
+    stats?: CatalogVideoStats;
   }>;
   products: Array<{
     productId: string;
@@ -44,6 +51,7 @@ export interface TrackingHistoryFilters {
   videoId?: string | null;
   position: TrackingPositionFilter;
   traffic: TrackingTrafficFilter;
+  products?: string[] | null;
 }
 
 export interface TrackingFreshnessDto {
@@ -295,6 +303,7 @@ function trackingQuery(filters: TrackingHistoryFilters): URLSearchParams {
     traffic: filters.traffic,
   });
   if (filters.videoId) query.set('videoId', filters.videoId);
+  if (filters.products?.length) query.set('products', filters.products.join(','));
   return query;
 }
 

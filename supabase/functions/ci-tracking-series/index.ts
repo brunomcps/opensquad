@@ -119,6 +119,7 @@ Deno.serve(async request => {
         // Totals must always preserve raw, qualified, technical and unknown traffic.
         // The selected traffic filter is applied only to the plotted buckets below.
         p_traffic: 'all',
+        p_products: filters.products,
       }),
       client.rpc('ci_tracking_freshness').maybeSingle(),
     ]);
@@ -215,6 +216,7 @@ Deno.serve(async request => {
           videoId: filters.videoId,
           position: filters.position || 'all',
           traffic: filters.traffic,
+          products: filters.products || 'all',
         },
         freshness: freshness(freshnessResult.data as Record<string, any> | null, generatedAt),
         totals: {

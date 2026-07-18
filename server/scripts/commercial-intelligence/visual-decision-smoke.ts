@@ -258,7 +258,7 @@ async function validateTrackingFailureState(page: Page) {
   const explorer = page.locator('.ci-tracking-explorer').first();
   await explorer.getByText('Histórico indisponível', { exact: true }).waitFor();
   if (await explorer.locator('.ci-history-kpis').count()) throw new Error('Falha de API exibiu KPIs zerados como se fossem dados reais.');
-  if (await explorer.locator('.ci-history-charts').count()) throw new Error('Falha de API exibiu gráficos vazios como se fossem dados reais.');
+  if (await explorer.locator('.ci-unified-chart-panel').count()) throw new Error('Falha de API exibiu gráficos vazios como se fossem dados reais.');
   if (await explorer.locator('.ci-event-ledger').count()) throw new Error('Falha de API exibiu livro-caixa vazio como se fosse dado real.');
   const content = await explorer.textContent();
   if (content?.includes('Ainda não registrado')) throw new Error('Falha de API foi confundida com fonte sem atualização registrada.');
@@ -281,7 +281,7 @@ async function capture(page: Page, prefix: string) {
   if (freshnessFields !== 8) throw new Error(`Atualidade exibiu ${freshnessFields} campos, esperado 8.`);
   if (ledgerRows !== 3) throw new Error(`Livro-caixa exibiu ${ledgerRows} eventos, esperado 3.`);
   await trackingExplorer.screenshot({ path: path.join(trackingEvidence, `${prefix}-tracking-control.png`) });
-  await trackingExplorer.locator('.ci-history-charts').screenshot({ path: path.join(trackingEvidence, `${prefix}-tracking-charts.png`) });
+  await trackingExplorer.locator('.ci-unified-chart-panel').screenshot({ path: path.join(trackingEvidence, `${prefix}-tracking-charts.png`) });
   await trackingExplorer.locator('.ci-event-ledger').screenshot({ path: path.join(trackingEvidence, `${prefix}-tracking-ledger.png`) });
   await page.screenshot({ path: path.join(evidence, `${prefix}-tracking-top.png`) });
   const campaignPanel = page.locator('.ci-campaign-list').first();

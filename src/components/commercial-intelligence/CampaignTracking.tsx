@@ -27,6 +27,8 @@ const POSITION_LABELS: Record<CtaPosition, string> = {
 };
 
 const MAPA7P_PRODUCT_ID = '6966825';
+
+type BundleSortKey = 'sales' | 'clicks' | 'net' | 'views' | 'likes' | 'comments' | 'recent' | 'oldest';
 const MAPA7P_PRODUCT_NAME = 'MAPA-7P · Mapeamento de Padrões Dopaminérgico';
 const MAPA7P_HOTLINK = 'https://go.hotmart.com/K103806991N';
 const MAPA7P_POSITIONS: CtaPosition[] = ['description', 'pinned_comment', 'comment_reply', 'video'];
@@ -270,6 +272,33 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
     visibleAttribution?.campaigns || [],
   ), [campaigns, catalog.videos, visibleAttribution]);
 
+  const [bundleQuery, setBundleQuery] = useState('');
+  const [bundleSort, setBundleSort] = useState<BundleSortKey>('sales');
+  const visibleBundles = useMemo(() => {
+    const catalogByVideo = new Map(catalog.videos.map(video => [video.video_id, video]));
+    const normalized = bundleQuery.trim().toLocaleLowerCase('pt-BR');
+    const filtered = normalized
+      ? campaignBundles.filter(bundle => displayText(bundle.title).toLocaleLowerCase('pt-BR').includes(normalized)
+        || bundle.videoId.toLocaleLowerCase('pt-BR').includes(normalized))
+      : campaignBundles;
+    const stat = (videoId: string, key: 'views' | 'likes' | 'comments') => catalogByVideo.get(videoId)?.stats?.[key] || 0;
+    const published = (videoId: string) => Date.parse(catalogByVideo.get(videoId)?.published_at || '') || 0;
+    const sorted = [...filtered];
+    sorted.sort((left, right) => {
+      switch (bundleSort) {
+        case 'clicks': return right.totals.clicks - left.totals.clicks;
+        case 'net': return right.totals.netAfterFees - left.totals.netAfterFees;
+        case 'views': return stat(right.videoId, 'views') - stat(left.videoId, 'views');
+        case 'likes': return stat(right.videoId, 'likes') - stat(left.videoId, 'likes');
+        case 'comments': return stat(right.videoId, 'comments') - stat(left.videoId, 'comments');
+        case 'recent': return published(right.videoId) - published(left.videoId);
+        case 'oldest': return published(left.videoId) - published(right.videoId);
+        default: return right.totals.sales - left.totals.sales;
+      }
+    });
+    return sorted;
+  }, [bundleQuery, bundleSort, campaignBundles, catalog.videos]);
+
   const load = useCallback(async () => {
     const requestId = ++loadSequence.current;
     const requestAttributionKey = attributionKey;
@@ -346,6 +375,7 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
 
       <TrackingHistoryExplorer
         videos={catalog.videos}
+        products={catalog.products}
         onPanelRefresh={load}
         onPeriodChange={handlePeriodChange}
       />
@@ -356,9 +386,34 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
         {!campaigns.length && <section className="ci-empty-action"><strong>Ainda não existe campanha rastreável</strong><span>Crie a primeira campanha acima. As transações históricas que chegaram sem código de origem permanecem sem atribuição.</span></section>}
 
         {!!campaigns.length && <section className="ci-panel">
-          <header><div><span>Campanhas e links</span><small>Use o link rastreável para medir clique; o link direto preserva a origem Hotmart como fallback</small></div></header>
+          <header>
+            <div><span>Campanhas e links</span><small>Use o link rastreável para medir clique; o link direto preserva a origem Hotmart como fallback</small></div>
+            <div className="ci-bundle-controls">
+              <label className="ci-select-label">Buscar
+                <input
+                  type="search"
+                  value={bundleQuery}
+                  placeholder="Título ou ID do vídeo"
+                  onChange={event => setBundleQuery(event.target.value)}
+                />
+              </label>
+              <label className="ci-select-label">Ordenar por
+                <select value={bundleSort} onChange={event => setBundleSort(event.target.value as BundleSortKey)}>
+                  <option value="sales">Mais vendas</option>
+                  <option value="clicks">Mais cliques</option>
+                  <option value="net">Mais receita</option>
+                  <option value="views">Mais views</option>
+                  <option value="likes">Mais likes</option>
+                  <option value="comments">Mais comentários</option>
+                  <option value="recent">Mais recentes</option>
+                  <option value="oldest">Mais antigos</option>
+                </select>
+              </label>
+            </div>
+          </header>
+          {!visibleBundles.length && <div className="ci-empty">Nenhum vídeo encontrado nessa busca.</div>}
           <div className="ci-campaign-list">
-            {campaignBundles.map(bundle => <VideoCampaignBundle
+            {visibleBundles.map(bundle => <VideoCampaignBundle
               key={bundle.videoId}
               bundle={bundle}
               role={role}

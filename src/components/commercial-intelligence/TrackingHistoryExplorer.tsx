@@ -6,10 +6,9 @@ import {
   useState,
 } from 'react';
 import {
-  Bar,
-  BarChart,
   CartesianGrid,
-  Legend,
+  ComposedChart,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -53,6 +52,20 @@ const PRESETS: Array<{ value: RangePreset; label: string }> = [
   { value: '30d', label: '30 dias' },
   { value: '90d', label: '90 dias' },
   { value: 'custom', label: 'Personalizado' },
+];
+
+const SERIES_COLORS = {
+  clicks: '#2f7fd6',
+  sales: '#0f8a5f',
+  revenue: '#b8860b',
+} as const;
+
+type SeriesKey = keyof typeof SERIES_COLORS;
+
+const SERIES_OPTIONS: Array<{ key: SeriesKey; label: string; hint: string }> = [
+  { key: 'clicks', label: 'Cliques', hint: 'Cliques do filtro de tráfego escolhido' },
+  { key: 'sales', label: 'Vendas', hint: 'Compras originadas pelos links (principal + adicional)' },
+  { key: 'revenue', label: 'Receita (R$)', hint: 'Líquido após taxas das compras originadas' },
 ];
 
 function shiftDate(date: string, days: number): string {
@@ -204,6 +217,7 @@ function reconciliationProblemDetail(freshness: TrackingSeriesDto['freshness']):
 
 export function TrackingHistoryExplorer({
   videos,
+  products = [],
   fixedVideoId = null,
   compact = false,
   initialStart,
@@ -212,6 +226,7 @@ export function TrackingHistoryExplorer({
   onPeriodChange,
 }: {
   videos: CampaignCatalog['videos'];
+  products?: CampaignCatalog['products'];
   fixedVideoId?: string | null;
   compact?: boolean;
   initialStart?: string;
@@ -227,6 +242,8 @@ export function TrackingHistoryExplorer({
   const [position, setPosition] = useState<TrackingPositionFilter>('all');
   const [traffic, setTraffic] = useState<TrackingTrafficFilter>('qualified');
   const [granularity, setGranularity] = useState<TrackingGranularity>('auto');
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [hiddenSeries, setHiddenSeries] = useState<Set<SeriesKey>>(new Set());
   const [series, setSeries] = useState<TrackingSeriesDto | null>(null);
   const [events, setEvents] = useState<TrackingEventDto[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -250,7 +267,8 @@ export function TrackingHistoryExplorer({
     videoId: fixedVideoId || videoId || null,
     position,
     traffic,
-  }), [end, fixedVideoId, granularity, position, start, traffic, videoId]);
+    products: selectedProducts.length ? selectedProducts : null,
+  }), [end, fixedVideoId, granularity, position, selectedProducts, start, traffic, videoId]);
   const filterKey = useMemo(() => trackingFiltersKey(filters), [filters]);
   currentFilterKeyRef.current = filterKey;
 
@@ -415,6 +433,10 @@ export function TrackingHistoryExplorer({
     : null;
   const chartData = useMemo<TrackingChartDatum[]>(() => (visibleSeries?.buckets || []).map(bucket => ({
     bucketStart: bucket.bucketStart,
+    clicks: bucket.clicks.total,
+    sales: bucket.sales.description + bucket.sales.pinnedComment + bucket.sales.commentReply
+      + bucket.sales.video + bucket.sales.additional,
+    revenue: bucket.netAfterFees,
     clickDescription: bucket.clicks.description,
     clickPinned: bucket.clicks.pinnedComment,
     clickReply: bucket.clicks.commentReply,
@@ -429,6 +451,23 @@ export function TrackingHistoryExplorer({
     saleAmbiguous: bucket.sales.ambiguous,
   })), [visibleSeries]);
   const { hasClicks, hasSales } = useMemo(() => trackingChartAvailability(chartData), [chartData]);
+  const hasRevenue = useMemo(() => chartData.some(item => item.revenue !== 0), [chartData]);
+  const hasChartData = hasClicks || hasSales || hasRevenue;
+
+  function toggleSeries(key: SeriesKey) {
+    setHiddenSeries(current => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else if (next.size < SERIES_OPTIONS.length - 1) next.add(key);
+      return next;
+    });
+  }
+
+  function toggleProduct(productId: string) {
+    setSelectedProducts(current => current.includes(productId)
+      ? current.filter(item => item !== productId)
+      : [...current, productId]);
+  }
   const selectedVideo = videos.find(video => video.video_id === (fixedVideoId || videoId));
   const title = fixedVideoId ? 'Histórico deste vídeo' : 'Histórico de cliques e compras';
   const lastSuccessAge = lastSuccessfulAt ? Date.now() - Date.parse(lastSuccessfulAt) : Number.POSITIVE_INFINITY;
@@ -507,6 +546,22 @@ export function TrackingHistoryExplorer({
       <button type="button" className="ci-refresh" disabled={refreshing} onClick={refreshPanel}>{refreshing ? 'Atualizando...' : 'Atualizar painel'}</button>
     </div>
 
+    {products.length > 1 && <div className="ci-product-filterbar" role="group" aria-label="Filtro de produtos">
+      <span>Produtos</span>
+      <button
+        type="button"
+        className={selectedProducts.length === 0 ? 'active' : ''}
+        onClick={() => setSelectedProducts([])}
+      >Todos</button>
+      {products.map(product => <button
+        type="button"
+        key={product.productId}
+        className={selectedProducts.includes(product.productId) ? 'active' : ''}
+        title={displayText(product.productName)}
+        onClick={() => toggleProduct(product.productId)}
+      >{displayText(product.productName).split('·')[0].trim().slice(0, 28)}</button>)}
+    </div>}
+
     {error && <div className="ci-warning-box" role="alert"><strong>Histórico indisponível</strong><span>{error}</span></div>}
 
     {!visibleSeries && loading && <div className="ci-overview-state"><span className="loading-pulse">Carregando indicadores e eventos...</span></div>}
@@ -541,49 +596,63 @@ export function TrackingHistoryExplorer({
       <span>Última ocorrência em {formatDateTime(visibleSeries.freshness.latestOperationalFailureAt || null)}. Consulte “Qualidade dos dados” para o diagnóstico completo.</span>
     </div>}
 
-    <div className="ci-history-charts">
-      <article className="ci-panel">
-        <header><div><span>Cliques ao longo do tempo</span><small>Barras empilhadas por local do link; use “Técnico / bots” para auditar ruído.</small></div></header>
-        {hasClicks ? <div className="ci-history-chart">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} syncId={`ci-tracking-${fixedVideoId || 'global'}`} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid stroke="var(--border)" vertical={false} />
-              <XAxis dataKey="bucketStart" tickFormatter={value => formatBucket(value, visibleSeries.granularity)} tick={{ fontSize: 9 }} minTickGap={24} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 9 }} width={34} />
-              <Tooltip labelFormatter={value => formatDateTime(String(value))} />
-              <Legend wrapperStyle={{ fontSize: 10 }} />
-              <Bar stackId="clicks" dataKey="clickDescription" name="Descrição" fill="var(--accent-gold-dark)" isAnimationActive={false} />
-              <Bar stackId="clicks" dataKey="clickPinned" name="Comentário" fill="#3979b8" isAnimationActive={false} />
-              <Bar stackId="clicks" dataKey="clickReply" name="Resposta" fill="#8c63b8" isAnimationActive={false} />
-              <Bar stackId="clicks" dataKey="clickVideo" name="Card" fill="#d56b3f" isAnimationActive={false} />
-              <Bar stackId="clicks" dataKey="clickOther" name="Outros" fill="#9a9a9a" radius={[3, 3, 0, 0]} isAnimationActive={false} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div> : <div className="ci-empty">Nenhum clique nesse filtro.</div>}
-      </article>
-
-      <article className="ci-panel">
-        <header><div><span>Compras ao longo do tempo</span><small>Escala separada dos cliques para não esconder vendas raras.</small></div></header>
-        {hasSales ? <div className="ci-history-chart ci-sales-chart">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} syncId={`ci-tracking-${fixedVideoId || 'global'}`} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid stroke="var(--border)" vertical={false} />
-              <XAxis dataKey="bucketStart" tickFormatter={value => formatBucket(value, visibleSeries.granularity)} tick={{ fontSize: 9 }} minTickGap={24} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 9 }} width={34} />
-              <Tooltip labelFormatter={value => formatDateTime(String(value))} />
-              <Legend wrapperStyle={{ fontSize: 10 }} />
-              <Bar stackId="sales" dataKey="saleDescription" name="Descrição" fill="#1d9d59" isAnimationActive={false} />
-              <Bar stackId="sales" dataKey="salePinned" name="Comentário" fill="#55b77e" isAnimationActive={false} />
-              <Bar stackId="sales" dataKey="saleReply" name="Resposta" fill="#84c99e" isAnimationActive={false} />
-              <Bar stackId="sales" dataKey="saleVideo" name="Card" fill="#d56b3f" isAnimationActive={false} />
-              <Bar stackId="sales" dataKey="saleAdditional" name="Produto adicional" fill="#6f8ec7" isAnimationActive={false} />
-              {!fixedVideoId && <Bar stackId="sales" dataKey="saleAmbiguous" name="Origem conflitante" fill="#d49a2f" isAnimationActive={false} />}
-              {!fixedVideoId && <Bar stackId="sales" dataKey="saleUnattributed" name="Sem origem" fill="#a3a3a3" radius={[3, 3, 0, 0]} isAnimationActive={false} />}
-            </BarChart>
-          </ResponsiveContainer>
-        </div> : <div className="ci-empty">Nenhuma compra nesse filtro.</div>}
-      </article>
-    </div>
+    <article className="ci-panel ci-unified-chart-panel">
+      <header>
+        <div><span>Evolução no tempo</span><small>Linhas de cliques e vendas na escala da esquerda; receita líquida em R$ na escala da direita.</small></div>
+        <div className="ci-series-toggles" role="group" aria-label="Linhas do gráfico">
+          {SERIES_OPTIONS.map(option => {
+            const active = !hiddenSeries.has(option.key);
+            return <button
+              type="button"
+              key={option.key}
+              className={active ? 'active' : ''}
+              title={option.hint}
+              aria-pressed={active}
+              onClick={() => toggleSeries(option.key)}
+            >
+              <span className="ci-series-dot" style={{ background: SERIES_COLORS[option.key] }} aria-hidden="true" />
+              {option.label}
+            </button>;
+          })}
+        </div>
+      </header>
+      {hasChartData ? <div className="ci-history-chart ci-unified-chart">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={chartData} margin={{ top: 10, right: 6, left: 0, bottom: 0 }}>
+            <CartesianGrid stroke="var(--border)" vertical={false} />
+            <XAxis dataKey="bucketStart" tickFormatter={value => formatBucket(value, visibleSeries.granularity)} tick={{ fontSize: 10 }} minTickGap={24} />
+            <YAxis yAxisId="counts" allowDecimals={false} tick={{ fontSize: 10 }} width={36} />
+            <YAxis
+              yAxisId="money"
+              orientation="right"
+              tick={{ fontSize: 10, fill: SERIES_COLORS.revenue }}
+              width={58}
+              tickFormatter={value => new Intl.NumberFormat('pt-BR', {
+                style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 1,
+              }).format(Number(value))}
+            />
+            <Tooltip
+              labelFormatter={value => formatDateTime(String(value))}
+              formatter={(value, name) => name === 'Receita (R$)'
+                ? [money(Number(value)), name]
+                : [Number(value).toLocaleString('pt-BR'), name]}
+            />
+            {!hiddenSeries.has('clicks') && <Line
+              yAxisId="counts" type="monotone" dataKey="clicks" name="Cliques"
+              stroke={SERIES_COLORS.clicks} strokeWidth={2.5} dot={false} isAnimationActive={false}
+            />}
+            {!hiddenSeries.has('sales') && <Line
+              yAxisId="counts" type="monotone" dataKey="sales" name="Vendas"
+              stroke={SERIES_COLORS.sales} strokeWidth={2.5} dot={false} isAnimationActive={false}
+            />}
+            {!hiddenSeries.has('revenue') && <Line
+              yAxisId="money" type="monotone" dataKey="revenue" name="Receita (R$)"
+              stroke={SERIES_COLORS.revenue} strokeWidth={2.5} dot={false} isAnimationActive={false}
+            />}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div> : <div className="ci-empty">Nenhum clique ou venda nesse filtro.</div>}
+    </article>
 
     <article className="ci-panel ci-event-ledger">
       <header><div><span>Livro-caixa de eventos</span><small>Horário exato em Brasília. Para vendas, a data é a da compra/aprovação; o badge mostra o status atual, inclusive reembolso ou chargeback.</small></div></header>
