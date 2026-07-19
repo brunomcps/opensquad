@@ -387,7 +387,7 @@ try {
   await prepare(desktop);
   const desktopResult = await capture(desktop, 'desktop-1366');
   if (desktopResult.overflow > 1) throw new Error(`Layout desktop possui overflow horizontal de ${desktopResult.overflow}px.`);
-  if (desktopResult.visibleTabs !== 6 || desktopResult.navHeight < 30) throw new Error('Navegação desktop não está totalmente visível.');
+  if (desktopResult.visibleTabs !== 7 || desktopResult.navHeight < 30) throw new Error('Navegação desktop não está totalmente visível.');
   await desktopContext.close();
 
   const mobileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, permissions: ['clipboard-read', 'clipboard-write'] });
@@ -395,7 +395,7 @@ try {
   await prepare(mobile);
   const mobileResult = await capture(mobile, 'mobile-390');
   if (mobileResult.overflow > 1) throw new Error(`Layout mobile possui overflow horizontal de ${mobileResult.overflow}px.`);
-  if (mobileResult.visibleTabs !== 6 || mobileResult.navHeight < 60) throw new Error('Navegação mobile não está totalmente visível.');
+  if (mobileResult.visibleTabs !== 7 || mobileResult.navHeight < 60) throw new Error('Navegação mobile não está totalmente visível.');
   await mobileContext.close();
 
   const failureContext = await browser.newContext({ viewport: { width: 1024, height: 768 } });

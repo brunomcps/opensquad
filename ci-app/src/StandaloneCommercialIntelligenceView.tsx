@@ -2,6 +2,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 import { CampaignTracking } from '../../src/components/commercial-intelligence/CampaignTracking';
 import { CommercialOverview } from '../../src/components/commercial-intelligence/CommercialOverview';
 import { DataQualityTab } from '../../src/components/commercial-intelligence/DataQualityTab';
+import { InstagramInboxView } from '../../src/components/commercial-intelligence/InstagramInboxView';
 import { ProjecoesSimulador } from '../../src/components/commercial-intelligence/ProjecoesSimulador';
 import { Rota2027View } from '../../src/components/commercial-intelligence/Rota2027View';
 import { VideoSalesAssociation } from '../../src/components/commercial-intelligence/VideoSalesAssociation';
@@ -18,7 +19,7 @@ const container: CSSProperties = {
   gap: '18px',
 };
 
-type Tab = 'overview' | 'tracking' | 'association' | 'projecoes' | 'rota' | 'quality';
+type Tab = 'overview' | 'tracking' | 'association' | 'projecoes' | 'rota' | 'instagram' | 'quality';
 
 const TAB_COPY: Record<Tab, string> = {
   overview: 'O que vendeu, quanto entrou e quais produtos sustentaram o período.',
@@ -26,6 +27,7 @@ const TAB_COPY: Record<Tab, string> = {
   association: 'Quais vídeos foram seguidos por mudança nas vendas, sem fingir causalidade.',
   projecoes: 'Quanto tempo até cada meta de receita, em cenários calibrados com o histórico real.',
   rota: 'Tô no caminho? O que fazer agora? Uma tela responde; os documentos completos ficam no rodapé.',
+  instagram: 'As DMs do Instagram: a IA rascunha, você aprova, edita ou descarta.',
   quality: 'Qualidade da ingestão e confiança dos fatos observados.',
 };
 
@@ -48,6 +50,7 @@ export function StandaloneCommercialIntelligenceView({ actions, role }: { action
         <button type="button" className={tab === 'association' ? 'active' : ''} onClick={() => setTab('association')}>Vídeos × vendas</button>
         <button type="button" className={tab === 'projecoes' ? 'active' : ''} onClick={() => setTab('projecoes')}>Projeções</button>
         <button type="button" className={tab === 'rota' ? 'active' : ''} onClick={() => setTab('rota')}>Rota 2027</button>
+        <button type="button" className={tab === 'instagram' ? 'active' : ''} onClick={() => setTab('instagram')}>Instagram</button>
         <button type="button" className={tab === 'quality' ? 'active' : ''} onClick={() => setTab('quality')}>Qualidade dos dados</button>
       </nav>
       {tab === 'overview' && <CommercialOverview />}
@@ -55,6 +58,7 @@ export function StandaloneCommercialIntelligenceView({ actions, role }: { action
       {tab === 'association' && <VideoSalesAssociation />}
       {tab === 'projecoes' && <ProjecoesSimulador />}
       {tab === 'rota' && <Rota2027View />}
+      {tab === 'instagram' && <InstagramInboxView />}
       {tab === 'quality' && <DataQualityTab />}
     </div>
   );
