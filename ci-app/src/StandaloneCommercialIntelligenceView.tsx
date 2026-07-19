@@ -25,7 +25,7 @@ const TAB_COPY: Record<Tab, string> = {
   tracking: 'Quais campanhas possuem origem comprovada, clique e venda atribuída.',
   association: 'Quais vídeos foram seguidos por mudança nas vendas, sem fingir causalidade.',
   projecoes: 'Quanto tempo até cada meta de receita, em cenários calibrados com o histórico real.',
-  rota: 'Os documentos vivos da rota até R$ 5 mi: playbook, marcos, relatório técnico e dossiê.',
+  rota: 'Tô no caminho? O que fazer agora? Uma tela responde; os documentos completos ficam no rodapé.',
   quality: 'Qualidade da ingestão e confiança dos fatos observados.',
 };
 

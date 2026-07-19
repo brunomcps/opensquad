@@ -2723,6 +2723,165 @@
   color: var(--text-secondary);
 }
 
+/* ===== Cockpit da rota (aba Rota 2027) ===== */
+.ci-cockpit {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ci-cockpit-cabecalho {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+
+.ci-cockpit-cabecalho h2 {
+  margin: 0;
+  font-size: 17px;
+  color: var(--text-primary);
+}
+
+.ci-cockpit-cabecalho p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ci-cockpit-farois {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.ci-cockpit-farol {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left-width: 5px;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ci-cockpit-farol.verde { border-left-color: #1d9d59; }
+.ci-cockpit-farol.amarelo { border-left-color: #eda100; }
+.ci-cockpit-farol.vermelho { border-left-color: #d64545; }
+
+.ci-cockpit-farol-topo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.ci-cockpit-luz {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ci-cockpit-luz.verde { background: #1d9d59; }
+.ci-cockpit-luz.amarelo { background: #eda100; }
+.ci-cockpit-luz.vermelho { background: #d64545; }
+
+.ci-cockpit-farol strong {
+  font-size: 26px;
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+
+.ci-cockpit-farol small {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ci-cockpit-farol p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.ci-cockpit-colunas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.ci-cockpit-bloco {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.ci-cockpit-bloco h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.ci-cockpit-bloco ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ci-cockpit-bloco li {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.ci-cockpit-bloco li strong {
+  flex-shrink: 0;
+  min-width: 84px;
+  color: var(--accent, #b8860b);
+  font-size: 12.5px;
+}
+
+.ci-cockpit-pendencias li {
+  color: var(--text-secondary);
+}
+
+.ci-cockpit-sessao {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ci-cockpit-expansor {
+  align-self: flex-start;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font: 600 12px var(--font-body);
+  cursor: pointer;
+}
+
+.ci-cockpit-expansor:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
 /* ===== Aba Rota 2027 (documentos navegáveis) ===== */
 .ci-rota {
   display: flex;
