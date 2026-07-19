@@ -234,6 +234,77 @@ export async function pollDmsOnce(): Promise<ResumoPoll> {
   return resumo;
 }
 
+// ===== ChamaChat: comentário com palavra-chave → DM automática (private reply) =====
+// Regra da Meta: 1 mensagem privada por comentário, em até 7 dias. Keywords vêm
+// da config (keywords_comment_dm: [{ palavra, resposta }]). Sem keywords = dorme.
+
+const GRAPH = 'https://graph.facebook.com/v21.0';
+
+function tokenPagina(): string {
+  return process.env.INSTAGRAM_PAGE_TOKEN || process.env.FACEBOOK_PAGE_TOKEN || '';
+}
+
+async function enviaPrivateReply(commentId: string, texto: string): Promise<void> {
+  const resposta = await fetch(`${GRAPH}/me/messages?access_token=${encodeURIComponent(tokenPagina())}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ recipient: { comment_id: commentId }, message: { text: texto } }),
+  });
+  if (!resposta.ok) {
+    const corpo = await resposta.text();
+    throw new Error(`private reply falhou (${resposta.status}): ${corpo.slice(0, 200)}`);
+  }
+}
+
+export async function pollComentariosOnce(): Promise<{ executou: boolean; comentariosVistos: number; dmsEnviadas: number; erros: string[] }> {
+  const resumo = { executou: false, comentariosVistos: 0, dmsEnviadas: 0, erros: [] as string[] };
+  const config = await carregaConfig();
+  if (!config?.ativo) return resumo;
+  const regras: Array<{ palavra: string; resposta: string }> = Array.isArray((config as any).keywords_comment_dm)
+    ? (config as any).keywords_comment_dm
+    : [];
+  if (regras.length === 0) return resumo; // sem palavra-chave cadastrada, dorme
+  resumo.executou = true;
+
+  const igId = process.env.INSTAGRAM_BUSINESS_ID || '';
+  const seteDias = 7 * 24 * 60 * 60 * 1000 * 0.9;
+  try {
+    const url = `${GRAPH}/${igId}/media?fields=id,timestamp,comments.limit(25){id,text,timestamp,from,username}&limit=5&access_token=${encodeURIComponent(tokenPagina())}`;
+    const resposta = await fetch(url);
+    if (!resposta.ok) throw new Error((await resposta.text()).slice(0, 200));
+    const corpo: any = await resposta.json();
+    for (const media of corpo?.data || []) {
+      for (const comentario of media?.comments?.data || []) {
+        resumo.comentariosVistos += 1;
+        const autorId = String(comentario?.from?.id || '');
+        if (!autorId || autorId === igId) continue; // comentário nosso
+        if (Date.now() - new Date(comentario.timestamp).getTime() > seteDias) continue;
+        const texto = String(comentario?.text || '').toLowerCase();
+        const regra = regras.find(r => texto.includes(String(r.palavra || '').toLowerCase()));
+        if (!regra) continue;
+        if (await jaProcessada(`c_${comentario.id}`)) continue;
+        try {
+          await enviaPrivateReply(String(comentario.id), regra.resposta);
+          await registra({
+            message_id: `c_${comentario.id}`,
+            conversation_id: String(media.id),
+            autor_id: autorId,
+            grupo: 'comment_dm',
+            acao: 'respondido',
+          });
+          resumo.dmsEnviadas += 1;
+          await telegramSend(`💬→📩 Comentário de @${comentario?.username || autorId} virou DM (palavra "${regra.palavra}")`);
+        } catch (erro: any) {
+          resumo.erros.push(String(erro?.message || erro).slice(0, 150));
+        }
+      }
+    }
+  } catch (erro: any) {
+    resumo.erros.push(String(erro?.message || erro).slice(0, 150));
+  }
+  return resumo;
+}
+
 let cronIniciado = false;
 
 export function startIgResponderCron(): void {
@@ -244,6 +315,10 @@ export function startIgResponderCron(): void {
       const resumo = await pollDmsOnce();
       if (resumo.executou && (resumo.novas > 0 || resumo.erros.length > 0)) {
         console.log('[ig-responder]', JSON.stringify(resumo));
+      }
+      const comentarios = await pollComentariosOnce();
+      if (comentarios.executou && (comentarios.dmsEnviadas > 0 || comentarios.erros.length > 0)) {
+        console.log('[ig-responder][comment-dm]', JSON.stringify(comentarios));
       }
     } catch (erro: any) {
       console.error('[ig-responder] poll falhou:', erro?.message || erro);
