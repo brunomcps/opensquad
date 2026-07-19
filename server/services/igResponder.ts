@@ -7,16 +7,68 @@
 import cron from 'node-cron';
 import { supabase } from '../db/client.js';
 import { sendMessage as telegramSend } from './telegram.js';
-import {
-  fetchLiveConversations,
-  fetchLiveConversationMessages,
-  sendInstagramDm,
-} from './instagramDm.js';
+
+// Rota NOVA da Meta ("Instagram Login"): graph.instagram.com + token do caso de
+// uso INSTAGRAM_BUSINESS. Não depende de Página do Facebook nem do portão antigo.
+const IG_GRAPH = 'https://graph.instagram.com/v21.0';
+function igLoginToken(): string {
+  return (process.env.INSTAGRAM_LOGIN_TOKEN || '').replace(/^﻿/, '').trim();
+}
+async function igGet(pathname: string, params: Record<string, string>): Promise<any> {
+  const url = new URL(`${IG_GRAPH}${pathname}`);
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+  url.searchParams.set('access_token', igLoginToken());
+  const r = await fetch(url);
+  const data: any = await r.json();
+  if (!r.ok || data?.error) throw new Error(data?.error?.message || `IG API ${r.status}`);
+  return data;
+}
+async function igPost(pathname: string, body: Record<string, unknown>): Promise<any> {
+  const url = new URL(`${IG_GRAPH}${pathname}`);
+  url.searchParams.set('access_token', igLoginToken());
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data: any = await r.json();
+  if (!r.ok || data?.error) throw new Error(data?.error?.message || `IG API ${r.status}`);
+  return data;
+}
+
+// Lê as conversas da caixa (rota nova: /me/conversations, sem platform=)
+async function fetchLiveConversations(limit = 8): Promise<any> {
+  return igGet('/me/conversations', {
+    fields: 'id,updated_time,participants,messages.limit(1){id,created_time,from,message}',
+    limit: String(limit),
+  });
+}
+async function fetchLiveConversationMessages(conversationId: string, limit = 12): Promise<any> {
+  return igGet(`/${conversationId}/messages`, {
+    fields: 'id,created_time,from,message',
+    limit: String(limit),
+  });
+}
+async function sendInstagramDm(recipientId: string, text: string): Promise<any> {
+  return igPost('/me/messages', { recipient: { id: recipientId }, message: { text } });
+}
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
 const MODELO = 'claude-sonnet-5';
 const JANELA_MS = 24 * 60 * 60 * 1000 * 0.9; // 24h com 10% de margem de segurança
-const PAGE_ID = process.env.INSTAGRAM_PAGE_ID || process.env.FACEBOOK_PAGE_ID || '';
+// ids que representam a NOSSA conta (pra reconhecer mensagens que já são nossas).
+// Na rota nova, o from.id pode vir como id app-scoped (login) ou o business id.
+const MEUS_IDS = new Set(
+  [
+    process.env.INSTAGRAM_LOGIN_ID,
+    process.env.INSTAGRAM_BUSINESS_ID,
+    process.env.INSTAGRAM_USER_ID,
+    process.env.INSTAGRAM_PAGE_ID,
+  ].filter(Boolean) as string[],
+);
+function ehNossa(id: string): boolean {
+  return !id || MEUS_IDS.has(id);
+}
 
 export const GRUPOS = [
   'consulta',
@@ -178,7 +230,7 @@ export async function pollDmsOnce(): Promise<ResumoPoll> {
     const ultima = conversa?.messages?.data?.[0];
     if (!ultima?.id) continue;
     const autorId = String(ultima?.from?.id || '');
-    if (!autorId || autorId === PAGE_ID) continue; // última mensagem é nossa
+    if (ehNossa(autorId)) continue; // última mensagem é nossa
     if (await jaProcessada(ultima.id)) continue;
 
     resumo.novas += 1;
@@ -199,7 +251,7 @@ export async function pollDmsOnce(): Promise<ResumoPoll> {
       const historico = ((historicoBruto?.data || []) as any[])
         .reverse()
         .map((m: any) => ({
-          de: String(m?.from?.id) === PAGE_ID ? ('bruno' as const) : ('lead' as const),
+          de: ehNossa(String(m?.from?.id)) ? ('bruno' as const) : ('lead' as const),
           texto: String(m?.message || '(anexo)').slice(0, 600),
         }));
       const autor = nomeDoAutor(conversa.participants, autorId);
@@ -238,22 +290,9 @@ export async function pollDmsOnce(): Promise<ResumoPoll> {
 // Regra da Meta: 1 mensagem privada por comentário, em até 7 dias. Keywords vêm
 // da config (keywords_comment_dm: [{ palavra, resposta }]). Sem keywords = dorme.
 
-const GRAPH = 'https://graph.facebook.com/v21.0';
-
-function tokenPagina(): string {
-  return process.env.INSTAGRAM_PAGE_TOKEN || process.env.FACEBOOK_PAGE_TOKEN || '';
-}
-
 async function enviaPrivateReply(commentId: string, texto: string): Promise<void> {
-  const resposta = await fetch(`${GRAPH}/me/messages?access_token=${encodeURIComponent(tokenPagina())}`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ recipient: { comment_id: commentId }, message: { text: texto } }),
-  });
-  if (!resposta.ok) {
-    const corpo = await resposta.text();
-    throw new Error(`private reply falhou (${resposta.status}): ${corpo.slice(0, 200)}`);
-  }
+  // rota nova: graph.instagram.com/me/messages com recipient.comment_id
+  await igPost('/me/messages', { recipient: { comment_id: commentId }, message: { text: texto } });
 }
 
 export async function pollComentariosOnce(): Promise<{ executou: boolean; comentariosVistos: number; dmsEnviadas: number; erros: string[] }> {
@@ -266,18 +305,17 @@ export async function pollComentariosOnce(): Promise<{ executou: boolean; coment
   if (regras.length === 0) return resumo; // sem palavra-chave cadastrada, dorme
   resumo.executou = true;
 
-  const igId = process.env.INSTAGRAM_BUSINESS_ID || '';
   const seteDias = 7 * 24 * 60 * 60 * 1000 * 0.9;
   try {
-    const url = `${GRAPH}/${igId}/media?fields=id,timestamp,comments.limit(25){id,text,timestamp,from,username}&limit=5&access_token=${encodeURIComponent(tokenPagina())}`;
-    const resposta = await fetch(url);
-    if (!resposta.ok) throw new Error((await resposta.text()).slice(0, 200));
-    const corpo: any = await resposta.json();
+    const corpo: any = await igGet('/me/media', {
+      fields: 'id,timestamp,comments.limit(25){id,text,timestamp,from,username}',
+      limit: '5',
+    });
     for (const media of corpo?.data || []) {
       for (const comentario of media?.comments?.data || []) {
         resumo.comentariosVistos += 1;
         const autorId = String(comentario?.from?.id || '');
-        if (!autorId || autorId === igId) continue; // comentário nosso
+        if (ehNossa(autorId)) continue; // comentário nosso
         if (Date.now() - new Date(comentario.timestamp).getTime() > seteDias) continue;
         const texto = String(comentario?.text || '').toLowerCase();
         const regra = regras.find(r => texto.includes(String(r.palavra || '').toLowerCase()));
