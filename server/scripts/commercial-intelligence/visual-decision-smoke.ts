@@ -348,6 +348,13 @@ async function capture(page: Page, prefix: string) {
   await blocoMotores.scrollIntoViewIfNeeded();
   await blocoMotores.screenshot({ path: path.join(evidence, `${prefix}-projecoes-motores.png`) });
   await page.getByRole('button', { name: 'Simples', exact: true }).click();
+
+  await page.getByRole('button', { name: 'Rota 2027' }).click();
+  await page.getByText('Playbook 2027', { exact: true }).waitFor();
+  const rotaDocumentos = await page.locator('.ci-rota-cartao').count();
+  if (rotaDocumentos !== 4) throw new Error(`Rota 2027 exibiu ${rotaDocumentos} documentos, esperado 4.`);
+  await page.getByText('Resumo executivo').first().waitFor();
+  await page.screenshot({ path: path.join(evidence, `${prefix}-rota-2027.png`) });
   const navBox = await page.locator('.ci-main-tabs').boundingBox();
   const visibleTabs = await page.locator('.ci-main-tabs button').evaluateAll(buttons => buttons.filter(button => {
     const rect = button.getBoundingClientRect();
@@ -375,7 +382,7 @@ try {
   await prepare(desktop);
   const desktopResult = await capture(desktop, 'desktop-1366');
   if (desktopResult.overflow > 1) throw new Error(`Layout desktop possui overflow horizontal de ${desktopResult.overflow}px.`);
-  if (desktopResult.visibleTabs !== 5 || desktopResult.navHeight < 30) throw new Error('Navegação desktop não está totalmente visível.');
+  if (desktopResult.visibleTabs !== 6 || desktopResult.navHeight < 30) throw new Error('Navegação desktop não está totalmente visível.');
   await desktopContext.close();
 
   const mobileContext = await browser.newContext({ viewport: { width: 390, height: 844 }, permissions: ['clipboard-read', 'clipboard-write'] });
@@ -383,7 +390,7 @@ try {
   await prepare(mobile);
   const mobileResult = await capture(mobile, 'mobile-390');
   if (mobileResult.overflow > 1) throw new Error(`Layout mobile possui overflow horizontal de ${mobileResult.overflow}px.`);
-  if (mobileResult.visibleTabs !== 5 || mobileResult.navHeight < 60) throw new Error('Navegação mobile não está totalmente visível.');
+  if (mobileResult.visibleTabs !== 6 || mobileResult.navHeight < 60) throw new Error('Navegação mobile não está totalmente visível.');
   await mobileContext.close();
 
   const failureContext = await browser.newContext({ viewport: { width: 1024, height: 768 } });

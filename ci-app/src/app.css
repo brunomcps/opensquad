@@ -2722,3 +2722,185 @@
   line-height: 1.55;
   color: var(--text-secondary);
 }
+
+/* ===== Aba Rota 2027 (documentos navegáveis) ===== */
+.ci-rota {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ci-rota-cartoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.ci-rota-cartao {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  cursor: pointer;
+  color: var(--text-secondary);
+  font: 400 12px/1.5 var(--font-body);
+}
+
+.ci-rota-cartao strong {
+  font-size: 13.5px;
+  color: var(--text-primary);
+}
+
+.ci-rota-cartao.active {
+  border-color: var(--accent, #b8860b);
+  box-shadow: 0 0 0 1px var(--accent, #b8860b);
+  background: var(--bg-card);
+}
+
+.ci-rota-leitor {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.ci-rota-indice {
+  position: sticky;
+  top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.ci-rota-indice > span {
+  font: 700 11px var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.ci-rota-indice button {
+  text-align: left;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font: 600 12px/1.4 var(--font-body);
+  color: var(--text-secondary);
+}
+
+.ci-rota-indice button:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.ci-rota-indice button.sub {
+  padding-left: 20px;
+  font-weight: 400;
+}
+
+.ci-rota-conteudo {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 26px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-primary);
+}
+
+.ci-rota-conteudo h1 {
+  font-size: 19px;
+  margin: 0 0 12px;
+}
+
+.ci-rota-conteudo h2 {
+  font-size: 16px;
+  margin: 26px 0 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.ci-rota-conteudo h3 {
+  font-size: 14px;
+  margin: 18px 0 8px;
+}
+
+.ci-rota-conteudo p {
+  margin: 8px 0;
+}
+
+.ci-rota-conteudo ul,
+.ci-rota-conteudo ol {
+  margin: 8px 0;
+  padding-left: 22px;
+}
+
+.ci-rota-conteudo li {
+  margin: 4px 0;
+}
+
+.ci-rota-conteudo table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 12.5px;
+  display: block;
+  overflow-x: auto;
+}
+
+.ci-rota-conteudo th,
+.ci-rota-conteudo td {
+  border: 1px solid var(--border);
+  padding: 7px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.ci-rota-conteudo th {
+  background: var(--bg-secondary);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ci-rota-conteudo code {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 12px;
+}
+
+.ci-rota-conteudo hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 18px 0;
+}
+
+.ci-rota-conteudo a {
+  color: var(--accent, #b8860b);
+}
+
+@media (max-width: 860px) {
+  .ci-rota-leitor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ci-rota-indice {
+    position: static;
+    max-height: 220px;
+  }
+}
