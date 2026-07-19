@@ -1,46 +1,59 @@
 :root {
-  /* Brand: Dr. Bruno Salles, PhD — Light Theme */
-  --bg-primary: #F5F5F0;
-  --bg-secondary: #FFFFFF;
-  --bg-card: #FFFFFF;
-  --bg-card-hover: #FAFAF7;
-  --border: #E8E5DD;
-  --border-light: #D5D2CA;
-  --text-primary: #1A1A1A;
-  --text-secondary: #666660;
-  --text-muted: #999990;
+  /* Dr. Bruno Salles, PhD — DNA visual "Modo produto" (Barroco Contemporâneo)
+     Papel marfim, tinta quente, verde herança na estrutura, vinho como
+     assinatura, ouro antigo só em linhas/detalhes. Fuga de fintech/mostarda. */
+  --bg-primary: #F4F0E6;      /* papel marfim de fundo */
+  --bg-secondary: #FBF9F3;    /* superfície levemente elevada */
+  --bg-card: #FFFEFB;         /* cartão branco quente */
+  --bg-card-hover: #FBF8F0;
+  --border: #E4DCC9;          /* marfim de divisão */
+  --border-light: #EFE9DB;
+  --border-strong: #D3C6A9;
+  --text-primary: #17130C;    /* tinta quase preta e quente */
+  --text-secondary: #5F594C;  /* cinza quente */
+  --text-muted: #948C79;
 
-  /* Brand accent */
-  --accent-gold: #F0BA3C;
-  --accent-gold-dark: #C99A2E;
-  --accent-gold-light: #FFF3D6;
-  --accent-gold-bg: rgba(240, 186, 60, 0.08);
+  /* Ouro antigo — linhas, selos, detalhes de prestígio (nunca berrante) */
+  --accent-gold: #A9823F;
+  --accent-gold-dark: #83632D;
+  --accent-gold-light: #EFE4CD;
+  --accent-gold-bg: rgba(169, 130, 63, 0.09);
 
-  /* Semantic */
-  --accent-green: #22A35B;
-  --accent-amber: #D4940A;
-  --accent-red: #DC3545;
-  --accent-blue: #1DA1F2;
-  --accent-purple: #7C3AED;
+  /* Vinho — assinatura da marca, estados selecionados, ações principais */
+  --accent-wine: #6A1420;
+  --accent-wine-dark: #4E0E17;
+  --accent-wine-bg: rgba(106, 20, 32, 0.07);
+
+  /* Verde herança — estrutura escura, portal, faixas institucionais */
+  --brand-green: #16201A;
+  --brand-green-soft: #24352B;
+
+  /* Semantic — dessaturados pra conviver com o marfim */
+  --accent-green: #3E7D3A;
+  --accent-amber: #B07A16;
+  --accent-red: #B02A1E;
+  --accent-blue: #2E6E9E;
+  --accent-purple: #6B4A86;
 
   /* Platform colors */
-  --yt-red: #FF0000;
-  --tt-cyan: #00F2EA;
-  --tt-pink: #FF004F;
-  --ig-pink: #E1306C;
+  --yt-red: #C4302B;
+  --tt-cyan: #00B7AE;
+  --tt-pink: #E0004C;
+  --ig-pink: #B23A6A;
 
-  /* Elevation */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
-  --shadow-gold: 0 0 0 3px rgba(240, 186, 60, 0.15);
+  /* Elevation — sombra quente e discreta */
+  --shadow-sm: 0 1px 2px rgba(46, 34, 12, 0.06);
+  --shadow-md: 0 4px 14px rgba(46, 34, 12, 0.08);
+  --shadow-lg: 0 12px 32px rgba(46, 34, 12, 0.10);
+  --shadow-gold: 0 0 0 3px rgba(169, 130, 63, 0.16);
 
-  /* Layout */
-  --radius: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --font: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Layout — raios pequenos (0-8px), gramática editorial */
+  --radius: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --font: 'Fraunces', 'Newsreader', Georgia, 'Times New Roman', serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-cond: 'Barlow Condensed', 'Inter', sans-serif;
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-fast: 0.12s ease;
 }
@@ -93,8 +106,8 @@ body {
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -102,7 +115,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--border-strong);
   border-radius: 3px;
 }
 
@@ -118,6 +131,6 @@ body {
 
 /* Focus */
 :focus-visible {
-  outline: 2px solid var(--accent-gold);
+  outline: 2px solid var(--accent-wine);
   outline-offset: 2px;
 }
