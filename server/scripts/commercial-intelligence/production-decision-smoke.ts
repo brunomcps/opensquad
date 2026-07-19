@@ -86,8 +86,8 @@ async function capture(page: Page, prefix: string, campaignName: string) {
   await resultPanel.scrollIntoViewIfNeeded();
   await resultPanel.screenshot({ path: path.join(evidence, `${prefix}-association-result.png`) });
 
-  const navBox = await page.locator('.ci-main-tabs').boundingBox();
-  const visibleTabs = await page.locator('.ci-main-tabs button').evaluateAll(buttons => buttons.filter(button => {
+  const navBox = await page.locator('.ci-sidebar').boundingBox();
+  const visibleTabs = await page.locator('.ci-nav-item').evaluateAll(buttons => buttons.filter(button => {
     const rect = button.getBoundingClientRect();
     return rect.width > 0 && rect.height > 0;
   }).length);
