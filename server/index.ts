@@ -28,6 +28,8 @@ import onedriveRouter from './routes/onedrive.js';
 import catalogoRouter from './routes/catalogo.js';
 import nicheRadarRouter from './routes/nicheRadar.js';
 import instagramDmRouter from './routes/instagramDm.js';
+import { igResponderRouter } from './routes/igResponder.js';
+import { startIgResponderCron } from './services/igResponder.js';
 import { startRadarCron } from './services/nicheRadar/cron.js';
 import { startBRollWatcher } from './services/brollWatcher.js';
 import { refreshTokenIfNeeded } from './services/instagram.js';
@@ -115,6 +117,7 @@ app.use('/api/onedrive', onedriveRouter);
 app.use('/api/catalogo', catalogoRouter);
 app.use('/api/niche-radar', nicheRadarRouter);
 app.use('/api/instagram-dm', instagramDmRouter);
+app.use('/api/ig-responder', igResponderRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, timestamp: new Date().toISOString() });
@@ -137,4 +140,5 @@ app.listen(PORT, async () => {
   loadCatalog().catch(e => console.error('[Catalogo] Initial load failed:', e.message));
   loadAgents().catch(e => console.error('[AgentLoader] Initial load failed:', e.message));
   startRadarCron();
+  startIgResponderCron();
 });
