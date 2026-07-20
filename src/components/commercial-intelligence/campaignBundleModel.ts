@@ -92,9 +92,15 @@ export function buildVideoCampaignBundles(
   const campaignsByVideo = new Map<string, CampaignDto[]>();
 
   for (const campaign of campaigns) {
-    const group = campaignsByVideo.get(campaign.video_id) || [];
+    // Campanha de outro canal (DM do Instagram, por exemplo) não tem vídeo e não
+    // pertence a esta lista, que agrupa links POR VÍDEO do YouTube. Sem este
+    // filtro o título vira null e o .replace() derruba a aba (incidente 20/07);
+    // os cliques dela seguem contando normalmente no gráfico e no livro-caixa.
+    const videoId = campaign.video_id;
+    if (!videoId) continue;
+    const group = campaignsByVideo.get(videoId) || [];
     group.push(campaign);
-    campaignsByVideo.set(campaign.video_id, group);
+    campaignsByVideo.set(videoId, group);
   }
 
   return [...campaignsByVideo.entries()].map(([videoId, groupCampaigns]) => {
@@ -126,7 +132,7 @@ export function buildVideoCampaignBundles(
 
     return {
       videoId,
-      title: video?.title || videoId,
+      title: video?.title || videoId || 'Vídeo sem título',
       thumbnailUrl: video?.thumbnail_url || null,
       canEmbed: isYouTubeVideoId(videoId),
       statusSummary: summarizeCampaignStatuses(groupCampaigns),

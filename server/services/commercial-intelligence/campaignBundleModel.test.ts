@@ -99,3 +99,37 @@ test('aceita somente o formato seguro de ID usado pelo embed do YouTube', () => 
   assert.equal(isYouTubeVideoId('short'), false);
   assert.equal(isYouTubeVideoId('invalid/id!'), false);
 });
+
+// Regressão do incidente de 20/07/2026: a campanha de DM do Instagram (sem
+// vídeo, posição 'dm' fora do catálogo de posições) derrubou a aba Rastreamento
+// inteira em produção, por duas causas somadas: posição desconhecida devolvia
+// undefined e vídeo ausente virava título null no .replace().
+test('campanha de outro canal (sem vídeo) não entra na lista por vídeo e não quebra', () => {
+  const bundles = buildVideoCampaignBundles(
+    [
+      campaign({ campaign_id: 'dm-ig', video_id: null as unknown as string, cta_position: 'dm' as never }),
+      campaign({ campaign_id: 'description', video_id: '0OkxYzoxzUk', cta_position: 'description' }),
+    ],
+    videos,
+    [],
+  );
+  assert.equal(bundles.length, 1, 'só o vídeo do YouTube vira conjunto');
+  assert.equal(bundles[0].videoId, '0OkxYzoxzUk');
+  for (const bundle of bundles) {
+    assert.equal(typeof bundle.title, 'string');
+    for (const item of bundle.items) {
+      assert.equal(typeof item.code, 'string');
+      assert.equal(typeof item.label, 'string');
+    }
+  }
+});
+
+test('posição desconhecida no banco não derruba a tela (usa rótulo de reserva)', () => {
+  const bundles = buildVideoCampaignBundles(
+    [campaign({ campaign_id: 'futuro', video_id: '0OkxYzoxzUk', cta_position: 'tiktok_bio' as never })],
+    videos,
+    [],
+  );
+  assert.equal(bundles[0].items[0].code, '?');
+  assert.equal(bundles[0].items[0].label, 'Origem não catalogada');
+});
