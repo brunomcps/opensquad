@@ -1,15 +1,24 @@
 import type { CtaPosition } from '../../../supabase/functions/_shared/campaigns';
 import type { AttributionDto, CampaignCatalog, CampaignDto } from '../../../ci-app/src/api';
 
-const POSITION_PRESENTATION: Record<CtaPosition, { code: string; label: string; order: number }> = {
+type PositionPresentation = { code: string; label: string; order: number };
+
+const POSITION_PRESENTATION: Record<string, PositionPresentation> = {
   description: { code: 'D', label: 'Descrição', order: 0 },
   pinned_comment: { code: 'C', label: 'Comentário fixado', order: 1 },
   comment_reply: { code: 'R', label: 'Resposta a comentário', order: 2 },
   video: { code: 'V', label: 'Card do vídeo', order: 3 },
   bio: { code: 'B', label: 'Bio', order: 4 },
   community: { code: 'CM', label: 'Comunidade', order: 5 },
-  other: { code: 'O', label: 'Outro', order: 6 },
+  // canais de relacionamento (Instagram hoje, TikTok amanhã) entram aqui
+  dm: { code: 'DM', label: 'DM do Instagram', order: 6 },
+  other: { code: 'O', label: 'Outro', order: 7 },
 };
+
+// Posição desconhecida NUNCA pode derrubar a aba. Em 20/07/2026 a campanha de DM
+// do Instagram (cta_position 'dm', gravada direto no banco) não existia no mapa
+// acima e o acesso a .code de undefined quebrou a aba Rastreamento inteira.
+const POSITION_FALLBACK: PositionPresentation = { code: '?', label: 'Origem não catalogada', order: 99 };
 
 export interface CampaignPositionItem {
   campaign: CampaignDto;
@@ -39,8 +48,8 @@ export interface VideoCampaignBundleModel {
   items: CampaignPositionItem[];
 }
 
-export function positionPresentation(position: CtaPosition) {
-  return POSITION_PRESENTATION[position];
+export function positionPresentation(position: CtaPosition | string): PositionPresentation {
+  return POSITION_PRESENTATION[position] || POSITION_FALLBACK;
 }
 
 export function isYouTubeVideoId(value: string): boolean {
