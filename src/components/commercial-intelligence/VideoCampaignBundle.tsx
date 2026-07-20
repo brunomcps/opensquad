@@ -101,11 +101,14 @@ export function VideoCampaignBundle({
           <span className="ci-video-eyebrow">Vídeo do YouTube</span>
           <h3>{title}</h3>
           <code>{bundle.videoId}</code>
-          {(stats || publishedLabel) && <small className="ci-video-audience">
-            {stats ? `${compactNumber(stats.views)} views · ${compactNumber(stats.likes)} likes · ${compactNumber(stats.comments)} comentários` : ''}
-            {stats && publishedLabel ? ' · ' : ''}
-            {publishedLabel ? `publicado ${publishedLabel}` : ''}
-          </small>}
+          {(stats || publishedLabel) && <div className="ci-video-audience">
+            {stats && <>
+              <span className="ci-audience-chip"><strong>{compactNumber(stats.views)}</strong> views</span>
+              <span className="ci-audience-chip"><strong>{compactNumber(stats.likes)}</strong> likes</span>
+              <span className="ci-audience-chip"><strong>{compactNumber(stats.comments)}</strong> comentários</span>
+            </>}
+            {publishedLabel && <span className="ci-audience-date">Publicado {publishedLabel}</span>}
+          </div>}
         </div>
         <span className={`ci-video-link-status ci-video-link-status-${bundle.statusTone}`}>{bundle.statusSummary}</span>
         <div className="ci-video-total-metrics" aria-label="Métricas totais do vídeo">
