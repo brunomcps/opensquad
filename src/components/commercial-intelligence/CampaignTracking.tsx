@@ -29,6 +29,17 @@ const POSITION_LABELS: Record<CtaPosition, string> = {
 const MAPA7P_PRODUCT_ID = '6966825';
 
 type BundleSortKey = 'sales' | 'clicks' | 'net' | 'views' | 'likes' | 'comments' | 'recent' | 'oldest';
+
+const SORT_LABELS: Record<BundleSortKey, string> = {
+  sales: 'mais vendas',
+  clicks: 'mais cliques',
+  net: 'mais receita',
+  views: 'mais views',
+  likes: 'mais likes',
+  comments: 'mais comentários',
+  recent: 'mais recentes',
+  oldest: 'mais antigos',
+};
 const MAPA7P_PRODUCT_NAME = 'MAPA-7P · Mapeamento de Padrões Dopaminérgico';
 const MAPA7P_HOTLINK = 'https://go.hotmart.com/K103806991N';
 const MAPA7P_POSITIONS: CtaPosition[] = ['description', 'pinned_comment', 'comment_reply', 'video'];
@@ -274,6 +285,11 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
 
   const [bundleQuery, setBundleQuery] = useState('');
   const [bundleSort, setBundleSort] = useState<BundleSortKey>('sales');
+  // Desenhar os 53 vídeos de uma vez passava de 11 mil elementos e congelava o
+  // navegador (incidente 20/07). Mostra um lote por vez; busca e ordenação
+  // continuam valendo sobre a lista INTEIRA, não só sobre o lote visível.
+  const LOTE_BUNDLES = 10;
+  const [bundleLimit, setBundleLimit] = useState(LOTE_BUNDLES);
   const visibleBundles = useMemo(() => {
     const catalogByVideo = new Map(catalog.videos.map(video => [video.video_id, video]));
     const normalized = bundleQuery.trim().toLocaleLowerCase('pt-BR');
@@ -298,6 +314,15 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
     });
     return sorted;
   }, [bundleQuery, bundleSort, campaignBundles, catalog.videos]);
+
+  // Buscar ou reordenar volta pro primeiro lote: sem isso, quem buscasse depois
+  // de expandir a lista continuaria pagando o custo de render do total.
+  useEffect(() => {
+    setBundleLimit(LOTE_BUNDLES);
+  }, [bundleQuery, bundleSort]);
+
+  const renderedBundles = visibleBundles.slice(0, bundleLimit);
+  const bundlesRestantes = visibleBundles.length - renderedBundles.length;
 
   const load = useCallback(async () => {
     const requestId = ++loadSequence.current;
@@ -412,8 +437,12 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
             </div>
           </header>
           {!visibleBundles.length && <div className="ci-empty">Nenhum vídeo encontrado nessa busca.</div>}
+          {!!visibleBundles.length && <p className="ci-bundle-contagem">
+            Mostrando <strong>{renderedBundles.length}</strong> de {visibleBundles.length} vídeo(s)
+            {bundleQuery.trim() ? ' que casam com a busca' : ''} · ordenado por {SORT_LABELS[bundleSort]}
+          </p>}
           <div className="ci-campaign-list">
-            {visibleBundles.map(bundle => <VideoCampaignBundle
+            {renderedBundles.map(bundle => <VideoCampaignBundle
               key={bundle.videoId}
               bundle={bundle}
               role={role}
@@ -428,6 +457,13 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
               onHistoryToggle={videoId => setExpandedVideoId(current => current === videoId ? null : videoId)}
             />)}
           </div>
+          {bundlesRestantes > 0 && <button
+            type="button"
+            className="ci-bundle-mais"
+            onClick={() => setBundleLimit(atual => atual + LOTE_BUNDLES)}
+          >
+            Carregar mais {Math.min(LOTE_BUNDLES, bundlesRestantes)} · faltam {bundlesRestantes}
+          </button>}
         </section>}
 
         {!!visibleAttribution.unknownCodes.length && <section className="ci-warning-box"><strong>Códigos de origem ainda não cadastrados</strong>{visibleAttribution.unknownCodes.map(item => <span key={item.code}><code>{item.code}</code> · {item.sales} venda(s) · {money(item.netAfterFees)}</span>)}</section>}
