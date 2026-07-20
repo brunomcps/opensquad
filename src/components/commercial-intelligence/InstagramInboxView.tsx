@@ -17,6 +17,7 @@ interface Conversa {
   rascunho: string | null;
   texto_final: string | null;
   status: Status;
+  via: 'api' | 'navegador';
   motivo: string | null;
   atualizado_em: string;
 }
@@ -172,6 +173,7 @@ export function InstagramInboxView() {
                     <strong>@{c.autor_nome || c.autor_id || 'contato'}</strong>
                     <small>{quando(c.ultima_msg_em || c.atualizado_em)}</small>
                   </div>
+                  <span className={`ci-ig-via ${c.via}`}>{c.via === 'api' ? 'responde aqui' : 'envia pelo navegador'}</span>
                   <Etiqueta grupo={c.grupo} />
                 </div>
 
@@ -203,11 +205,19 @@ export function InstagramInboxView() {
                     {c.motivo && <small className="ci-ig-motivo">{c.motivo}</small>}
                     {editavel && (
                       <div className="ci-ig-acoes">
-                        <button type="button" className="ci-ig-btn-primario" disabled={salvando === c.conversation_id || !rascunho.trim()} onClick={() => void decide(c, 'aprovado')}>Aprovar e enviar</button>
+                        <button type="button" className="ci-ig-btn-primario" disabled={salvando === c.conversation_id || !rascunho.trim()} onClick={() => void decide(c, 'aprovado')}>
+                          {c.via === 'api' ? 'Aprovar e enviar' : 'Aprovar (envio pelo navegador)'}
+                        </button>
                         <button type="button" className="ci-ig-btn-secundario" disabled={salvando === c.conversation_id} onClick={() => void decide(c, 'descartado')}>Descartar</button>
                       </div>
                     )}
-                    {c.status === 'aprovado' && <div className="ci-ig-aguardando">✓ Aprovado. A esteira envia na próxima passada.</div>}
+                    {c.status === 'aprovado' && (
+                      <div className="ci-ig-aguardando">
+                        {c.via === 'api'
+                          ? '✓ Aprovado. A esteira envia na próxima passada.'
+                          : '✓ Aprovado. Vai pra fila de envio manual pelo navegador (janela de 24h fechada, a API não alcança).'}
+                      </div>
+                    )}
                   </div>
                 )}
                 {c.status === 'descartado' && <div className="ci-ig-descartado">Descartado.</div>}
