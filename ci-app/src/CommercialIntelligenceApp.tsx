@@ -28,7 +28,12 @@ export function CommercialIntelligenceApp() {
     });
     const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (event === 'PASSWORD_RECOVERY') setRecoveryMode(true);
-      setSession(nextSession);
+      // Só reage a login/logout de verdade. A renovação periódica de token
+      // (TOKEN_REFRESHED) traz um objeto de sessão novo com o MESMO usuário; se
+      // atualizarmos o estado aqui, o app revalida e remonta a tela, jogando o
+      // usuário de volta pra Visão comercial. Preservando a referência quando a
+      // pessoa é a mesma, a aba ativa não se perde.
+      setSession(prev => (prev?.user?.id === nextSession?.user?.id ? prev : nextSession));
       if (!nextSession) {
         setRole(null);
         setAccessError(null);

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { CampaignTracking } from '../../src/components/commercial-intelligence/CampaignTracking';
 import { CommercialOverview } from '../../src/components/commercial-intelligence/CommercialOverview';
 import { DataQualityTab } from '../../src/components/commercial-intelligence/DataQualityTab';
@@ -44,8 +44,24 @@ const GRUPOS: Array<{ titulo: string; itens: ItemNav[] }> = [
 
 const TODOS = GRUPOS.flatMap(g => g.itens);
 
+const TAB_STORAGE_KEY = 'ci-aba-ativa';
+const TAB_VALIDAS = new Set(TODOS.map(item => item.chave));
+
+function abaInicial(): Tab {
+  try {
+    const salva = sessionStorage.getItem(TAB_STORAGE_KEY);
+    if (salva && TAB_VALIDAS.has(salva as Tab)) return salva as Tab;
+  } catch { /* sessionStorage bloqueado: usa o padrão */ }
+  return 'overview';
+}
+
 export function StandaloneCommercialIntelligenceView({ actions, role }: { actions?: ReactNode; role: MemberRole }) {
-  const [tab, setTab] = useState<Tab>('overview');
+  // Lembra a aba entre re-montagens: se algo remontar a tela (token, reload),
+  // o usuário continua onde estava em vez de cair na Visão comercial.
+  const [tab, setTab] = useState<Tab>(abaInicial);
+  useEffect(() => {
+    try { sessionStorage.setItem(TAB_STORAGE_KEY, tab); } catch { /* ignora */ }
+  }, [tab]);
   const atual = TODOS.find(i => i.chave === tab) ?? TODOS[0];
 
   return (
