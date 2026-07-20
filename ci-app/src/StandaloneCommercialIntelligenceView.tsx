@@ -2,13 +2,14 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { CampaignTracking } from '../../src/components/commercial-intelligence/CampaignTracking';
 import { CommercialOverview } from '../../src/components/commercial-intelligence/CommercialOverview';
 import { DataQualityTab } from '../../src/components/commercial-intelligence/DataQualityTab';
+import { EmailInboxView } from '../../src/components/commercial-intelligence/EmailInboxView';
 import { InstagramInboxView } from '../../src/components/commercial-intelligence/InstagramInboxView';
 import { ProjecoesSimulador } from '../../src/components/commercial-intelligence/ProjecoesSimulador';
 import { Rota2027View } from '../../src/components/commercial-intelligence/Rota2027View';
 import { VideoSalesAssociation } from '../../src/components/commercial-intelligence/VideoSalesAssociation';
 import type { MemberRole } from './api';
 
-type Tab = 'overview' | 'tracking' | 'association' | 'projecoes' | 'rota' | 'instagram' | 'quality';
+type Tab = 'overview' | 'tracking' | 'association' | 'projecoes' | 'rota' | 'instagram' | 'emails' | 'quality';
 
 interface ItemNav {
   chave: Tab;
@@ -31,6 +32,7 @@ const GRUPOS: Array<{ titulo: string; itens: ItemNav[] }> = [
     titulo: 'Relacionamento',
     itens: [
       { chave: 'instagram', rotulo: 'Instagram', icone: '❒', copy: 'As DMs do Instagram: a IA rascunha, você aprova, edita ou descarta.' },
+      { chave: 'emails', rotulo: 'E-mails', icone: '✉', copy: 'Os e-mails de compradores do MAPA: tag por tipo, rascunho da IA e aprovação sua. Reembolso alerta na hora.' },
     ],
   },
   {
@@ -106,6 +108,7 @@ export function StandaloneCommercialIntelligenceView({ actions, role }: { action
           {tab === 'projecoes' && <ProjecoesSimulador />}
           {tab === 'rota' && <Rota2027View />}
           {tab === 'instagram' && <InstagramInboxView />}
+          {tab === 'emails' && <EmailInboxView />}
           {tab === 'quality' && <DataQualityTab />}
         </div>
       </div>
