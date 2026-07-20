@@ -287,6 +287,10 @@ async function capture(page: Page, prefix: string) {
   const campaignPanel = page.locator('.ci-campaign-list').first();
   const bundleCount = await campaignPanel.locator('.ci-video-bundle').count();
   if (bundleCount !== 2) throw new Error(`Rastreamento exibiu ${bundleCount} conjuntos de vídeo, esperado 2.`);
+  await page.getByRole('button', { name: 'Grade', exact: true }).click();
+  if (!(await page.locator('.ci-campaign-list--grade').count())) throw new Error('Alternar para Grade não aplicou o layout em blocos.');
+  await page.getByRole('button', { name: 'Lista', exact: true }).click();
+  if (await page.locator('.ci-campaign-list--grade').count()) throw new Error('Voltar para Lista não removeu o layout em grade.');
   const firstBundle = campaignPanel.locator('[data-video-id="0OkxYzoxzUk"]');
   const positionCount = await firstBundle.locator('.ci-position-row').count();
   if (positionCount !== 4) throw new Error(`Vídeo piloto exibiu ${positionCount} posições, esperado 4.`);

@@ -290,6 +290,7 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
   // continuam valendo sobre a lista INTEIRA, não só sobre o lote visível.
   const LOTE_BUNDLES = 10;
   const [bundleLimit, setBundleLimit] = useState(LOTE_BUNDLES);
+  const [bundleView, setBundleView] = useState<'lista' | 'grade'>('lista');
   const visibleBundles = useMemo(() => {
     const catalogByVideo = new Map(catalog.videos.map(video => [video.video_id, video]));
     const normalized = bundleQuery.trim().toLocaleLowerCase('pt-BR');
@@ -434,6 +435,10 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
                   <option value="oldest">Mais antigos</option>
                 </select>
               </label>
+              <div className="ci-view-toggle" role="group" aria-label="Formato da lista de vídeos">
+                <button type="button" className={bundleView === 'lista' ? 'active' : ''} onClick={() => setBundleView('lista')} aria-pressed={bundleView === 'lista'}>Lista</button>
+                <button type="button" className={bundleView === 'grade' ? 'active' : ''} onClick={() => setBundleView('grade')} aria-pressed={bundleView === 'grade'}>Grade</button>
+              </div>
             </div>
           </header>
           {!visibleBundles.length && <div className="ci-empty">Nenhum vídeo encontrado nessa busca.</div>}
@@ -441,7 +446,7 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
             Mostrando <strong>{renderedBundles.length}</strong> de {visibleBundles.length} vídeo(s)
             {bundleQuery.trim() ? ' que casam com a busca' : ''} · ordenado por {SORT_LABELS[bundleSort]}
           </p>}
-          <div className="ci-campaign-list">
+          <div className={`ci-campaign-list${bundleView === 'grade' ? ' ci-campaign-list--grade' : ''}`}>
             {renderedBundles.map(bundle => <VideoCampaignBundle
               key={bundle.videoId}
               bundle={bundle}
