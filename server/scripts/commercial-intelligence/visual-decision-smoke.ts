@@ -291,6 +291,15 @@ async function capture(page: Page, prefix: string) {
   if (!(await page.locator('.ci-campaign-list--grade').count())) throw new Error('Alternar para Grade não aplicou o layout em blocos.');
   await page.getByRole('button', { name: 'Lista', exact: true }).click();
   if (await page.locator('.ci-campaign-list--grade').count()) throw new Error('Voltar para Lista não removeu o layout em grade.');
+
+  // Modo "Por origem" do gráfico: uma linha por local do link.
+  await page.getByRole('button', { name: 'Por origem', exact: true }).click();
+  await page.getByText('Comentário fixado', { exact: false }).first().waitFor();
+  const linhasOrigem = await page.locator('.ci-unified-chart .recharts-line').count();
+  if (linhasOrigem < 1) throw new Error('Modo Por origem não desenhou linhas por local.');
+  await page.locator('.ci-unified-chart-panel').scrollIntoViewIfNeeded();
+  await page.locator('.ci-unified-chart-panel').screenshot({ path: path.join(trackingEvidence, `${prefix}-tracking-origem.png`) });
+  await page.getByRole('button', { name: 'Total', exact: true }).click();
   const firstBundle = campaignPanel.locator('[data-video-id="0OkxYzoxzUk"]');
   const positionCount = await firstBundle.locator('.ci-position-row').count();
   if (positionCount !== 4) throw new Error(`Vídeo piloto exibiu ${positionCount} posições, esperado 4.`);

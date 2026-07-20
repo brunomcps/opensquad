@@ -68,6 +68,15 @@ const SERIES_OPTIONS: Array<{ key: SeriesKey; label: string; hint: string }> = [
   { key: 'revenue', label: 'Receita (R$)', hint: 'Líquido após taxas das compras originadas' },
 ];
 
+// Modo "Por origem": uma linha por local do link, pra comparar de onde vem
+// clique/venda (descrição vs resposta vs card...). Cores bem distintas entre si.
+const ORIGIN_SERIES = [
+  { key: 'description', label: 'Descrição', clickField: 'clickDescription', saleField: 'saleDescription', color: '#2f7fd6' },
+  { key: 'pinned', label: 'Comentário fixado', clickField: 'clickPinned', saleField: 'salePinned', color: '#c98a1f' },
+  { key: 'reply', label: 'Resposta', clickField: 'clickReply', saleField: 'saleReply', color: '#1d9d59' },
+  { key: 'video', label: 'Card do vídeo', clickField: 'clickVideo', saleField: 'saleVideo', color: '#9b4dca' },
+] as const;
+
 function shiftDate(date: string, days: number): string {
   return new Date(Date.parse(`${date}T12:00:00.000Z`) + days * 86_400_000).toISOString().slice(0, 10);
 }
@@ -244,6 +253,8 @@ export function TrackingHistoryExplorer({
   const [granularity, setGranularity] = useState<TrackingGranularity>('auto');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [hiddenSeries, setHiddenSeries] = useState<Set<SeriesKey>>(new Set());
+  const [chartMode, setChartMode] = useState<'total' | 'origem'>('total');
+  const [originMetric, setOriginMetric] = useState<'clicks' | 'sales'>('clicks');
   const [series, setSeries] = useState<TrackingSeriesDto | null>(null);
   const [events, setEvents] = useState<TrackingEventDto[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -615,22 +626,46 @@ export function TrackingHistoryExplorer({
 
     <article className="ci-panel ci-unified-chart-panel">
       <header>
-        <div><span>Evolução no tempo</span><small>Linhas de cliques e vendas na escala da esquerda; receita líquida em R$ na escala da direita.</small></div>
-        <div className="ci-series-toggles" role="group" aria-label="Linhas do gráfico">
-          {SERIES_OPTIONS.map(option => {
-            const active = !hiddenSeries.has(option.key);
-            return <button
-              type="button"
-              key={option.key}
-              className={active ? 'active' : ''}
-              title={option.hint}
-              aria-pressed={active}
-              onClick={() => toggleSeries(option.key)}
-            >
-              <span className="ci-series-dot" style={{ background: SERIES_COLORS[option.key] }} aria-hidden="true" />
-              {option.label}
-            </button>;
-          })}
+        <div>
+          <span>Evolução no tempo</span>
+          <small>{chartMode === 'total'
+            ? 'Linhas de cliques e vendas na escala da esquerda; receita líquida em R$ na escala da direita.'
+            : `Uma linha por origem do link, comparando ${originMetric === 'clicks' ? 'cliques' : 'vendas'}. Use o filtro de local em "Todos" para ver todas as origens.`}</small>
+        </div>
+        <div className="ci-chart-header-controls">
+          <div className="ci-view-toggle" role="group" aria-label="Modo do gráfico">
+            <button type="button" className={chartMode === 'total' ? 'active' : ''} aria-pressed={chartMode === 'total'} onClick={() => setChartMode('total')}>Total</button>
+            <button type="button" className={chartMode === 'origem' ? 'active' : ''} aria-pressed={chartMode === 'origem'} onClick={() => setChartMode('origem')}>Por origem</button>
+          </div>
+          {chartMode === 'total'
+            ? <div className="ci-series-toggles" role="group" aria-label="Linhas do gráfico">
+              {SERIES_OPTIONS.map(option => {
+                const active = !hiddenSeries.has(option.key);
+                return <button
+                  type="button"
+                  key={option.key}
+                  className={active ? 'active' : ''}
+                  title={option.hint}
+                  aria-pressed={active}
+                  onClick={() => toggleSeries(option.key)}
+                >
+                  <span className="ci-series-dot" style={{ background: SERIES_COLORS[option.key] }} aria-hidden="true" />
+                  {option.label}
+                </button>;
+              })}
+            </div>
+            : <>
+              <div className="ci-view-toggle" role="group" aria-label="Métrica por origem">
+                <button type="button" className={originMetric === 'clicks' ? 'active' : ''} aria-pressed={originMetric === 'clicks'} onClick={() => setOriginMetric('clicks')}>Cliques</button>
+                <button type="button" className={originMetric === 'sales' ? 'active' : ''} aria-pressed={originMetric === 'sales'} onClick={() => setOriginMetric('sales')}>Vendas</button>
+              </div>
+              <div className="ci-series-toggles" role="group" aria-label="Origens">
+                {ORIGIN_SERIES.map(origin => <span className="ci-series-legenda" key={origin.key}>
+                  <span className="ci-series-dot" style={{ background: origin.color }} aria-hidden="true" />
+                  {origin.label}
+                </span>)}
+              </div>
+            </>}
         </div>
       </header>
       {hasChartData ? <div className="ci-history-chart ci-unified-chart">
@@ -648,6 +683,7 @@ export function TrackingHistoryExplorer({
             <YAxis
               yAxisId="money"
               orientation="right"
+              hide={chartMode === 'origem'}
               tick={{ fontSize: 10, fill: SERIES_COLORS.revenue }}
               width={58}
               tickFormatter={value => new Intl.NumberFormat('pt-BR', {
@@ -660,18 +696,31 @@ export function TrackingHistoryExplorer({
                 ? [money(Number(value)), name]
                 : [Number(value).toLocaleString('pt-BR'), name]}
             />
-            {!hiddenSeries.has('clicks') && <Line
-              yAxisId="counts" type="monotone" dataKey="clicks" name="Cliques"
-              stroke={SERIES_COLORS.clicks} strokeWidth={2.5} dot={false} isAnimationActive={false}
-            />}
-            {!hiddenSeries.has('sales') && <Line
-              yAxisId="counts" type="monotone" dataKey="sales" name="Vendas"
-              stroke={SERIES_COLORS.sales} strokeWidth={2.5} dot={false} isAnimationActive={false}
-            />}
-            {!hiddenSeries.has('revenue') && <Line
-              yAxisId="money" type="monotone" dataKey="revenue" name="Receita (R$)"
-              stroke={SERIES_COLORS.revenue} strokeWidth={2.5} dot={false} isAnimationActive={false}
-            />}
+            {chartMode === 'total' && <>
+              {!hiddenSeries.has('clicks') && <Line
+                yAxisId="counts" type="monotone" dataKey="clicks" name="Cliques"
+                stroke={SERIES_COLORS.clicks} strokeWidth={2.5} dot={false} isAnimationActive={false}
+              />}
+              {!hiddenSeries.has('sales') && <Line
+                yAxisId="counts" type="monotone" dataKey="sales" name="Vendas"
+                stroke={SERIES_COLORS.sales} strokeWidth={2.5} dot={false} isAnimationActive={false}
+              />}
+              {!hiddenSeries.has('revenue') && <Line
+                yAxisId="money" type="monotone" dataKey="revenue" name="Receita (R$)"
+                stroke={SERIES_COLORS.revenue} strokeWidth={2.5} dot={false} isAnimationActive={false}
+              />}
+            </>}
+            {chartMode === 'origem' && ORIGIN_SERIES.map(origin => <Line
+              key={origin.key}
+              yAxisId="counts"
+              type="monotone"
+              dataKey={originMetric === 'clicks' ? origin.clickField : origin.saleField}
+              name={origin.label}
+              stroke={origin.color}
+              strokeWidth={2.5}
+              dot={false}
+              isAnimationActive={false}
+            />)}
           </ComposedChart>
         </ResponsiveContainer>
       </div> : <div className="ci-empty">Nenhum clique ou venda nesse filtro.</div>}
