@@ -123,7 +123,7 @@ export function EmailInboxView() {
       <header className="ci-ig-cabecalho">
         <div>
           <h2>Caixa de e-mails do MAPA</h2>
-          <p>A IA lê cada e-mail de comprador, marca o tipo e escreve um rascunho na voz da equipe. Ao aprovar, a resposta vira rascunho no seu Gmail, no e-mail certo, faltando só o clique de enviar. Reembolso sempre chega com alerta na hora.</p>
+          <p>A IA lê cada e-mail de comprador, marca o tipo e escreve um rascunho na voz da equipe. Ao aprovar, a resposta é ENVIADA de verdade, no e-mail certo, com o texto exato que você aprovou. Reembolso sempre chega com alerta na hora.</p>
         </div>
         <button type="button" className="ci-ig-atualizar" onClick={() => void carrega()}>Atualizar</button>
       </header>
@@ -208,16 +208,16 @@ export function EmailInboxView() {
                     {editavel && (
                       <div className="ci-ig-acoes">
                         <button type="button" className="ci-ig-btn-primario" disabled={salvando === c.conversation_id || !rascunho.trim()} onClick={() => void decide(c, 'aprovado')}>
-                          Aprovar (vira rascunho no Gmail)
+                          Aprovar e enviar
                         </button>
                         <button type="button" className="ci-ig-btn-secundario" disabled={salvando === c.conversation_id} onClick={() => void decide(c, 'descartado')}>Descartar</button>
                       </div>
                     )}
                     {c.status === 'aprovado' && (
-                      <div className="ci-ig-aguardando">✓ Aprovado. A esteira cria o rascunho no seu Gmail na próxima passada (até 30 min) e te avisa no Telegram.</div>
+                      <div className="ci-ig-aguardando">✓ Aprovado. A esteira ENVIA o e-mail na próxima passada (até 30 min) e te avisa no Telegram.</div>
                     )}
                     {c.status === 'draft_criado' && (
-                      <div className="ci-ig-aguardando">📬 Rascunho criado no Gmail. Falta só o clique de enviar lá.</div>
+                      <div className="ci-ig-aguardando">📬 Rascunho criado no Gmail (fluxo antigo). Falta só o clique de enviar lá.</div>
                     )}
                   </div>
                 )}
