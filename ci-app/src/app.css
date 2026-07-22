@@ -424,6 +424,9 @@
   font-size: 14px;
   line-height: 1.55;
   color: var(--text-primary);
+  /* e-mails têm parágrafos: preservar quebras de linha do texto original */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .ci-ig-bolha.lead { background: var(--bg-secondary); }
@@ -460,6 +463,11 @@
   font: 400 14px/1.55 var(--font-body);
   padding: 11px 13px;
   resize: vertical;
+  /* cresce sozinho até caber o rascunho inteiro (adeus scroll interno);
+     navegador sem suporte cai no resize vertical manual acima */
+  field-sizing: content;
+  min-height: 140px;
+  max-height: 70vh;
 }
 
 .ci-ig-compositor textarea:read-only { background: var(--bg-card-hover); color: var(--text-secondary); }
