@@ -166,6 +166,7 @@ export function EmailInboxView() {
             const c = conversaAberta;
             const rascunho = edicao[c.conversation_id] ?? c.rascunho ?? '';
             const editavel = c.status === 'rascunho' || c.status === 'novo';
+            const pendencias = rascunho.match(/\[EQUIPE:[^\]]*\]/g) ?? [];
             return (
               <>
                 <div className="ci-ig-detalhe-topo">
@@ -205,10 +206,16 @@ export function EmailInboxView() {
                       rows={6}
                     />
                     {c.motivo && <small className="ci-ig-motivo">{c.motivo}</small>}
+                    {editavel && pendencias.length > 0 && (
+                      <div className="ci-ig-trava">
+                        🔒 Este rascunho ainda tem {pendencias.length === 1 ? 'uma informação' : `${pendencias.length} informações`} pra equipe preencher. O botão de aprovar só libera quando os campos <code>[EQUIPE: ...]</code> saírem do texto:
+                        <ul>{pendencias.map((p, i) => <li key={i}>{p}</li>)}</ul>
+                      </div>
+                    )}
                     {editavel && (
                       <div className="ci-ig-acoes">
-                        <button type="button" className="ci-ig-btn-primario" disabled={salvando === c.conversation_id || !rascunho.trim()} onClick={() => void decide(c, 'aprovado')}>
-                          Aprovar e enviar
+                        <button type="button" className="ci-ig-btn-primario" disabled={salvando === c.conversation_id || !rascunho.trim() || pendencias.length > 0} onClick={() => void decide(c, 'aprovado')}>
+                          {pendencias.length > 0 ? 'Preencha os campos [EQUIPE] pra aprovar' : 'Aprovar e enviar'}
                         </button>
                         <button type="button" className="ci-ig-btn-secundario" disabled={salvando === c.conversation_id} onClick={() => void decide(c, 'descartado')}>Descartar</button>
                       </div>

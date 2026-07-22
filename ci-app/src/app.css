@@ -441,6 +441,18 @@
   padding: 12px 14px;
 }
 
+.ci-ig-trava {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--accent-red);
+  background: rgba(176, 42, 30, 0.06);
+  border: 1px dashed var(--accent-red);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+}
+.ci-ig-trava ul { margin: 6px 0 0 18px; }
+.ci-ig-trava code { font-size: 12px; }
+
 .ci-ig-compositor {
   display: flex;
   flex-direction: column;
