@@ -1,0 +1,221 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {
+  assertPublicationTransition,
+  parseCreatePublicationInput,
+  parseCreateReferenceInput,
+  parseCreateTemplateInput,
+  parseReviewInput,
+  parseUpdatePublicationInput,
+  sortByNarrativeOrder,
+  sortByRealChronology,
+} from '../../../supabase/functions/_shared/storyContent.ts';
+
+test('ordem narrativa independe da cronologia real', () => {
+  const rows = [
+    { narrativeOrder: 2, sourceOccurredAt: '2026-07-24T08:00:00Z', label: 'contexto' },
+    { narrativeOrder: 1, sourceOccurredAt: '2026-07-24T09:00:00Z', label: 'gancho' },
+    { narrativeOrder: 3, sourceOccurredAt: null, label: 'fechamento' },
+  ];
+  assert.deepEqual(sortByNarrativeOrder(rows).map(row => row.label), ['gancho', 'contexto', 'fechamento']);
+  assert.deepEqual(sortByRealChronology(rows).map(row => row.label), ['contexto', 'gancho', 'fechamento']);
+});
+
+test('template exige nome, objetivo e passos estruturais sem HTML', () => {
+  const valid = parseCreateTemplateInput({
+    name: 'Gancho cotidiano + virada didática',
+    objective: 'Transformar uma cena comum em explicação sobre TDAH adulto.',
+    description: 'Começa na rotina, encontra a tensão e fecha com orientação prática.',
+    tags: ['rotina', 'TDAH'],
+    steps: [
+      { role: 'hook', instruction: 'Mostrar a cena real em uma frase.' },
+      { role: 'development', instruction: 'Explicar o mecanismo sem jargão.' },
+      { role: 'closing', instruction: 'Fechar com convite específico.' },
+    ],
+  });
+  assert.equal(valid.name, 'Gancho cotidiano + virada didática');
+  assert.equal(valid.tags[1], 'tdah');
+  assert.throws(() => parseCreateTemplateInput({ ...valid, objective: '<script>alert(1)</script>' }), /HTML/i);
+  assert.throws(() => parseCreateTemplateInput({ ...valid, steps: [] }), /passo/i);
+});
+
+test('publicação exige template e pelo menos um story', () => {
+  const publication = parseCreatePublicationInput({
+    title: 'Treino de manhã',
+    templateId: '784fef37-8cc4-4ea1-b79e-8b5094dddc1f',
+    scheduledFor: null,
+    items: [
+      {
+        mediaType: 'text',
+        textContent: 'Hoje o corpo queria negociar. Fui mesmo assim.',
+        narrativeOrder: 1,
+        narrativeRole: 'hook',
+      },
+    ],
+  });
+  assert.equal(publication.items[0]?.narrativeOrder, 1);
+  assert.throws(() => parseCreatePublicationInput({ ...publication, items: [] }), /story/i);
+});
+
+test('referência preserva fonte, análise, template e ordem dos stories', () => {
+  const reference = parseCreateReferenceInput({
+    title: 'Raul Sena, cena, lente e princípio',
+    description: 'A cena cotidiana vira autoridade financeira e declaração de princípio.',
+    platform: 'instagram',
+    sourceAccount: '@investidorsardinha',
+    sourceUrl: 'https://www.instagram.com/investidorsardinha/',
+    sourceStartedAt: '2026-07-24T08:10:00-03:00',
+    sourceEndedAt: '2026-07-24T08:14:00-03:00',
+    templateId: '784fef37-8cc4-4ea1-b79e-8b5094dddc1f',
+    items: [
+      {
+        mediaType: 'image',
+        assetUrl: 'https://example.com/story-2.jpg',
+        textContent: 'Pagamento do loop com humor de nicho.',
+        sourceOccurredAt: '2026-07-24T08:12:00-03:00',
+        narrativeOrder: 2,
+        narrativeRole: 'development',
+      },
+      {
+        mediaType: 'image',
+        assetUrl: 'https://example.com/story-1.jpg',
+        textContent: 'Cena cotidiana com conflito leve.',
+        sourceOccurredAt: '2026-07-24T08:10:00-03:00',
+        narrativeOrder: 1,
+        narrativeRole: 'hook',
+      },
+    ],
+  });
+
+  assert.equal(reference.sourceAccount, '@investidorsardinha');
+  assert.equal(reference.items[0]?.narrativeOrder, 1);
+  assert.equal(reference.items[1]?.sourceOccurredAt, '2026-07-24T11:12:00.000Z');
+  assert.throws(() => parseCreateReferenceInput({ ...reference, sourceAccount: '' }), /conta/i);
+  assert.throws(() => parseCreateReferenceInput({ ...reference, items: [] }), /story/i);
+  assert.throws(
+    () => parseCreateReferenceInput({ ...reference, sourceEndedAt: '2026-07-24T07:00:00-03:00' }),
+    /término/i,
+  );
+});
+
+test('fluxo editorial exige comentário ao pedir ajustes', () => {
+  assert.doesNotThrow(() => assertPublicationTransition('draft', 'pending_approval'));
+  assert.doesNotThrow(() => assertPublicationTransition('pending_approval', 'approved'));
+  assert.throws(() => assertPublicationTransition('draft', 'published'), /Transição/i);
+  assert.throws(() => parseReviewInput({ decision: 'changes_requested', note: '  ' }), /comentário/i);
+  assert.equal(parseReviewInput({ decision: 'approved', note: '' }).decision, 'approved');
+});
+
+test('edição reaproveita o contrato da publicação e exige a revisão esperada', () => {
+  const edited = parseUpdatePublicationInput({
+    title: 'Treino de manhã, versão corrigida',
+    templateId: '784fef37-8cc4-4ea1-b79e-8b5094dddc1f',
+    scheduledFor: null,
+    expectedRevision: 2,
+    items: [{
+      mediaType: 'text',
+      assetUrl: null,
+      textContent: 'Troquei o fechamento depois do pedido de ajustes.',
+      narrativeOrder: 1,
+      narrativeRole: 'closing',
+    }],
+  });
+  assert.equal(edited.expectedRevision, 2);
+  assert.match(edited.title, /corrigida/);
+  assert.throws(
+    () => parseUpdatePublicationInput({ ...edited, expectedRevision: 0 }),
+    /revisão/i,
+  );
+});
+
+test('template preserva o dossiê estrutural completo dentro de definition', () => {
+  const definition = {
+    formula: 'História real → pequena entrega → CTA coerente',
+    risks: ['Virar uma sequência genérica', 'Entregar antes de criar tensão'],
+    preserveRules: ['Preservar a progressão causal da história'],
+    adaptRules: ['Trocar o contexto pela rotina editorial de Bruno'],
+    avoidRules: ['Não copiar frases nem identidade visual da referência'],
+    moldSteps: [
+      { title: 'História', purpose: 'Abrir uma tensão concreta e reconhecível.' },
+      { title: 'Pequena entrega', purpose: 'Resolver uma parte útil da tensão.' },
+      { title: 'CTA', purpose: 'Convidar para o próximo passo natural.' },
+    ],
+    steps: [
+      { role: 'hook', instruction: 'Contar a história concreta.' },
+      { role: 'development', instruction: 'Fazer uma pequena entrega.' },
+      { role: 'cta', instruction: 'Fechar com CTA coerente.' },
+    ],
+  };
+  const parsed = parseCreateTemplateInput({
+    name: 'História → pequena entrega → CTA',
+    objective: 'Transformar uma história em valor aplicado e convite editorial.',
+    description: 'Molde integrado ao dossiê de referência.',
+    tags: ['história', 'entrega', 'cta'],
+    definition,
+  }) as unknown as { definition: typeof definition };
+  assert.deepEqual(parsed.definition, definition);
+});
+
+test('campos ricos do dossiê de template têm limite e rejeitam HTML', () => {
+  const base = {
+    name: 'História → pequena entrega → CTA',
+    objective: 'Transformar história em entrega.',
+    description: null,
+    tags: [],
+    definition: {
+      formula: 'História → entrega → CTA',
+      risks: ['Não antecipar a conclusão.'],
+      preserveRules: ['Preservar causalidade.'],
+      adaptRules: ['Adaptar a cena.'],
+      avoidRules: ['Evitar cópia literal.'],
+      moldSteps: [{ title: 'História', purpose: 'Criar tensão.' }],
+      steps: [{ role: 'hook', instruction: 'Abrir com a história.' }],
+    },
+  };
+  assert.throws(
+    () => parseCreateTemplateInput({ ...base, definition: { ...base.definition, formula: 'x'.repeat(2_001) } }),
+    /formula|caracteres|tamanho/i,
+  );
+  assert.throws(
+    () => parseCreateTemplateInput({ ...base, definition: { ...base.definition, preserveRules: ['<b>copiar a forma</b>'] } }),
+    /HTML/i,
+  );
+});
+
+test('referência preserva análise estruturada da sequência e metadata de evidência por página', () => {
+  const analysis = {
+    summary: 'Uma história pessoal prepara uma pequena entrega antes do CTA.',
+    narrativeArc: ['história', 'pequena entrega', 'cta'],
+    whyItWorks: ['A entrega paga a atenção antes do convite.'],
+    templateFit: 'Referência canônica para o molde integrado.',
+  };
+  const metadata = {
+    sourcePage: 42,
+    canonicalPageUrl: 'https://www.instagram.com/stories/highlights/42',
+    canonicalPageAssetUrl: '/story-references/stories-para-enriquecer/page-42.webp',
+    evidenceType: 'canonical_page',
+    sourceExcerpt: 'Primeiro eu preciso te contar o que aconteceu.',
+    analysis: 'A página abre a história e instala a tensão.',
+    criticism: 'A abertura depende de contexto que precisa ser encurtado.',
+    brunoAdaptation: 'Abrir com uma cena clínica cotidiana, sem expor paciente.',
+    editorialStatus: 'approved',
+    moldConsequence: 'Preservar uma página inteira para a história antes da entrega.',
+  };
+  const parsed = parseCreateReferenceInput({
+    title: 'Stories para Enriquecer',
+    description: 'Referência das páginas 42–46.',
+    analysis,
+    platform: 'instagram',
+    sourceAccount: '@referencia',
+    sourceUrl: 'https://www.instagram.com/referencia/',
+    sourceStartedAt: null,
+    sourceEndedAt: null,
+    templateId: '784fef37-8cc4-4ea1-b79e-8b5094dddc1f',
+    items: [{
+      mediaType: 'image', assetUrl: 'https://example.com/page-42.webp', textContent: 'Abertura da história.',
+      sourceOccurredAt: null, narrativeOrder: 1, narrativeRole: 'hook', metadata,
+    }],
+  }) as unknown as { analysis: typeof analysis; items: Array<{ metadata: typeof metadata }> };
+  assert.deepEqual(parsed.analysis, analysis);
+  assert.deepEqual(parsed.items[0]?.metadata, metadata);
+});

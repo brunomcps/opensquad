@@ -1,0 +1,32 @@
+{
+  "source": "analises/2026-07-10-youtube-vendas/analysis_results.json",
+  "coverage": {
+    "start": "2026-01-31",
+    "end": "2026-07-07",
+    "days": 158
+  },
+  "descriptive": {
+    "sales": 769,
+    "buyers": 457,
+    "net_revenue": 66422.28,
+    "youtube_views": 1246800,
+    "videos_published": 36
+  },
+  "partial_correlations": {
+    "watch_hours_sales_lag_0": 0.40947012978018515,
+    "watch_hours_revenue_lag_0": 0.298959593676803
+  },
+  "prediction_incremental_mae_reduction": {
+    "sales_count": 0.07761824686529653,
+    "net_revenue": 0.07850500295622571
+  },
+  "run_rate_forecast_28d_net_revenue": {
+    "p10": 8937.39,
+    "p50": 20278.01,
+    "p90": 35564
+  },
+  "labels": {
+    "forecast_readiness": "utilidade preditiva parcial; manter como variável auxiliar, não motor principal",
+    "causal_attribution": "Não; associação temporal exploratória"
+  }
+}
