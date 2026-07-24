@@ -6,10 +6,12 @@ import { EmailInboxView } from '../../src/components/commercial-intelligence/Ema
 import { InstagramInboxView } from '../../src/components/commercial-intelligence/InstagramInboxView';
 import { ProjecoesSimulador } from '../../src/components/commercial-intelligence/ProjecoesSimulador';
 import { Rota2027View } from '../../src/components/commercial-intelligence/Rota2027View';
+import { StoryContentView } from '../../src/components/commercial-intelligence/StoryContentView';
 import { VideoSalesAssociation } from '../../src/components/commercial-intelligence/VideoSalesAssociation';
 import type { MemberRole } from './api';
 
-type Tab = 'overview' | 'tracking' | 'association' | 'projecoes' | 'rota' | 'instagram' | 'emails' | 'quality';
+type Tab = 'overview' | 'tracking' | 'association' | 'projecoes' | 'rota' | 'instagram' | 'emails' | 'quality'
+  | 'content-templates' | 'content-references' | 'content-publications' | 'content-approvals';
 
 interface ItemNav {
   chave: Tab;
@@ -33,6 +35,15 @@ const GRUPOS: Array<{ titulo: string; itens: ItemNav[] }> = [
     itens: [
       { chave: 'instagram', rotulo: 'Instagram', icone: '❒', copy: 'As DMs do Instagram: a IA rascunha, você aprova, edita ou descarta.' },
       { chave: 'emails', rotulo: 'E-mails', icone: '✉', copy: 'Os e-mails de compradores do MAPA: tag por tipo, rascunho da IA e aprovação sua. Reembolso alerta na hora.' },
+    ],
+  },
+  {
+    titulo: 'Conteúdo',
+    itens: [
+      { chave: 'content-templates', rotulo: 'Templates', icone: '▦', copy: 'Biblioteca viva de estruturas, referências e aplicações.' },
+      { chave: 'content-references', rotulo: 'Referências', icone: '◫', copy: 'Prints, fonte, cronologia e leitura estrutural de sequências que vale guardar.' },
+      { chave: 'content-publications', rotulo: 'Publicações', icone: '▤', copy: 'Planejamento, sequência narrativa e preview dos stories.' },
+      { chave: 'content-approvals', rotulo: 'Para aprovar', icone: '✓', copy: 'Fila editorial antes do agendamento ou da publicação.' },
     ],
   },
   {
@@ -110,6 +121,10 @@ export function StandaloneCommercialIntelligenceView({ actions, role }: { action
           {tab === 'instagram' && <InstagramInboxView />}
           {tab === 'emails' && <EmailInboxView />}
           {tab === 'quality' && <DataQualityTab />}
+          {tab === 'content-templates' && <StoryContentView section="templates" role={role} />}
+          {tab === 'content-references' && <StoryContentView section="references" role={role} />}
+          {tab === 'content-publications' && <StoryContentView section="publications" role={role} />}
+          {tab === 'content-approvals' && <StoryContentView section="approvals" role={role} />}
         </div>
       </div>
     </div>

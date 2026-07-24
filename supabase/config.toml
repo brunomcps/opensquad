@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.ci-tracking-events]
 verify_jwt = false
+
+[functions.ci-content]
+verify_jwt = false

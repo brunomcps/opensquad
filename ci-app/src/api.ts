@@ -1,3 +1,4 @@
+import type { StoryPublicationInput, StoryPublicationUpdateInput, StoryReferenceInput, StoryReviewInput, StoryTemplateInput } from '../../supabase/functions/_shared/storyContent';
 import type { DataQualityReport } from '../../src/types/commercialIntelligence';
 import type { TemporalAssociationReport } from '../../supabase/functions/_shared/association';
 import type { DirectAttributionReport } from '../../supabase/functions/_shared/attribution';
@@ -342,4 +343,150 @@ export async function getAssociation(filters: {
   });
   const result = await request<{ ok: true; association: TemporalAssociationReport }>(`ci-association?${query.toString()}`);
   return result.association;
+}
+
+export interface StoryTemplateDto {
+  templateId: string;
+  name: string;
+  description: string | null;
+  objective: string;
+  definition: NonNullable<StoryTemplateInput['definition']>;
+  steps: StoryTemplateInput['steps'];
+  tags: string[];
+  status: 'draft' | 'active' | 'archived';
+  schemaVersion: number;
+  referenceCount: number;
+  publicationCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StoryEvidenceMetadataDto {
+  sourcePage: number | null;
+  canonicalPageUrl: string | null;
+  canonicalPageAssetUrl: string | null;
+  evidenceType: string | null;
+  sourceExcerpt: string | null;
+  analysis: string | null;
+  criticism: string | null;
+  brunoAdaptation: string | null;
+  editorialStatus: string | null;
+  moldConsequence: string | null;
+}
+
+export interface StoryItemDto {
+  itemId: string;
+  mediaType: 'image' | 'video' | 'text';
+  assetUrl: string | null;
+  thumbnailUrl: string | null;
+  textContent: string | null;
+  metadata: Partial<StoryEvidenceMetadataDto>;
+  sourceOccurredAt: string | null;
+  narrativeOrder: number;
+  narrativeRole: StoryPublicationInput['items'][number]['narrativeRole'];
+}
+
+export interface StoryPublicationDto {
+  sequenceId: string;
+  kind: 'publication';
+  title: string;
+  description: string | null;
+  analysis: {
+    summary?: string | null;
+    narrativeArc?: string[];
+    whyItWorks?: string[];
+    templateFit?: string | null;
+  };
+  platform: string;
+  sourceAccount: string | null;
+  sourceUrl: string | null;
+  sourceStartedAt: string | null;
+  sourceEndedAt: string | null;
+  sequenceState: 'open' | 'closed' | 'archived';
+  publicationState: 'draft' | 'pending_approval' | 'changes_requested' | 'approved' | 'scheduled' | 'published' | 'cancelled' | 'failed';
+  scheduledFor: string | null;
+  publishedAt: string | null;
+  contentRevision: number;
+  approvedRevision: number | null;
+  approvedAt: string | null;
+  reviewNote: string | null;
+  template: { templateId: string; name: string } | null;
+  items: StoryItemDto[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StoryReferenceDto extends Omit<StoryPublicationDto, 'kind' | 'publicationState'> {
+  kind: 'reference';
+  publicationState: null;
+}
+
+export async function getStoryTemplates(): Promise<{ templates: StoryTemplateDto[]; member: { role: MemberRole } }> {
+  const result = await request<{ ok: true; templates: StoryTemplateDto[]; member: { role: MemberRole } }>('ci-content?section=templates');
+  return { templates: result.templates, member: result.member };
+}
+
+export async function getStoryReferences(): Promise<{ references: StoryReferenceDto[]; member: { role: MemberRole } }> {
+  const result = await request<{ ok: true; references: StoryReferenceDto[]; member: { role: MemberRole } }>('ci-content?section=references');
+  return { references: result.references, member: result.member };
+}
+
+export async function getStoryPublications(section: 'publications' | 'approvals' = 'publications'): Promise<{
+  publications: StoryPublicationDto[];
+  member: { role: MemberRole };
+}> {
+  const result = await request<{ ok: true; publications: StoryPublicationDto[]; member: { role: MemberRole } }>(`ci-content?section=${section}`);
+  return { publications: result.publications, member: result.member };
+}
+
+export async function createStoryTemplate(input: StoryTemplateInput): Promise<StoryTemplateDto> {
+  const result = await request<{ ok: true; template: StoryTemplateDto }>('ci-content', {
+    method: 'POST',
+    body: JSON.stringify({ action: 'create_template', ...input }),
+  });
+  return result.template;
+}
+
+export async function createStoryReference(input: StoryReferenceInput): Promise<StoryReferenceDto> {
+  const result = await request<{ ok: true; reference: StoryReferenceDto }>('ci-content', {
+    method: 'POST',
+    body: JSON.stringify({ action: 'create_reference', ...input }),
+  });
+  return result.reference;
+}
+
+export async function createStoryPublication(input: StoryPublicationInput): Promise<StoryPublicationDto> {
+  const result = await request<{ ok: true; publication: StoryPublicationDto }>('ci-content', {
+    method: 'POST',
+    body: JSON.stringify({ action: 'create_publication', ...input }),
+  });
+  return result.publication;
+}
+
+export async function updateStoryPublication(sequenceId: string, input: StoryPublicationUpdateInput): Promise<StoryPublicationDto> {
+  const result = await request<{ ok: true; publication: StoryPublicationDto }>('ci-content', {
+    method: 'PATCH',
+    body: JSON.stringify({ action: 'update_publication', sequenceId, ...input }),
+  });
+  return result.publication;
+}
+
+export async function requestStoryApproval(sequenceId: string, expectedRevision: number): Promise<StoryPublicationDto> {
+  const result = await request<{ ok: true; publication: StoryPublicationDto }>('ci-content', {
+    method: 'PATCH',
+    body: JSON.stringify({ action: 'request_approval', sequenceId, expectedRevision }),
+  });
+  return result.publication;
+}
+
+export async function reviewStoryPublication(
+  sequenceId: string,
+  expectedRevision: number,
+  review: StoryReviewInput,
+): Promise<StoryPublicationDto> {
+  const result = await request<{ ok: true; publication: StoryPublicationDto }>('ci-content', {
+    method: 'PATCH',
+    body: JSON.stringify({ action: 'review_publication', sequenceId, expectedRevision, ...review }),
+  });
+  return result.publication;
 }
