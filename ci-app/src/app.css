@@ -152,8 +152,24 @@
 }
 
 @media (max-width: 900px) {
+  .ci-app-shell {
+    height: auto;
+    min-height: 100dvh;
+  }
   .ci-shell {
+    flex: none;
+    min-height: auto;
     flex-direction: column;
+  }
+  .ci-main {
+    flex: none;
+    min-height: auto;
+  }
+  .ci-conteudo {
+    flex: none;
+    min-height: auto;
+    overflow-y: visible;
+    padding: 16px 18px 50px;
   }
   .ci-sidebar {
     width: 100%;

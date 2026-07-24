@@ -19,6 +19,7 @@
     "ci:smoke:visual": "tsx server/scripts/commercial-intelligence/visual-smoke.ts",
     "ci:smoke:overview": "tsx server/scripts/commercial-intelligence/visual-overview-smoke.ts",
     "ci:smoke:decisions": "tsx server/scripts/commercial-intelligence/visual-decision-smoke.ts",
+    "ci:smoke:stories": "tsx server/scripts/commercial-intelligence/visual-story-content-smoke.ts",
     "ci:smoke:overview:production": "tsx server/scripts/commercial-intelligence/production-overview-smoke.ts",
     "ci:smoke:decisions:production": "tsx server/scripts/commercial-intelligence/production-decision-smoke.ts",
     "ci:smoke:tracking:production": "tsx server/scripts/commercial-intelligence/production-tracking-control-smoke.ts",
