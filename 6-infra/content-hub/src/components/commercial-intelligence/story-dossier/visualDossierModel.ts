@@ -4,6 +4,7 @@ import type {
   StoryReferenceAnalysisInput,
   StoryRegisteredTemplateInput,
   StorySequenceMapItemInput,
+  StorySourceLibraryInput,
   StorySynthesisInput,
   StoryVisualAnalysisInput,
 } from '../../../../supabase/functions/_shared/storyContent';
@@ -40,6 +41,7 @@ export interface VisualDossierViewModel {
   registeredTemplate: StoryRegisteredTemplateInput;
   transferRules: string[];
   sourceNote: string;
+  sourceLibrary?: StorySourceLibraryInput;
 }
 
 interface CompleteVisualDossierAnalysis extends StoryReferenceAnalysisInput {
@@ -255,5 +257,8 @@ export function buildVisualDossierViewModel(
     registeredTemplate: reference.analysis.registeredTemplate,
     transferRules: reference.analysis.transferRules,
     sourceNote: reference.analysis.sourceNote,
+    ...(reference.analysis.sourceLibrary
+      ? { sourceLibrary: reference.analysis.sourceLibrary }
+      : {}),
   };
 }

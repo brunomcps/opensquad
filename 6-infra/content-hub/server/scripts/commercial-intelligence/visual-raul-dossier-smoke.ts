@@ -30,6 +30,11 @@ fs.mkdirSync(evidenceDirectory, { recursive: true });
 const now = '2026-07-24T18:00:00.000Z';
 const raulTemplateId = '20000000-0000-4000-8000-000000000101';
 const historyTemplateId = '20000000-0000-4000-8000-000000000102';
+const historyPayloadPath = path.resolve(
+  process.cwd(),
+  'docs/commercial-intelligence/stories-para-enriquecer/reference-payload.json',
+);
+const historyPayload = JSON.parse(fs.readFileSync(historyPayloadPath, 'utf8'));
 
 const templates = [
   {
@@ -277,27 +282,35 @@ const raulItems = roles.map((role, index) => ({
   },
 }));
 
-const historyItems = [42, 43, 44, 45, 46].map((pageNumber, index) => ({
-  itemId: `42000000-0000-4000-8000-00000000010${index + 1}`,
-  mediaType: 'image',
-  assetUrl: `${baseUrl}/story-references/stories-para-enriquecer/page-${pageNumber}.webp`,
-  thumbnailUrl: null,
-  textContent: `Evidência da página ${pageNumber}.`,
-  sourceOccurredAt: now,
-  narrativeOrder: index + 1,
-  narrativeRole: index === 0 ? 'hook' : index === 4 ? 'closing' : 'development',
-  metadata: {
-    sourcePage: pageNumber,
-    canonicalPageAssetUrl: `${baseUrl}/story-references/stories-para-enriquecer/page-${pageNumber}.webp`,
-    evidenceType: 'evidência metodológica',
-    sourceExcerpt: `Ensinamento original da página ${pageNumber}.`,
-    analysis: 'A página sustenta o método sem depender do dossiê do Raul.',
-    criticism: 'A regra exige adaptação ao contexto.',
-    brunoAdaptation: 'Aplicar ao conteúdo do Bruno.',
-    editorialStatus: 'adaptado',
-    moldConsequence: 'Preservar a progressão história, entrega e CTA.',
+const historyAssets = new Map(
+  historyPayload.assets.map((asset: { localPath: string; narrativeOrder: number }) => [
+    asset.narrativeOrder,
+    path.basename(asset.localPath),
+  ]),
+);
+const historyItems = historyPayload.reference.items.map((
+  item: Record<string, unknown> & {
+    metadata: Record<string, unknown>;
+    narrativeOrder: number;
+    sourceOccurredAt: string | null;
   },
-}));
+  index: number,
+) => {
+  const assetName = historyAssets.get(item.narrativeOrder);
+  if (!assetName) throw new Error(`Asset ausente para o story ${item.narrativeOrder}.`);
+  const assetUrl = `${baseUrl}/story-references/stories-para-enriquecer/sequence-page-44/${assetName}`;
+  return {
+    ...item,
+    itemId: `42000000-0000-4000-8000-00000000010${index + 1}`,
+    assetUrl,
+    thumbnailUrl: null,
+    sourceOccurredAt: item.sourceOccurredAt || now,
+    metadata: {
+      ...item.metadata,
+      canonicalPageAssetUrl: assetUrl,
+    },
+  };
+});
 
 const references = [
   {
@@ -417,6 +430,23 @@ const references = [
   },
 ];
 
+Object.assign(templates[1], historyPayload.template, {
+  templateId: historyTemplateId,
+  status: 'active',
+  schemaVersion: 4,
+  referenceCount: 1,
+  publicationCount: 0,
+  createdAt: now,
+  updatedAt: now,
+});
+Object.assign(references[1], historyPayload.reference, {
+  sequenceId: '31000000-0000-4000-8000-000000000102',
+  template: { templateId: historyTemplateId, name: historyPayload.template.name },
+  items: historyItems,
+  createdAt: now,
+  updatedAt: now,
+});
+
 const session = {
   access_token: 'fixture-access-token',
   token_type: 'bearer',
@@ -437,7 +467,7 @@ const session = {
   },
 };
 
-async function prepare(page: Page, initialPath = '') {
+async function prepare(page: Page, initialPath = '/?tab=content-templates') {
   page.on('console', message => {
     if (message.type() === 'error') console.error(`[browser console] ${message.text()}`);
   });
@@ -531,20 +561,60 @@ async function captureViewport(page: Page, selector: string, fileName: string) {
   });
 }
 
-async function assertIndependentTemplate(page: Page) {
-  await page.getByText('Regras do método', { exact: true }).waitFor();
-  await page.getByText('Stories para Enriquecer, páginas 42–46', { exact: true }).waitFor();
-  await assertImagesLoaded(page, '.ci-story-evidence img', 5);
-  await assertSelectorCount(page, '.ci-dossier-quick', 0);
+async function assertIndependentTemplate(page: Page, expectDesktopSpan = true) {
+  try {
+    await page
+      .getByRole('heading', {
+        name: 'Pergunta concreta → microdiagnóstico → progressão → CTA',
+        exact: true,
+      })
+      .waitFor({ timeout: 10_000 });
+  } catch (error) {
+    console.error(`[independent template body] ${(await page.locator('body').innerText()).slice(0, 3000)}`);
+    throw error;
+  }
+  await page.getByText('A audiência se localiza pelo crescimento', { exact: true }).waitFor();
+  await assertImagesLoaded(page, '.ci-dossier-quick img', 5);
+  await assertSelectorCount(page, '.ci-dossier-quick', 1);
+  await assertSelectorCount(page, '.ci-dossier-xray-grid > article', 4);
+  await assertSelectorCount(page, '.ci-dossier-deep-story', 4);
+  await page
+    .locator('.ci-dossier-deep')
+    .getByText('O sintoma cotidiano vira uma porta para o sistema', { exact: true })
+    .waitFor();
+  await page.locator('.ci-dossier-story-rail').evaluate(element => {
+    element.scrollLeft = 0;
+  });
+  await captureViewport(
+    page,
+    '.ci-dossier-quick',
+    expectDesktopSpan ? 'desktop-stories-quick.png' : 'mobile-stories-quick.png',
+  );
   for (const raulCopy of [
     'A cena já contém a pergunta narrativa',
-    'Raio-X visual da referência',
-    'Template registrado',
+    'Cena cotidiana com prova visual',
+    'Como esta sequência revela o posicionamento de @_raulsena',
   ]) {
     if (await page.getByText(raulCopy, { exact: true }).count()) {
-      throw new Error(`O template protegido recebeu conteúdo do Raul: ${raulCopy}.`);
+      throw new Error(`A referência do PDF recebeu conteúdo específico do Raul: ${raulCopy}.`);
     }
   }
+
+  await page.getByRole('tab', { name: 'Biblioteca do PDF · 17', exact: true }).click();
+  await page.getByRole('heading', { name: 'Biblioteca Stories para Enriquecer', exact: true }).waitFor();
+  await assertSelectorCount(page, '.ci-source-library-index > button', 17);
+  if (expectDesktopSpan) {
+    await assertExpandedSectionSpansLibrary(page, '.ci-source-library');
+  }
+
+  const search = page.getByLabel('Buscar na biblioteca do PDF');
+  await search.fill('oratória');
+  await page.getByRole('heading', { name: 'Oratória, dicção e presença', exact: true }).waitFor();
+  await assertSelectorCount(page, '.ci-source-library-index > button', 1);
+  await search.fill('');
+  await assertSelectorCount(page, '.ci-source-library-index > button', 17);
+  await page.locator('.ci-source-library-index > button').first().click();
+  await page.getByRole('heading', { name: 'Capricho sem enfeite', exact: true }).waitFor();
 }
 
 function assertFixtureIntegrity() {
@@ -564,10 +634,19 @@ function assertFixtureIntegrity() {
   if (analysis.registeredTemplate?.steps.length !== 4) {
     throw new Error('A fixture deve conter quatro passos do template registrado.');
   }
-  if (historyItems.some(item => (
-    'quick' in item.metadata || 'visual' in item.metadata || 'deep' in item.metadata
-  ))) {
-    throw new Error('O template protegido não pode receber camadas do dossiê visual.');
+  if (historyItems.length !== 4) {
+    throw new Error('A referência do PDF deve conter os quatro stories reais da página 44.');
+  }
+  for (const [index, item] of historyItems.entries()) {
+    if (item.metadata.sourcePage !== 44) {
+      throw new Error(`Story ${index + 1} não aponta para a página 44.`);
+    }
+    if (!item.metadata.quick || !item.metadata.visual || !item.metadata.deep) {
+      throw new Error(`Story ${index + 1} não contém as três camadas do dossiê.`);
+    }
+  }
+  if (historyPayload.reference.analysis.sourceLibrary.modules.length !== 17) {
+    throw new Error('A biblioteca do PDF deve conter os 17 módulos catalogados.');
   }
 }
 
@@ -657,8 +736,13 @@ try {
   }
 
   await desktop.getByRole('button', { name: 'Biblioteca de stories' }).click();
-  await desktop.getByText('História → pequena entrega → CTA', { exact: true }).first().click();
+  await desktop
+    .locator('.ci-content-template-list button')
+    .filter({ hasText: 'História → pequena entrega → CTA' })
+    .click();
   await assertIndependentTemplate(desktop);
+  await assertNoHorizontalOverflow(desktop, 'Biblioteca do PDF no desktop');
+  await captureViewport(desktop, '.ci-source-library', 'desktop-stories-library.png');
 
   const wideDesktop = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
   await prepare(wideDesktop);
@@ -679,17 +763,21 @@ try {
   await captureViewport(mobile, `#${deepId}`, 'mobile-deep.png');
 
   await mobile.getByRole('button', { name: 'Biblioteca de stories' }).click();
-  await mobile.getByText('História → pequena entrega → CTA', { exact: true }).first().click();
-  await assertIndependentTemplate(mobile);
-  await assertNoHorizontalOverflow(mobile, 'Template história no mobile');
-  await captureViewport(mobile, '.ci-story-dossier', 'mobile-independent-template.png');
+  await mobile
+    .locator('.ci-content-template-list button')
+    .filter({ hasText: 'História → pequena entrega → CTA' })
+    .click();
+  await assertIndependentTemplate(mobile, false);
+  await assertNoHorizontalOverflow(mobile, 'Biblioteca do PDF no mobile');
+  await captureViewport(mobile, '.ci-source-library', 'mobile-stories-library.png');
 
   console.log(JSON.stringify({
     ok: true,
     templatesVerified: 2,
     raulStories: raulItems.length,
-    historyPages: historyItems.length,
-    screenshots: 7,
+    historyStories: historyItems.length,
+    sourceLibraryModules: historyPayload.reference.analysis.sourceLibrary.modules.length,
+    screenshots: 11,
   }));
 } finally {
   await browser.close();

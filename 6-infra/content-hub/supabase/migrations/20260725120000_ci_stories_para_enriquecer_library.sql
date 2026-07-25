@@ -1,0 +1,1430 @@
+begin;
+
+-- Generated from docs/commercial-intelligence/stories-para-enriquecer/reference-payload.json.
+-- It updates only the canonical Stories para Enriquecer identity. The Raul Sena
+-- template and reference are intentionally outside this migration.
+update public.story_templates
+set description = $template_description$Molde editorial em que perguntas ou cenas encadeadas fazem a audiência se localizar, recebem uma pequena entrega e terminam em um CTA proporcional.$template_description$,
+    objective = $template_objective$Preparar o público por uma progressão concreta, entregar uma leitura útil e conduzir para um próximo passo coerente.$template_objective$,
+    definition = $template_definition${
+  "editorialName": "Pergunta concreta → microdiagnóstico → progressão → CTA",
+  "editorialSummary": "A sequência transforma perguntas reconhecíveis em uma pequena leitura do problema antes de convidar para um conteúdo mais profundo.",
+  "formula": "Pergunta concreta → microdiagnóstico → progressão temática → CTA proporcional",
+  "preserveRules": [
+    "Preservar uma única progressão temática do primeiro story ao CTA.",
+    "Pagar a atenção em cada tela com uma leitura útil, mesmo que pequena.",
+    "Fazer o CTA continuar a promessa aberta pela sequência."
+  ],
+  "adaptRules": [
+    "Trocar funil de conteúdo por situações reconhecíveis da rotina adulta com TDAH.",
+    "Usar uma pergunta e uma conclusão curta por tela, com contraste alto.",
+    "Levar para vídeo, post ou material que aprofunde exatamente o diagnóstico apresentado."
+  ],
+  "avoidRules": [
+    "Não copiar frases, paleta ou identidade visual da referência.",
+    "Não transformar perguntas de identificação em diagnóstico clínico.",
+    "Não usar suspense vazio nem CTA desconectado da pequena entrega."
+  ],
+  "moldSteps": [
+    {
+      "title": "Pergunta de entrada",
+      "purpose": "Fazer a pessoa reconhecer uma situação concreta.",
+      "fixedFunction": "Abrir uma lacuna específica sem exigir contexto anterior.",
+      "placeholders": [
+        {
+          "kind": "copy",
+          "label": "Pergunta reconhecível"
+        },
+        {
+          "kind": "response",
+          "label": "Microdiagnóstico ou direção"
+        }
+      ]
+    },
+    {
+      "title": "Segunda camada",
+      "purpose": "Mostrar que o problema tem outra manifestação.",
+      "fixedFunction": "Manter o padrão visual e aumentar a precisão da leitura.",
+      "placeholders": [
+        {
+          "kind": "copy",
+          "label": "Nova manifestação do mesmo problema"
+        },
+        {
+          "kind": "proof",
+          "label": "Nome da etapa ou mecanismo"
+        }
+      ]
+    },
+    {
+      "title": "Consequência",
+      "purpose": "Fechar o diagnóstico progressivo e preparar a solução.",
+      "fixedFunction": "Levar a audiência da identificação para a necessidade de aprofundamento.",
+      "placeholders": [
+        {
+          "kind": "copy",
+          "label": "Consequência concreta"
+        },
+        {
+          "kind": "principle",
+          "label": "Leitura que organiza o problema"
+        }
+      ]
+    },
+    {
+      "title": "CTA proporcional",
+      "purpose": "Oferecer o próximo passo ligado à sequência.",
+      "fixedFunction": "Apresentar uma continuação simples e específica.",
+      "placeholders": [
+        {
+          "kind": "proof",
+          "label": "Capa, post ou material"
+        },
+        {
+          "kind": "copy",
+          "label": "Promessa de aprofundamento"
+        },
+        {
+          "kind": "reaction",
+          "label": "Seta ou indicação visual"
+        }
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "role": "hook",
+      "instruction": "Abrir com uma pergunta concreta que permita autoidentificação."
+    },
+    {
+      "role": "development",
+      "instruction": "Adicionar uma segunda manifestação e entregar uma leitura curta."
+    },
+    {
+      "role": "proof",
+      "instruction": "Mostrar a consequência e organizar o problema em uma estrutura compreensível."
+    },
+    {
+      "role": "cta",
+      "instruction": "Convidar para um conteúdo que aprofunde a mesma estrutura."
+    }
+  ]
+}$template_definition$::jsonb,
+    tags = array['história', 'perguntas', 'pequena entrega', 'cta', 'stories']::text[],
+    status = 'active'
+where canonical_key = 'historia-pequena-entrega-cta'
+  and lower(btrim(name)) = lower('História → pequena entrega → CTA')
+  and status <> 'archived';
+
+do $migration$
+declare
+  v_result record;
+begin
+  if not exists (
+    select 1
+    from public.story_templates
+    where canonical_key = 'historia-pequena-entrega-cta'
+      and lower(btrim(name)) = lower('História → pequena entrega → CTA')
+      and status <> 'archived'
+  ) then
+    raise exception 'Stories para Enriquecer template identity is missing';
+  end if;
+
+  select *
+  into v_result
+  from public.story_upsert_agent_reference(
+    'other-stories-para-enriquecer-legacy',
+    'a11ab02d6ac7df459f12f1bfc141d48f9a4591938700685be5ec07f7e192c2ab',
+    'historia-pequena-entrega-cta',
+    $template${
+  "canonicalKey": "historia-pequena-entrega-cta",
+  "name": "História → pequena entrega → CTA",
+  "objective": "Preparar o público por uma progressão concreta, entregar uma leitura útil e conduzir para um próximo passo coerente.",
+  "description": "Molde editorial em que perguntas ou cenas encadeadas fazem a audiência se localizar, recebem uma pequena entrega e terminam em um CTA proporcional.",
+  "tags": [
+    "história",
+    "perguntas",
+    "pequena entrega",
+    "cta",
+    "stories"
+  ],
+  "definition": {
+    "editorialName": "Pergunta concreta → microdiagnóstico → progressão → CTA",
+    "editorialSummary": "A sequência transforma perguntas reconhecíveis em uma pequena leitura do problema antes de convidar para um conteúdo mais profundo.",
+    "formula": "Pergunta concreta → microdiagnóstico → progressão temática → CTA proporcional",
+    "preserveRules": [
+      "Preservar uma única progressão temática do primeiro story ao CTA.",
+      "Pagar a atenção em cada tela com uma leitura útil, mesmo que pequena.",
+      "Fazer o CTA continuar a promessa aberta pela sequência."
+    ],
+    "adaptRules": [
+      "Trocar funil de conteúdo por situações reconhecíveis da rotina adulta com TDAH.",
+      "Usar uma pergunta e uma conclusão curta por tela, com contraste alto.",
+      "Levar para vídeo, post ou material que aprofunde exatamente o diagnóstico apresentado."
+    ],
+    "avoidRules": [
+      "Não copiar frases, paleta ou identidade visual da referência.",
+      "Não transformar perguntas de identificação em diagnóstico clínico.",
+      "Não usar suspense vazio nem CTA desconectado da pequena entrega."
+    ],
+    "moldSteps": [
+      {
+        "title": "Pergunta de entrada",
+        "purpose": "Fazer a pessoa reconhecer uma situação concreta.",
+        "fixedFunction": "Abrir uma lacuna específica sem exigir contexto anterior.",
+        "placeholders": [
+          {
+            "kind": "copy",
+            "label": "Pergunta reconhecível"
+          },
+          {
+            "kind": "response",
+            "label": "Microdiagnóstico ou direção"
+          }
+        ]
+      },
+      {
+        "title": "Segunda camada",
+        "purpose": "Mostrar que o problema tem outra manifestação.",
+        "fixedFunction": "Manter o padrão visual e aumentar a precisão da leitura.",
+        "placeholders": [
+          {
+            "kind": "copy",
+            "label": "Nova manifestação do mesmo problema"
+          },
+          {
+            "kind": "proof",
+            "label": "Nome da etapa ou mecanismo"
+          }
+        ]
+      },
+      {
+        "title": "Consequência",
+        "purpose": "Fechar o diagnóstico progressivo e preparar a solução.",
+        "fixedFunction": "Levar a audiência da identificação para a necessidade de aprofundamento.",
+        "placeholders": [
+          {
+            "kind": "copy",
+            "label": "Consequência concreta"
+          },
+          {
+            "kind": "principle",
+            "label": "Leitura que organiza o problema"
+          }
+        ]
+      },
+      {
+        "title": "CTA proporcional",
+        "purpose": "Oferecer o próximo passo ligado à sequência.",
+        "fixedFunction": "Apresentar uma continuação simples e específica.",
+        "placeholders": [
+          {
+            "kind": "proof",
+            "label": "Capa, post ou material"
+          },
+          {
+            "kind": "copy",
+            "label": "Promessa de aprofundamento"
+          },
+          {
+            "kind": "reaction",
+            "label": "Seta ou indicação visual"
+          }
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "role": "hook",
+        "instruction": "Abrir com uma pergunta concreta que permita autoidentificação."
+      },
+      {
+        "role": "development",
+        "instruction": "Adicionar uma segunda manifestação e entregar uma leitura curta."
+      },
+      {
+        "role": "proof",
+        "instruction": "Mostrar a consequência e organizar o problema em uma estrutura compreensível."
+      },
+      {
+        "role": "cta",
+        "instruction": "Convidar para um conteúdo que aprofunde a mesma estrutura."
+      }
+    ]
+  },
+  "steps": [
+    {
+      "role": "hook",
+      "instruction": "Abrir com uma pergunta concreta que permita autoidentificação."
+    },
+    {
+      "role": "development",
+      "instruction": "Adicionar uma segunda manifestação e entregar uma leitura curta."
+    },
+    {
+      "role": "proof",
+      "instruction": "Mostrar a consequência e organizar o problema em uma estrutura compreensível."
+    },
+    {
+      "role": "cta",
+      "instruction": "Convidar para um conteúdo que aprofunde a mesma estrutura."
+    }
+  ]
+}$template$::jsonb,
+    $reference${
+  "title": "Stories para Enriquecer: perguntas que preparam o CTA",
+  "description": "Dossiê da sequência de quatro stories exibida na página 44, complementado por uma biblioteca analítica das aulas 1–10, práticas e bônus do PDF.",
+  "analysis": {
+    "summary": "Três perguntas fazem a audiência diagnosticar em qual parte do funil está travada. Cada tela entrega o nome da camada ausente e a quarta oferece um conteúdo mais longo como continuação natural.",
+    "overview": [
+      "A sequência não começa divulgando o post. Ela cria uma história lógica: dificuldade para crescer, dificuldade para engajar e dificuldade para vender.",
+      "A pequena entrega está nos microdiagnósticos topo, meio e fundo de funil. O CTA funciona porque promete organizar, de maneira simples, o sistema que as três telas acabaram de tornar necessário."
+    ],
+    "narrativeArc": [
+      "autoidentificação",
+      "microdiagnóstico",
+      "progressão do problema",
+      "continuação"
+    ],
+    "whyItWorks": [
+      "Repete a mesma gramática visual para que a pessoa reconheça continuidade sem esforço.",
+      "Cada pergunta cobre um estágio diferente e aumenta a chance de identificação.",
+      "O post aparece como resposta à tensão construída, não como interrupção promocional."
+    ],
+    "templateFit": "É a demonstração visual mais concreta do PDF para o molde História → pequena entrega → CTA: a história é a progressão do problema, a entrega são os diagnósticos curtos e o CTA aprofunda o mesmo assunto.",
+    "sequenceMap": [
+      {
+        "label": "1 · Entrada",
+        "value": "Crescimento travado → falta topo de funil"
+      },
+      {
+        "label": "2 · Progressão",
+        "value": "Engajamento fraco → falta meio de funil"
+      },
+      {
+        "label": "3 · Consequência",
+        "value": "Venda travada → falta fundo de funil"
+      },
+      {
+        "label": "4 · CTA",
+        "value": "Conteúdo longo que organiza o sistema"
+      }
+    ],
+    "visualGrammar": "As três perguntas repetem enquadramento, tipografia central, contraste forte e destaques cromáticos. As cores variam entre amarelo, rosa e preto, mas a assinatura permanece. O CTA conserva o fundo escuro, usa uma capa como prova visual e uma seta amarela para orientar o olhar.",
+    "productRevealed": "Mais do que divulgar um post, a sequência vende a capacidade da autora de simplificar um sistema de conteúdo e diagnosticar onde a comunicação está falhando.",
+    "transferRules": [
+      "Abrir por situações que o público reconhece sem depender de explicação técnica.",
+      "Entregar um nome ou mecanismo curto em cada resposta.",
+      "Repetir hierarquia e posição para criar continuidade visual.",
+      "Levar para um conteúdo que resolva exatamente o sistema apresentado."
+    ],
+    "synthesis": [
+      {
+        "title": "Papel de cada tela",
+        "paragraphs": [
+          "A primeira pergunta abre identificação; a segunda amplia o mapa; a terceira mostra o custo comercial; a quarta transforma a tensão acumulada em aprofundamento."
+        ]
+      },
+      {
+        "title": "Mudança de estímulo",
+        "paragraphs": [
+          "A cor de fundo muda, mas a construção tipográfica permanece. Essa combinação renova a atenção sem quebrar a sensação de sequência."
+        ]
+      },
+      {
+        "title": "Entrega antes do convite",
+        "paragraphs": [
+          "Topo, meio e fundo de funil já são uma pequena organização do problema. Mesmo sem clicar, a pessoa sai com uma leitura mais clara."
+        ]
+      },
+      {
+        "title": "Limite da referência",
+        "paragraphs": [
+          "O diagnóstico é simplificado e binário. Ao adaptar, Bruno precisa evitar que perguntas sobre sofrimento ou funcionamento adulto soem como diagnóstico clínico."
+        ]
+      }
+    ],
+    "registeredTemplate": {
+      "name": "História → pequena entrega → CTA",
+      "steps": [
+        {
+          "title": "Situação reconhecível",
+          "description": "Abrir uma pergunta que permita a pessoa se localizar."
+        },
+        {
+          "title": "Leitura curta",
+          "description": "Nomear o mecanismo ou a camada ausente."
+        },
+        {
+          "title": "Progressão",
+          "description": "Mostrar outra manifestação ou consequência do mesmo problema."
+        },
+        {
+          "title": "Continuação",
+          "description": "Oferecer um conteúdo que aprofunde a estrutura já apresentada."
+        }
+      ]
+    },
+    "sourceNote": "A sequência analisada contém quatro stories recortados da página 44. As páginas 42, 43, 45 e 46 são evidências metodológicas da aula prática, não etapas adicionais da sequência. A biblioteca cobre o conteúdo acionável das páginas 4–72 sem republicar o PDF integral.",
+    "sourceLibrary": {
+      "title": "Biblioteca Stories para Enriquecer",
+      "description": "Síntese operacional das dez aulas principais, cinco aulas práticas e duas aulas bônus. Cada módulo separa princípio, técnica, risco, aplicação no Bruno e molde reutilizável.",
+      "sourceDocument": "Stories para Enriquecer.pdf",
+      "totalPages": 73,
+      "coveredPageStart": 4,
+      "coveredPageEnd": 72,
+      "categories": [
+        {
+          "key": "fundamentos",
+          "label": "Fundamentos"
+        },
+        {
+          "key": "formatos",
+          "label": "Formatos"
+        },
+        {
+          "key": "interacao",
+          "label": "Interação"
+        },
+        {
+          "key": "distribuicao",
+          "label": "Distribuição"
+        },
+        {
+          "key": "pratica",
+          "label": "Prática"
+        },
+        {
+          "key": "venda",
+          "label": "Venda e presença"
+        }
+      ],
+      "modules": [
+        {
+          "key": "capricho-sem-enfeite",
+          "order": 1,
+          "category": "fundamentos",
+          "lessonLabel": "Aula 01",
+          "title": "Capricho sem enfeite",
+          "pageStart": 4,
+          "pageEnd": 8,
+          "quick": {
+            "summary": "O conteúdo precisa ser claro e sustentável antes de ser decorado. Excesso visual cria gargalo, dilui o foco e pode afastar o público desejado.",
+            "outcome": "Produzir mais, com hierarquia visual e identidade compatível com a audiência.",
+            "useWhen": "Ao revisar stories lentos de produzir, poluídos ou com informação sem ponto focal."
+          },
+          "principles": [
+            "Capricho é executar o básico muito bem; enfeite é adicionar elementos sem função.",
+            "A atenção não pode ser obrigada a descobrir onde olhar.",
+            "Identidade visual também seleciona o tipo de público que permanece."
+          ],
+          "techniques": [
+            "Definir um único ponto focal por story.",
+            "Retirar gifs, sombras, cores e fontes que não ajudam a leitura.",
+            "Avaliar se o acabamento é repetível todos os dias."
+          ],
+          "cautions": [
+            "Minimalismo não significa descuido ou baixa legibilidade.",
+            "Uma estética infantilizada pode contradizer uma audiência adulta."
+          ],
+          "brunoApplications": [
+            "Usar fundo limpo, fonte grande e uma evidência por tela em conteúdos sobre TDAH adulto.",
+            "Eliminar decoração que disputa atenção com conceito, dado ou fala principal."
+          ],
+          "mold": {
+            "name": "Uma ideia → um foco → um acabamento funcional",
+            "formula": "Mensagem principal → hierarquia → contraste → remoção do excesso",
+            "steps": [
+              "Escrever a ideia que precisa sobreviver ao story.",
+              "Escolher um único elemento de apoio.",
+              "Garantir contraste e leitura em tela pequena.",
+              "Remover tudo que não altera compreensão."
+            ]
+          }
+        },
+        {
+          "key": "rituais-e-previsibilidade",
+          "order": 2,
+          "category": "fundamentos",
+          "lessonLabel": "Aula 02",
+          "title": "Rituais que criam previsibilidade e comunidade",
+          "pageStart": 9,
+          "pageEnd": 13,
+          "quick": {
+            "summary": "Repetição intencional faz o público saber o que esperar, lembrar do criador fora do Instagram e participar de um comportamento compartilhado.",
+            "outcome": "Transformar um gesto recorrente em memória de marca e senso de comunidade.",
+            "useWhen": "Ao criar presença diária sem depender de inventar um formato novo todo dia."
+          },
+          "principles": [
+            "Previsibilidade reduz esforço e aumenta a expectativa de retorno.",
+            "Um ritual forte é simples, autêntico e possível de ser repetido pelo público.",
+            "A marca ocupa território quando uma situação cotidiana passa a lembrar o criador."
+          ],
+          "techniques": [
+            "Escolher frase, gesto ou cena que já existe na rotina.",
+            "Repetir em horário ou contexto reconhecível.",
+            "Repostar participações para reforçar o comportamento coletivo."
+          ],
+          "cautions": [
+            "Repetição sem personalidade vira hábito genérico.",
+            "O ritual precisa incluir diferentes parcelas do público."
+          ],
+          "brunoApplications": [
+            "Criar uma pergunta clínica-educativa recorrente sem expor pacientes.",
+            "Associar um momento da rotina adulta a uma frase curta reconhecível do Bruno."
+          ],
+          "mold": {
+            "name": "Gesto recorrente → assinatura → participação",
+            "formula": "Rotina real → frase própria → repetição → resposta do público",
+            "steps": [
+              "Selecionar uma rotina frequente.",
+              "Dar a ela uma frase ou gesto autoral.",
+              "Repetir com consistência.",
+              "Convidar e reconhecer quem participa."
+            ]
+          }
+        },
+        {
+          "key": "texto-para-profundidade",
+          "order": 3,
+          "category": "formatos",
+          "lessonLabel": "Aula 03",
+          "title": "Texto para profundidade, clareza e escala",
+          "pageStart": 14,
+          "pageEnd": 16,
+          "quick": {
+            "summary": "Stories escritos alcançam quem está sem áudio, qualificam leitores interessados e obrigam o criador a organizar melhor o raciocínio.",
+            "outcome": "Entregar conteúdo denso em menos telas e produzir mesmo sem condição de gravar.",
+            "useWhen": "Quando o assunto exige precisão, pode ser salvo ou precisa circular ao longo do dia."
+          },
+          "principles": [
+            "Quem para para ler sinaliza intenção de aprofundamento.",
+            "Escrever expõe lacunas de domínio e melhora a comunicação.",
+            "Texto e vídeo cumprem funções diferentes e podem coexistir."
+          ],
+          "techniques": [
+            "Organizar o raciocínio antes de diagramar.",
+            "Concentrar uma ideia completa em uma tela legível.",
+            "Produzir blocos antecipadamente e distribuir durante o dia."
+          ],
+          "cautions": [
+            "Mais conteúdo por tela não autoriza fonte pequena.",
+            "Texto sem hierarquia vira parede e perde a vantagem do formato."
+          ],
+          "brunoApplications": [
+            "Usar texto para diferenciar conceitos clínicos próximos com linguagem leiga.",
+            "Criar telas salváveis com definição, exemplo e limite da explicação."
+          ],
+          "mold": {
+            "name": "Tese curta → explicação → frase salvável",
+            "formula": "Ponto central → contexto mínimo → consequência prática",
+            "steps": [
+              "Abrir com uma afirmação específica.",
+              "Explicar o mecanismo sem jargão.",
+              "Fechar com uma frase que possa ser salva."
+            ]
+          }
+        },
+        {
+          "key": "video-conexao-personalidade",
+          "order": 4,
+          "category": "formatos",
+          "lessonLabel": "Aula 04",
+          "title": "Vídeo para conexão, personalidade e confiança",
+          "pageStart": 17,
+          "pageEnd": 22,
+          "quick": {
+            "summary": "Voz, rosto, gestos e cenário tornam o criador humano. A confiança cresce quando existe energia própria, cuidado visual e vulnerabilidade sem artificialidade.",
+            "outcome": "Fazer vídeos que transmitam presença e credibilidade antes de qualquer oferta.",
+            "useWhen": "Ao apresentar opinião, bastidor, história pessoal ou explicação que depende da voz do especialista."
+          },
+          "principles": [
+            "Pessoas se conectam com pessoas, não apenas com informação.",
+            "Expressão e energia precisam sustentar o conteúdo.",
+            "Variação de cenário renova o estímulo sem exigir produção cara."
+          ],
+          "techniques": [
+            "Praticar primeiro em Close Friends e sair da tela depois de publicar.",
+            "Variar ângulo, roupa ou ambiente quando houver sequência de vídeos.",
+            "Adicionar uma frase-resumo em cada story."
+          ],
+          "cautions": [
+            "Energia não significa teatralidade ou volume constante.",
+            "Cuidado visual não deve virar padrão de perfeição ou filtro que altera o rosto."
+          ],
+          "brunoApplications": [
+            "Alternar consultório, caminhada e mesa de trabalho para contextualizar conceitos.",
+            "Usar legenda-resumo para acessibilidade e retenção sem áudio."
+          ],
+          "mold": {
+            "name": "Rosto → emoção → conteúdo → resumo",
+            "formula": "Presença humana → posição clara → explicação → frase de retenção",
+            "steps": [
+              "Entrar com rosto e intenção visíveis.",
+              "Nomear o sentimento ou posição.",
+              "Entregar uma ideia completa.",
+              "Resumir em texto na tela."
+            ]
+          }
+        },
+        {
+          "key": "repost-com-intencao",
+          "order": 5,
+          "category": "interacao",
+          "lessonLabel": "Aula 05",
+          "title": "Repost como prova social e aquisição",
+          "pageStart": 23,
+          "pageEnd": 25,
+          "quick": {
+            "summary": "Uma marcação não deve ser apenas republicada. Ela pode reforçar um ritual, virar conteúdo para toda a audiência e gerar curiosidade em novos públicos.",
+            "outcome": "Transformar menções em prova social, participação e descoberta.",
+            "useWhen": "Ao receber marcações ou ao construir uma história que merece ser repostada por outra pessoa."
+          },
+          "principles": [
+            "O repost precisa acrescentar contexto ou incentivo.",
+            "Quem é marcado deve aparecer como único e relevante.",
+            "Aquisição só vale se o perfil estiver preparado para receber a visita."
+          ],
+          "techniques": [
+            "Adicionar comentário, reação ou chamada ao repost.",
+            "Marcar uma pessoa por story e contar como ela afetou uma história real.",
+            "Revisar feed, destaques e oferta antes de buscar alcance externo."
+          ],
+          "cautions": [
+            "Repostar tudo sufoca o conteúdo próprio.",
+            "Elogio vazio e autopromoção raramente dão motivo para outra conta compartilhar."
+          ],
+          "brunoApplications": [
+            "Contextualizar marcações de alunos sem revelar dados sensíveis.",
+            "Usar depoimentos como ponto de partida para uma explicação útil."
+          ],
+          "mold": {
+            "name": "Marcação → contexto → prova → convite",
+            "formula": "Evidência do público → leitura do criador → valor coletivo",
+            "steps": [
+              "Selecionar uma marcação relevante.",
+              "Explicar por que ela importa.",
+              "Extrair um princípio útil.",
+              "Convidar outras pessoas a participar."
+            ]
+          }
+        },
+        {
+          "key": "enquetes-estrategicas",
+          "order": 6,
+          "category": "interacao",
+          "lessonLabel": "Aula 06",
+          "title": "Enquetes estratégicas, não farofa",
+          "pageStart": 26,
+          "pageEnd": 28,
+          "quick": {
+            "summary": "A enquete aumenta interação, mas só tem valor editorial quando revela algo do público, ativa curiosidade ou prepara uma continuação relevante.",
+            "outcome": "Gerar dados e engajamento que alimentam decisões de conteúdo.",
+            "useWhen": "Ao testar interesse, mapear contexto ou criar antecipação para uma entrega."
+          },
+          "principles": [
+            "Interação é meio; autoridade, desejo e aprendizado são o objetivo.",
+            "Perguntas simples reduzem o custo da primeira resposta.",
+            "A progressão aprofunda o tema depois que a pessoa já participou."
+          ],
+          "techniques": [
+            "Começar por pergunta de baixa fricção.",
+            "Avançar para uma variável editorialmente útil.",
+            "Usar o resultado como ponte para a próxima tela."
+          ],
+          "cautions": [
+            "Não manipular alternativas para produzir uma conclusão falsa.",
+            "Não tratar enquete como dado representativo da população."
+          ],
+          "brunoApplications": [
+            "Mapear hábitos cotidianos sem transformar resposta em rastreio diagnóstico.",
+            "Usar resultados como pauta, não como prevalência clínica."
+          ],
+          "mold": {
+            "name": "Pergunta simples → aprofundamento → consequência",
+            "formula": "Baixa fricção → participação → leitura → próxima entrega",
+            "steps": [
+              "Abrir com uma escolha fácil.",
+              "Aprofundar a situação.",
+              "Interpretar com cautela.",
+              "Entregar conteúdo relacionado."
+            ]
+          }
+        },
+        {
+          "key": "caixinha-laboratorio-editorial",
+          "order": 7,
+          "category": "interacao",
+          "lessonLabel": "Aula 07",
+          "title": "Caixinha como pesquisa e laboratório editorial",
+          "pageStart": 29,
+          "pageEnd": 32,
+          "quick": {
+            "summary": "A caixinha revela dores, testa assuntos e ensina o público sobre o tipo de conversa que encontrará no perfil.",
+            "outcome": "Descobrir pautas, calibrar linguagem e construir uma relação direta.",
+            "useWhen": "Ao pesquisar demandas ou validar quais respostas merecem virar conteúdo maior."
+          },
+          "principles": [
+            "Nicho, rotina e humor juntos revelam uma pessoa inteira.",
+            "A resposta do público reduz adivinhação editorial.",
+            "O criador define limites pelo que escolhe responder."
+          ],
+          "techniques": [
+            "Observar perguntas recorrentes e reações por tema.",
+            "Abrir a caixinha com exemplos do nível de pergunta esperado.",
+            "Usar perguntas editoriais próprias para iniciar um formato novo."
+          ],
+          "cautions": [
+            "Perguntas próprias não podem ser apresentadas como depoimentos ou consenso do público.",
+            "Temas clínicos precisam de limites de privacidade e escopo."
+          ],
+          "brunoApplications": [
+            "Separar perguntas educativas de pedidos de diagnóstico individual.",
+            "Promover respostas recorrentes a vídeo, aula ou FAQ."
+          ],
+          "mold": {
+            "name": "Pergunta do público → resposta → sinal editorial",
+            "formula": "Demanda real → leitura do especialista → próximo conteúdo",
+            "steps": [
+              "Selecionar uma pergunta compartilhável.",
+              "Responder com posição e exemplo.",
+              "Observar reação.",
+              "Registrar a pauta derivada."
+            ]
+          }
+        },
+        {
+          "key": "conteudo-por-camadas",
+          "order": 8,
+          "category": "formatos",
+          "lessonLabel": "Aula 08",
+          "title": "Conteúdo por camadas",
+          "pageStart": 33,
+          "pageEnd": 35,
+          "quick": {
+            "summary": "Uma tela escrita é revelada em partes para distribuir carga cognitiva, sustentar curiosidade e aumentar retenção.",
+            "outcome": "Transformar um bloco denso em uma progressão fácil de consumir.",
+            "useWhen": "Ao explicar uma lista, raciocínio ou distinção que ficaria pesada em uma única exposição."
+          },
+          "principles": [
+            "A primeira frase precisa justificar a continuação.",
+            "Revelar aos poucos reduz o peso percebido.",
+            "Cada camada deve acrescentar sentido, não apenas volume."
+          ],
+          "techniques": [
+            "Criar a tela completa antes de separar as etapas.",
+            "Cobrir e revelar de cima para baixo.",
+            "Encerrar quando a ideia estiver completa."
+          ],
+          "cautions": [
+            "Não quebrar uma frase só para aumentar barrinhas.",
+            "Excesso de camadas transforma curiosidade em irritação."
+          ],
+          "brunoApplications": [
+            "Revelar critérios diferenciais de um conceito em uma etapa por story.",
+            "Manter a conclusão clínica-educativa visível na última camada."
+          ],
+          "mold": {
+            "name": "Headline → revelação progressiva → síntese",
+            "formula": "Promessa clara → uma camada por vez → quadro completo",
+            "steps": [
+              "Escrever a tela final.",
+              "Definir a frase de entrada.",
+              "Dividir em incrementos semânticos.",
+              "Fechar com a versão completa."
+            ]
+          }
+        },
+        {
+          "key": "frequencia-distribuida",
+          "order": 9,
+          "category": "distribuicao",
+          "lessonLabel": "Aula 09",
+          "title": "Frequência distribuída ao longo do dia",
+          "pageStart": 36,
+          "pageEnd": 38,
+          "quick": {
+            "summary": "Atualizações em blocos menores renovam a presença do perfil e evitam uma sequência pesada publicada de uma vez.",
+            "outcome": "Manter presença diária e alcançar janelas diferentes sem sobrecarregar.",
+            "useWhen": "Ao planejar cadência de stories e distribuir formatos durante o dia."
+          },
+          "principles": [
+            "Consistência importa mais que um horário mágico.",
+            "Blocos menores permitem variação de estímulo.",
+            "O primeiro story do dia tende a receber atenção especial, mas não deve carregar toda a estratégia."
+          ],
+          "techniques": [
+            "Planejar entradas em diferentes momentos do dia.",
+            "Alternar vídeo, texto e interação.",
+            "Observar resultados próprios antes de fixar horários."
+          ],
+          "cautions": [
+            "Os horários citados no PDF são contexto da autora, não regra universal.",
+            "Não inflar volume sem função editorial."
+          ],
+          "brunoApplications": [
+            "Separar bastidor, educação e convite em blocos distintos.",
+            "Usar métricas reais do perfil para ajustar frequência."
+          ],
+          "mold": {
+            "name": "Presença em blocos",
+            "formula": "Abertura → valor → interação → fechamento",
+            "steps": [
+              "Abrir o dia com contexto.",
+              "Entregar um bloco educativo.",
+              "Adicionar participação quando houver função.",
+              "Fechar com continuidade ou convite."
+            ]
+          }
+        },
+        {
+          "key": "matriz-de-formatos",
+          "order": 10,
+          "category": "distribuicao",
+          "lessonLabel": "Aula 10",
+          "title": "Matriz de formatos e participação",
+          "pageStart": 39,
+          "pageEnd": 41,
+          "quick": {
+            "summary": "Texto, vídeo, enquete e caixinha pedem estruturas diferentes. O formato deve servir à função da ideia e deixar espaço para a audiência.",
+            "outcome": "Escolher o formato pela tarefa editorial, não pelo hábito.",
+            "useWhen": "Ao transformar uma pauta em uma sequência variada."
+          },
+          "principles": [
+            "Texto organiza raciocínio; vídeo aproxima; enquete polariza uma escolha; caixinha abre colaboração.",
+            "O criador não precisa parecer a pessoa mais esperta da conversa.",
+            "Lacunas intencionais permitem complemento do público."
+          ],
+          "techniques": [
+            "Numerar listas e progressões escritas.",
+            "Começar vídeo pelo clímax, sem guardar o ouro.",
+            "Fazer perguntas com contraste real de opinião."
+          ],
+          "cautions": [
+            "Divergência fabricada gera ruído sem aprendizado.",
+            "Lacuna intencional não pode virar informação enganosa."
+          ],
+          "brunoApplications": [
+            "Usar cada formato conforme o objetivo: explicar, humanizar, mapear ou coletar.",
+            "Abrir espaço para experiências do público sem validar desinformação clínica."
+          ],
+          "mold": {
+            "name": "Pauta → função → formato → participação",
+            "formula": "Objetivo editorial → mídia adequada → abertura para resposta",
+            "steps": [
+              "Definir o que precisa acontecer na audiência.",
+              "Escolher texto, vídeo, enquete ou caixinha.",
+              "Estruturar a mensagem para o formato.",
+              "Criar uma resposta possível."
+            ]
+          }
+        },
+        {
+          "key": "hierarquia-visual-na-pratica",
+          "order": 11,
+          "category": "pratica",
+          "lessonLabel": "Aula prática 01",
+          "title": "Hierarquia visual, legibilidade e CTA",
+          "pageStart": 42,
+          "pageEnd": 46,
+          "quick": {
+            "summary": "Padrão cromático, tópicos, headline, setas, sublinhado, tamanho e contraste organizam a leitura e tornam uma sequência reconhecível.",
+            "outcome": "Fazer o acabamento visual trabalhar pela retenção e pela continuidade.",
+            "useWhen": "Ao revisar um story escrito ou preparar uma sequência que leva a conteúdo longo."
+          },
+          "principles": [
+            "Se tudo recebe destaque, nada funciona como destaque.",
+            "A repetição visual sinaliza continuidade.",
+            "O CTA precisa ser preparado por uma história e uma imersão no assunto."
+          ],
+          "techniques": [
+            "Usar setas para orientar o olhar e tópicos para reduzir esforço.",
+            "Variar destaque entre cor e sublinhado.",
+            "Testar leitura em tela pequena e contraste claro-escuro."
+          ],
+          "cautions": [
+            "A página 44 contém quatro stories; as demais páginas são explicações, não telas da sequência.",
+            "Setas e cores precisam indicar algo específico."
+          ],
+          "brunoApplications": [
+            "Padronizar hierarquia para séries educativas recorrentes.",
+            "Preparar o CTA com três telas que tornam necessário o aprofundamento."
+          ],
+          "mold": {
+            "name": "Perguntas progressivas → microentrega → CTA",
+            "formula": "Identificação → diagnóstico curto → consequência → conteúdo longo",
+            "steps": [
+              "Abrir uma pergunta reconhecível.",
+              "Responder com uma camada do sistema.",
+              "Ampliar o problema mantendo o padrão.",
+              "Oferecer aprofundamento coerente."
+            ]
+          }
+        },
+        {
+          "key": "ritual-do-zero",
+          "order": 12,
+          "category": "pratica",
+          "lessonLabel": "Aula prática 02",
+          "title": "Construção de ritual do zero",
+          "pageStart": 47,
+          "pageEnd": 49,
+          "quick": {
+            "summary": "O ritual nasce de uma cena repetível, uma frase de efeito e uma chamada que permita diferentes grupos participarem.",
+            "outcome": "Sair de um conceito abstrato para um comportamento publicável.",
+            "useWhen": "Ao definir uma assinatura cotidiana para o perfil."
+          },
+          "principles": [
+            "A frase precisa ser original e fácil de lembrar.",
+            "O ritual cresce quando o público consegue reproduzi-lo.",
+            "Inclusão precisa ser considerada desde a chamada."
+          ],
+          "techniques": [
+            "Listar rotinas já presentes no dia.",
+            "Criar uma frase curta com o tom do criador.",
+            "Convocar explicitamente grupos que não aderiram."
+          ],
+          "cautions": [
+            "Não forçar um comportamento que não combina com a vida real.",
+            "Não limitar o ritual a uma estética inacessível."
+          ],
+          "brunoApplications": [
+            "Testar uma frase ligada a pequenas vitórias da rotina adulta.",
+            "Criar versões que não dependam de gênero ou condição de saúde."
+          ],
+          "mold": {
+            "name": "Rotina → frase → convite → repetição",
+            "formula": "Cena cotidiana + assinatura verbal + participação",
+            "steps": [
+              "Escolher uma rotina.",
+              "Nomear com uma frase própria.",
+              "Publicar de modo reconhecível.",
+              "Reforçar participações."
+            ]
+          }
+        },
+        {
+          "key": "video-na-pratica",
+          "order": 13,
+          "category": "pratica",
+          "lessonLabel": "Aula prática 03",
+          "title": "Gravação de vídeo na prática",
+          "pageStart": 50,
+          "pageEnd": 52,
+          "quick": {
+            "summary": "A confiança é treinável. Iluminação frontal, contato com a lente, movimento e cenário organizado melhoram presença sem exigir produção profissional.",
+            "outcome": "Reduzir vergonha e elevar a qualidade básica da gravação.",
+            "useWhen": "Ao montar uma rotina de treino ou revisar a execução técnica dos vídeos."
+          },
+          "principles": [
+            "Olhar para a lente simula contato visual.",
+            "Movimento e mudança de contexto diferenciam story de live.",
+            "A melhor versão possível é suficiente; perfeição não é requisito."
+          ],
+          "techniques": [
+            "Responder mensagens por vídeo e praticar chamadas com pessoas próximas.",
+            "Gravar de frente para a luz.",
+            "Mover câmera, objeto ou corpo com intenção."
+          ],
+          "cautions": [
+            "Movimento sem função pode distrair.",
+            "Filtro não deve alterar identidade ou credibilidade."
+          ],
+          "brunoApplications": [
+            "Criar um checklist curto de lente, luz, áudio e resumo.",
+            "Variar cenas quando a explicação tiver várias etapas."
+          ],
+          "mold": {
+            "name": "Presença técnica mínima",
+            "formula": "Luz → lente → movimento → ambiente",
+            "steps": [
+              "Posicionar-se de frente para a luz.",
+              "Olhar para a lente.",
+              "Adicionar movimento compatível com a fala.",
+              "Remover distrações do cenário."
+            ]
+          }
+        },
+        {
+          "key": "caixinha-bda-personalidade",
+          "order": 14,
+          "category": "pratica",
+          "lessonLabel": "Aula prática 04",
+          "title": "Caixinha com BDA, personalidade e humor",
+          "pageStart": 53,
+          "pageEnd": 59,
+          "quick": {
+            "summary": "A pergunta segura o olhar; a resposta precisa quebrar padrão, trazer exemplo e deixar clara a personalidade. O método BDA organiza conselhos básicos, didáticos e aplicáveis.",
+            "outcome": "Responder de formas variadas sem perder coerência editorial.",
+            "useWhen": "Ao transformar perguntas em conteúdo compartilhável, posição e comunidade."
+          },
+          "principles": [
+            "A pergunta decide se a pessoa começa a ler.",
+            "Exemplo concreto transforma opinião em ensino.",
+            "A resposta também seleciona quem combina com a voz do criador."
+          ],
+          "techniques": [
+            "Quebrar o senso comum ou aprofundá-lo com reflexão própria.",
+            "Usar parágrafos curtos, listas, grifos e imagens coerentes com o tom.",
+            "Alternar explicação, lista, impacto e humor."
+          ],
+          "cautions": [
+            "Personalidade firme não autoriza humilhação ou resposta imprudente.",
+            "BDA deve simplificar sem mutilar nuances importantes."
+          ],
+          "brunoApplications": [
+            "Responder com educação firme, exemplos cotidianos e limites clínicos claros.",
+            "Usar BDA para orientações gerais sem individualizar conduta médica."
+          ],
+          "mold": {
+            "name": "Pergunta forte → posição → exemplo → aplicação",
+            "formula": "Dúvida compartilhável → leitura autoral → BDA",
+            "steps": [
+              "Escolher uma pergunta ampla o bastante.",
+              "Declarar a posição.",
+              "Trazer exemplo ou contraste.",
+              "Fechar com passo aplicável."
+            ]
+          }
+        },
+        {
+          "key": "enquete-antecipacao",
+          "order": 15,
+          "category": "pratica",
+          "lessonLabel": "Aula prática 05",
+          "title": "Enquete para opinião, antecipação e fundo de funil",
+          "pageStart": 60,
+          "pageEnd": 61,
+          "quick": {
+            "summary": "Enquetes fortes deixam o público expressar opinião ou conhecimento e podem preparar interesse por uma explicação ou oferta posterior.",
+            "outcome": "Usar interação como preparação narrativa, não como distração.",
+            "useWhen": "Antes de revelar um dado, resultado, vídeo longo ou conteúdo de fundo de funil."
+          },
+          "principles": [
+            "As pessoas participam para expressar identidade, revolta, alegria ou competência.",
+            "Antecipação funciona quando a próxima tela responde à curiosidade criada.",
+            "A sequência deve começar simples e aprofundar."
+          ],
+          "techniques": [
+            "Pedir opinião sobre um tema em circulação.",
+            "Perguntar algo que exponha uma lacuna antes de mostrar resultado.",
+            "Conectar o resultado da enquete ao conteúdo seguinte."
+          ],
+          "cautions": [
+            "Não usar resultado como evidência científica.",
+            "Não prometer segredo ou resultado que o conteúdo não entrega."
+          ],
+          "brunoApplications": [
+            "Testar compreensão de um mito e depois explicar o mecanismo.",
+            "Levar para vídeo longo quando a pergunta exigir nuance."
+          ],
+          "mold": {
+            "name": "Opinião → lacuna → prova → aprofundamento",
+            "formula": "Participação → curiosidade → resultado → conteúdo",
+            "steps": [
+              "Abrir uma escolha simples.",
+              "Evidenciar a lacuna.",
+              "Mostrar um resultado ou explicação.",
+              "Convidar para aprofundar."
+            ]
+          }
+        },
+        {
+          "key": "venda-antes-do-pitch",
+          "order": 16,
+          "category": "venda",
+          "lessonLabel": "Aula bônus 01",
+          "title": "Venda construída antes do pitch",
+          "pageStart": 62,
+          "pageEnd": 68,
+          "quick": {
+            "summary": "A oferta converte melhor quando meses de conteúdo já demonstraram energia, autoridade, valores, transformação e coerência com o produto.",
+            "outcome": "Diminuir o peso do pitch fazendo a venda nascer da relação acumulada.",
+            "useWhen": "Ao planejar comunicação de oferta, lançamento ou serviço."
+          },
+          "principles": [
+            "A venda é consequência do terreno preparado.",
+            "O público compra transformação, estilo de vida e coerência, não apenas características.",
+            "Na oferta, aumenta-se a intensidade de algo já demonstrado."
+          ],
+          "techniques": [
+            "Mostrar continuamente o comportamento que sustenta a promessa.",
+            "Conectar produto a uma transformação observável.",
+            "Usar escassez apenas como detalhe de uma proposta já desejada."
+          ],
+          "cautions": [
+            "Estilo de vida não pode virar ostentação ou promessa irreal.",
+            "Carisma não substitui evidência, ética ou qualidade do produto."
+          ],
+          "brunoApplications": [
+            "Demonstrar raciocínio, critérios e bastidores de estudo antes de oferecer serviço.",
+            "Vender clareza e processo sem prometer cura ou resultado clínico garantido."
+          ],
+          "mold": {
+            "name": "Terreno → transformação → oferta",
+            "formula": "Coerência acumulada → prova cotidiana → solução → convite",
+            "steps": [
+              "Mostrar o problema e o modo de pensar.",
+              "Demonstrar comportamento e resultado possível.",
+              "Apresentar a solução como continuidade.",
+              "Fazer o convite sem mudar de personagem."
+            ]
+          }
+        },
+        {
+          "key": "oratoria-e-presenca",
+          "order": 17,
+          "category": "venda",
+          "lessonLabel": "Aula bônus 02",
+          "title": "Oratória, dicção e presença",
+          "pageStart": 69,
+          "pageEnd": 72,
+          "quick": {
+            "summary": "Vocabulário, gravação deliberada, autoescuta, articulação, pausas e entonação dão vida à fala e aumentam compreensão.",
+            "outcome": "Falar com clareza e ocupar espaço sem acelerar ou apagar emoção.",
+            "useWhen": "Ao treinar vídeo, revisar vícios de linguagem ou preparar uma fala importante."
+          },
+          "principles": [
+            "Falar bem é prática observável, não talento fixo.",
+            "Entonação e pausa carregam significado.",
+            "Autoescuta transforma erro difuso em ajuste concreto."
+          ],
+          "techniques": [
+            "Ler em voz alta, gravar e revisar um aspecto por vez.",
+            "Treinar articulação e pronúncia deliberadamente.",
+            "Usar pausas para deixar a audiência processar."
+          ],
+          "cautions": [
+            "Eliminar toda gíria pode apagar uma voz natural e próxima.",
+            "Treinos caseiros não substituem profissional quando há uma demanda clínica de voz ou fala."
+          ],
+          "brunoApplications": [
+            "Preservar oralidade carioca com clareza e ritmo.",
+            "Revisar velocidade, pausa e ênfase em stories educativos."
+          ],
+          "mold": {
+            "name": "Ideia → ênfase → pausa → fechamento",
+            "formula": "Mensagem clara + articulação + variação de ritmo",
+            "steps": [
+              "Definir a frase central.",
+              "Marcar palavras de ênfase.",
+              "Planejar pausas.",
+              "Gravar e revisar compreensão."
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "platform": "other",
+  "sourceAccount": "Luana Carolina · Stories para Enriquecer",
+  "sourceUrl": null,
+  "sourceStartedAt": null,
+  "sourceEndedAt": null
+}$reference$::jsonb,
+    $items$[
+  {
+    "mediaType": "image",
+    "textContent": "Você cria conteúdos bons, tem consistência e mesmo assim tem dificuldades em aumentar o número de seguidores? Caso sim, está faltando você fazer conteúdos topo de funil.",
+    "sourceOccurredAt": null,
+    "narrativeOrder": 1,
+    "narrativeRole": "hook",
+    "metadata": {
+      "sourcePage": 44,
+      "evidenceType": "story recortado da página",
+      "sourceExcerpt": "Dificuldade em aumentar seguidores → conteúdo de topo de funil.",
+      "quick": {
+        "roleLabel": "Story 1 · identificação",
+        "title": "A audiência se localiza pelo crescimento",
+        "summary": "Uma pergunta reconhecível abre a sequência e entrega imediatamente o nome da camada ausente.",
+        "evidence": "A dificuldade para aumentar seguidores é ligada ao topo de funil.",
+        "audienceEffect": "A pessoa compara a pergunta com a própria situação.",
+        "subtext": "O problema pode não ser consistência, mas distribuição do conteúdo.",
+        "funnelFunction": "Gancho e autoidentificação.",
+        "extractedRule": "Abra com um sintoma concreto e responda com uma direção curta."
+      },
+      "visual": {
+        "roleLabel": "Story 1 · base visual",
+        "title": "Amarelo abre a sequência com baixa fricção",
+        "scene": "Tela gráfica sem pessoa, com fundo amarelo e interface do Instagram preservada.",
+        "typography": "Texto preto centralizado; problema destacado em rosa; resposta branca e rosa sobre caixa preta.",
+        "composition": "Pergunta no centro superior e microdiagnóstico logo abaixo, com muito espaço livre ao redor.",
+        "graphic": "A caixa preta separa visualmente a resposta da pergunta.",
+        "palette": [
+          "#ffc83f",
+          "#201f22",
+          "#ed0063",
+          "#ffffff"
+        ],
+        "impression": "Clareza, energia e começo de uma investigação.",
+        "markers": [
+          {
+            "label": "1",
+            "description": "A pergunta ocupa o primeiro nível da hierarquia."
+          },
+          {
+            "label": "2",
+            "description": "A resposta curta paga a atenção na mesma tela."
+          }
+        ]
+      },
+      "deep": {
+        "roleLabel": "Story 1 · gancho diagnóstico",
+        "title": "O sintoma cotidiano vira uma porta para o sistema",
+        "lead": "A sequência começa pelo efeito percebido, não por uma aula sobre funil.",
+        "sections": [
+          {
+            "title": "Mecanismo narrativo",
+            "paragraphs": [
+              "A pergunta combina esforço já realizado com um resultado frustrante. Essa tensão evita culpar a audiência e abre espaço para uma explicação."
+            ],
+            "bullets": [
+              "Situação específica",
+              "Resposta imediata",
+              "Loop para as próximas camadas"
+            ]
+          },
+          {
+            "title": "Entrega",
+            "paragraphs": [
+              "Topo de funil funciona como microdiagnóstico. A pessoa já recebe uma categoria útil antes de qualquer CTA."
+            ]
+          }
+        ],
+        "extractedRule": "Comece pelo resultado que a pessoa não consegue obter e entregue uma primeira hipótese organizadora."
+      }
+    },
+    "assetUrl": "https://opensquad-commercial-intelligence.pages.dev/story-references/stories-para-enriquecer/sequence-page-44/01-topo-de-funil.webp"
+  },
+  {
+    "mediaType": "image",
+    "textContent": "Você ganha seguidores, mas seus conteúdos têm pouco engajamento? Se a resposta for sim, está faltando você ter um bom conteúdo meio de funil.",
+    "sourceOccurredAt": null,
+    "narrativeOrder": 2,
+    "narrativeRole": "development",
+    "metadata": {
+      "sourcePage": 44,
+      "evidenceType": "story recortado da página",
+      "sourceExcerpt": "Seguidores sem engajamento → conteúdo de meio de funil.",
+      "quick": {
+        "roleLabel": "Story 2 · progressão",
+        "title": "O segundo diagnóstico amplia o mapa",
+        "summary": "A estrutura se repete, mas muda o estágio do problema: crescer não basta quando o público não se envolve.",
+        "evidence": "Pouco engajamento é ligado ao meio de funil.",
+        "audienceEffect": "Quem não se reconheceu na primeira pergunta ganha uma segunda porta de entrada.",
+        "subtext": "Métricas diferentes exigem funções editoriais diferentes.",
+        "funnelFunction": "Desenvolvimento e segmentação.",
+        "extractedRule": "Progrida por manifestações distintas do mesmo sistema."
+      },
+      "visual": {
+        "roleLabel": "Story 2 · continuidade visual",
+        "title": "Rosa renova a atenção sem mudar a gramática",
+        "scene": "Tela gráfica com fundo rosa intenso e a mesma arquitetura do primeiro story.",
+        "typography": "Texto preto centralizado; resultado destacado em amarelo; resposta em branco e amarelo sobre caixa preta.",
+        "composition": "A posição da pergunta e da resposta permanece estável, criando leitura automática.",
+        "graphic": "A inversão de cor funciona como mudança de estímulo.",
+        "palette": [
+          "#ec0064",
+          "#201f22",
+          "#ffce38",
+          "#ffffff"
+        ],
+        "impression": "Continuidade, energia e progressão.",
+        "markers": [
+          {
+            "label": "1",
+            "description": "A estrutura repetida confirma que é a mesma sequência."
+          },
+          {
+            "label": "2",
+            "description": "A mudança cromática evita monotonia."
+          }
+        ]
+      },
+      "deep": {
+        "roleLabel": "Story 2 · segunda camada",
+        "title": "A repetição transforma exemplos em diagnóstico progressivo",
+        "lead": "A segunda pergunta mantém o contrato visual e desloca o problema de aquisição para relacionamento.",
+        "sections": [
+          {
+            "title": "Mecanismo narrativo",
+            "paragraphs": [
+              "A tela não recomeça a história; ela demonstra que o mesmo sistema possui outra etapa. Isso aumenta a percepção de método."
+            ],
+            "bullets": [
+              "Mesmo formato",
+              "Nova variável",
+              "Nova pequena entrega"
+            ]
+          },
+          {
+            "title": "Efeito editorial",
+            "paragraphs": [
+              "Ao cobrir uma segunda dor, a sequência amplia relevância sem abandonar o tema."
+            ]
+          }
+        ],
+        "extractedRule": "Mantenha a forma e mude a manifestação para ensinar que o problema possui camadas."
+      }
+    },
+    "assetUrl": "https://opensquad-commercial-intelligence.pages.dev/story-references/stories-para-enriquecer/sequence-page-44/02-meio-de-funil.webp"
+  },
+  {
+    "mediaType": "image",
+    "textContent": "Você tem uma quantidade boa de seguidores, posts engajados, mas não consegue converter vendas? Sim? Então você não está fazendo um bom fundo de funil.",
+    "sourceOccurredAt": null,
+    "narrativeOrder": 3,
+    "narrativeRole": "proof",
+    "metadata": {
+      "sourcePage": 44,
+      "evidenceType": "story recortado da página",
+      "sourceExcerpt": "Audiência e engajamento sem venda → fundo de funil insuficiente.",
+      "quick": {
+        "roleLabel": "Story 3 · consequência",
+        "title": "A progressão chega ao custo comercial",
+        "summary": "A terceira pergunta fecha o mapa ligando audiência e engajamento à incapacidade de converter.",
+        "evidence": "A falta de venda é ligada ao fundo de funil.",
+        "audienceEffect": "A pessoa percebe que o sistema não termina em alcance ou interação.",
+        "subtext": "Vaidade de métrica não substitui função comercial.",
+        "funnelFunction": "Prova da completude do sistema.",
+        "extractedRule": "Antes do CTA, mostre a consequência final do problema."
+      },
+      "visual": {
+        "roleLabel": "Story 3 · fechamento visual",
+        "title": "O fundo escuro dá peso à consequência",
+        "scene": "Tela gráfica preta, sem pessoa ou cenário, preservando a mesma interface.",
+        "typography": "Pergunta rosa, texto secundário amarelo e resposta preta sobre faixa amarela.",
+        "composition": "A mensagem permanece central, mas o fundo escuro muda o tom da sequência.",
+        "graphic": "A faixa amarela transforma a conclusão em sentença visual.",
+        "palette": [
+          "#232225",
+          "#ef0061",
+          "#ffc93b",
+          "#000000"
+        ],
+        "impression": "Seriedade e chegada a uma conclusão.",
+        "markers": [
+          {
+            "label": "1",
+            "description": "O fundo escuro marca a etapa mais próxima da venda."
+          },
+          {
+            "label": "2",
+            "description": "A resposta amarela funciona como veredito."
+          }
+        ]
+      },
+      "deep": {
+        "roleLabel": "Story 3 · consequência comercial",
+        "title": "O problema deixa de ser métrica e vira sistema incompleto",
+        "lead": "A terceira tela acumula as conquistas anteriores para mostrar que ainda falta uma função.",
+        "sections": [
+          {
+            "title": "Mecanismo narrativo",
+            "paragraphs": [
+              "A pergunta reconhece seguidores e engajamento antes de introduzir a frustração de venda. Isso conduz ao tema do conteúdo longo sem salto abrupto."
+            ],
+            "bullets": [
+              "Concessão",
+              "Custo final",
+              "Necessidade de organização"
+            ]
+          },
+          {
+            "title": "Limite",
+            "paragraphs": [
+              "A relação causal é simplificada. Na adaptação, a resposta precisa ser tratada como hipótese editorial, não diagnóstico absoluto."
+            ]
+          }
+        ],
+        "extractedRule": "Feche a progressão mostrando o custo que permanece mesmo quando as etapas anteriores parecem resolvidas."
+      }
+    },
+    "assetUrl": "https://opensquad-commercial-intelligence.pages.dev/story-references/stories-para-enriquecer/sequence-page-44/03-fundo-de-funil.webp"
+  },
+  {
+    "mediaType": "image",
+    "textContent": "Quer saber mais sobre funis? Nesse post eu te explico da maneira mais simples possível.",
+    "sourceOccurredAt": null,
+    "narrativeOrder": 4,
+    "narrativeRole": "cta",
+    "metadata": {
+      "sourcePage": 44,
+      "evidenceType": "story recortado da página",
+      "sourceExcerpt": "Convite para um post que explica funis de maneira simples.",
+      "quick": {
+        "roleLabel": "Story 4 · continuação",
+        "title": "O CTA oferece a organização prometida",
+        "summary": "Depois dos três microdiagnósticos, o post aparece como lugar para entender o sistema completo.",
+        "evidence": "A promessa é explicar funis da maneira mais simples possível.",
+        "audienceEffect": "O clique parece continuação da investigação, não propaganda.",
+        "subtext": "A autora domina e simplifica o assunto.",
+        "funnelFunction": "Aprofundamento e deslocamento para conteúdo longo.",
+        "extractedRule": "Faça o CTA resolver a estrutura que a sequência acabou de revelar."
+      },
+      "visual": {
+        "roleLabel": "Story 4 · CTA visual",
+        "title": "Capa, promessa e seta convergem para uma única ação",
+        "scene": "Fundo preto com capa do conteúdo centralizada na metade inferior.",
+        "typography": "Headline branca com destaques amarelo e rosa, alinhada à esquerda no topo.",
+        "composition": "Texto abre a promessa; capa comprova o destino; seta amarela conduz o olhar.",
+        "graphic": "A capa FUNIL DE CONTEÚDOS é a prova visual do conteúdo prometido.",
+        "palette": [
+          "#232225",
+          "#ffffff",
+          "#ffc735",
+          "#ec0064"
+        ],
+        "impression": "Continuidade, clareza e ação dirigida.",
+        "markers": [
+          {
+            "label": "1",
+            "description": "A promessa repete o assunto da sequência."
+          },
+          {
+            "label": "2",
+            "description": "A seta indica o objeto exato do CTA."
+          }
+        ]
+      },
+      "deep": {
+        "roleLabel": "Story 4 · CTA proporcional",
+        "title": "A promoção funciona porque chega depois da utilidade",
+        "lead": "A quarta tela não introduz um assunto novo; ela entrega o lugar onde o mapa iniciado nas perguntas será completado.",
+        "sections": [
+          {
+            "title": "Mecanismo narrativo",
+            "paragraphs": [
+              "A frase 'mais simples possível' reduz a objeção de complexidade. A capa confirma que existe um material específico, e a seta remove ambiguidade da ação."
+            ],
+            "bullets": [
+              "Promessa alinhada",
+              "Prova visual",
+              "Direção explícita"
+            ]
+          },
+          {
+            "title": "Conversão sem ruptura",
+            "paragraphs": [
+              "A oferta do post é proporcional porque a sequência já ensinou as três categorias. O público não é obrigado a clicar para receber algum valor."
+            ]
+          }
+        ],
+        "extractedRule": "Promova apenas depois de tornar o conteúdo seguinte necessário e mostrar com precisão onde a promessa será cumprida."
+      }
+    },
+    "assetUrl": "https://opensquad-commercial-intelligence.pages.dev/story-references/stories-para-enriquecer/sequence-page-44/04-cta-conteudo-longo.webp"
+  }
+]$items$::jsonb
+  );
+
+  if v_result.sequence_id is null
+    or v_result.template_id is null
+    or v_result.content_revision < 1
+  then
+    raise exception 'Stories para Enriquecer canonical read-back is incomplete';
+  end if;
+end
+$migration$;
+
+commit;

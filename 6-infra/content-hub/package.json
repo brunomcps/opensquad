@@ -21,6 +21,7 @@
     "ci:smoke:decisions": "tsx server/scripts/commercial-intelligence/visual-decision-smoke.ts",
     "ci:smoke:stories": "tsx server/scripts/commercial-intelligence/visual-story-content-smoke.ts",
     "ci:smoke:raul-dossier": "tsx server/scripts/commercial-intelligence/visual-raul-dossier-smoke.ts",
+    "ci:build:stories-library": "tsx server/scripts/commercial-intelligence/build-stories-para-enriquecer-migration.ts",
     "ci:smoke:overview:production": "tsx server/scripts/commercial-intelligence/production-overview-smoke.ts",
     "ci:smoke:decisions:production": "tsx server/scripts/commercial-intelligence/production-decision-smoke.ts",
     "ci:smoke:tracking:production": "tsx server/scripts/commercial-intelligence/production-tracking-control-smoke.ts",

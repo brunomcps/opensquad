@@ -15,7 +15,12 @@ const migrationPath = path.resolve(
   directory,
   '../../../supabase/migrations/20260725030000_ci_story_reference_agent_ingest.sql',
 );
+const storiesLibraryMigrationPath = path.resolve(
+  directory,
+  '../../../supabase/migrations/20260725120000_ci_stories_para_enriquecer_library.sql',
+);
 const sql = () => fs.readFileSync(migrationPath, 'utf8');
+const storiesLibrarySql = () => fs.readFileSync(storiesLibraryMigrationPath, 'utf8');
 
 async function createDatabase(): Promise<PGlite> {
   const db = new PGlite();
@@ -113,6 +118,7 @@ test('agent migration creates, repeats and corrects the same canonical reference
 
     const correction = rpcPayload('b'.repeat(64));
     correction.reference.title = 'Título corrigido, mesma referência';
+    correction.template.objective = 'Objetivo corrigido junto com a referência.';
     const updated = await upsert(db, correction);
     assert.equal(updated.rows[0]?.operation, 'updated');
     assert.equal(updated.rows[0]?.sequence_id, sequenceId);
@@ -142,6 +148,16 @@ test('agent migration creates, repeats and corrects the same canonical reference
       stories: 4,
       title: 'Título corrigido, mesma referência',
     });
+
+    const correctedTemplate = await db.query<{ objective: string }>(`
+      select objective
+      from public.story_templates
+      where canonical_key = 'cena-real-lente-especialista-principio'
+    `);
+    assert.equal(
+      correctedTemplate.rows[0]?.objective,
+      'Objetivo corrigido junto com a referência.',
+    );
 
     const protectedAfter = await db.query<{ snapshot: string }>(`
       select jsonb_build_object(
@@ -206,6 +222,114 @@ test('agent migration rolls back a failed reference and rejects nonce replay', a
         ) as service_execute
     `);
     assert.deepEqual(privileges.rows[0], { anon_execute: false, service_execute: true });
+  } finally {
+    await db.close();
+  }
+});
+
+test('Stories para Enriquecer migration catalogs 17 modules and preserves Raul byte for byte', async () => {
+  const db = await createDatabase();
+  try {
+    await db.exec(sql());
+    const raulBefore = await db.query<{ snapshot: string }>(`
+      select jsonb_build_object(
+        'template', to_jsonb(template),
+        'reference', to_jsonb(sequence),
+        'items', coalesce(jsonb_agg(
+          jsonb_build_object(
+            'link', to_jsonb(item_link),
+            'item', to_jsonb(item)
+          ) order by item_link.narrative_order
+        ), '[]'::jsonb)
+      )::text as snapshot
+      from public.story_templates template
+      join public.template_sequence_links template_link
+        on template_link.template_id = template.template_id
+      join public.story_sequences sequence
+        on sequence.sequence_id = template_link.sequence_id
+      left join public.sequence_item_links item_link
+        on item_link.sequence_id = sequence.sequence_id
+      left join public.story_items item
+        on item.item_id = item_link.item_id
+      where template.canonical_key = 'cena-lente-principio'
+        and sequence.reference_key = 'instagram-raulsena-legacy'
+      group by template.template_id, sequence.sequence_id
+    `);
+
+    await db.exec(storiesLibrarySql());
+    await db.exec(storiesLibrarySql());
+
+    const catalog = await db.query<{
+      modules: number;
+      categories: number;
+      stories: number;
+      complete_layers: number;
+      pages: number[];
+      revision: number;
+      revisions: number;
+      editorial_name: string;
+    }>(`
+      select
+        jsonb_array_length(sequence.analysis #> '{sourceLibrary,modules}')::int as modules,
+        jsonb_array_length(sequence.analysis #> '{sourceLibrary,categories}')::int as categories,
+        count(item.item_id)::int as stories,
+        count(*) filter (
+          where item.metadata ?& array['quick', 'visual', 'deep']
+        )::int as complete_layers,
+        array_agg((item.metadata ->> 'sourcePage')::int order by item_link.narrative_order) as pages,
+        sequence.content_revision::int as revision,
+        count(distinct history.revision_id)::int as revisions,
+        template.definition ->> 'editorialName' as editorial_name
+      from public.story_sequences sequence
+      join public.template_sequence_links template_link
+        on template_link.sequence_id = sequence.sequence_id and template_link.is_primary
+      join public.story_templates template
+        on template.template_id = template_link.template_id
+      join public.sequence_item_links item_link
+        on item_link.sequence_id = sequence.sequence_id
+      join public.story_items item
+        on item.item_id = item_link.item_id
+      left join public.story_reference_revisions history
+        on history.sequence_id = sequence.sequence_id
+      where sequence.reference_key = 'other-stories-para-enriquecer-legacy'
+      group by sequence.sequence_id, template.template_id
+    `);
+    assert.deepEqual(catalog.rows[0], {
+      modules: 17,
+      categories: 6,
+      stories: 4,
+      complete_layers: 4,
+      pages: [44, 44, 44, 44],
+      revision: 2,
+      revisions: 1,
+      editorial_name: 'Pergunta concreta → microdiagnóstico → progressão → CTA',
+    });
+
+    const raulAfter = await db.query<{ snapshot: string }>(`
+      select jsonb_build_object(
+        'template', to_jsonb(template),
+        'reference', to_jsonb(sequence),
+        'items', coalesce(jsonb_agg(
+          jsonb_build_object(
+            'link', to_jsonb(item_link),
+            'item', to_jsonb(item)
+          ) order by item_link.narrative_order
+        ), '[]'::jsonb)
+      )::text as snapshot
+      from public.story_templates template
+      join public.template_sequence_links template_link
+        on template_link.template_id = template.template_id
+      join public.story_sequences sequence
+        on sequence.sequence_id = template_link.sequence_id
+      left join public.sequence_item_links item_link
+        on item_link.sequence_id = sequence.sequence_id
+      left join public.story_items item
+        on item.item_id = item_link.item_id
+      where template.canonical_key = 'cena-lente-principio'
+        and sequence.reference_key = 'instagram-raulsena-legacy'
+      group by template.template_id, sequence.sequence_id
+    `);
+    assert.equal(raulAfter.rows[0]?.snapshot, raulBefore.rows[0]?.snapshot);
   } finally {
     await db.close();
   }

@@ -238,3 +238,45 @@ test('dados incompletos nunca produzem um dossie parcial', () => {
   discontinuous.items[2]!.narrativeOrder = 5;
   assert.equal(hasCompleteVisualDossier(discontinuous), false);
 });
+
+test('preserva a biblioteca documental como camada separada do dossie de stories', () => {
+  const reference = createReference();
+  reference.analysis.sourceLibrary = {
+    title: 'Biblioteca Stories para Enriquecer',
+    description: 'Métodos extraídos do PDF.',
+    sourceDocument: 'Stories para Enriquecer.pdf',
+    totalPages: 73,
+    coveredPageStart: 4,
+    coveredPageEnd: 72,
+    categories: [{ key: 'fundamentos', label: 'Fundamentos' }],
+    modules: [{
+      key: 'clareza-visual',
+      order: 1,
+      category: 'fundamentos',
+      lessonLabel: 'Aula 01',
+      title: 'Clareza visual',
+      pageStart: 4,
+      pageEnd: 8,
+      quick: {
+        summary: 'A mensagem vem antes da decoração.',
+        outcome: 'Uma tela legível.',
+        useWhen: 'Ao revisar um story.',
+      },
+      principles: ['Um foco por tela.'],
+      techniques: ['Remover elementos sem função.'],
+      cautions: ['Minimalismo não é descuido.'],
+      brunoApplications: ['Usar contraste alto.'],
+      mold: {
+        name: 'Ideia → foco',
+        formula: 'Mensagem → hierarquia',
+        steps: ['Definir a mensagem.', 'Remover o excesso.'],
+      },
+    }],
+  };
+
+  const dossier = buildVisualDossierViewModel(createTemplate(), reference);
+
+  assert.equal(dossier.stories.length, 3);
+  assert.equal(dossier.sourceLibrary?.modules.length, 1);
+  assert.equal(dossier.sourceLibrary?.modules[0]?.key, 'clareza-visual');
+});

@@ -412,6 +412,7 @@ function TemplatesSection({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [visualMode, setVisualMode] = useState<'dossier' | 'library'>('dossier');
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
@@ -441,6 +442,8 @@ function TemplatesSection({
   const definition = selected?.definition || ({ steps: selected?.steps || [] } as StoryTemplateDto['definition']);
   const visualReferences = linkedReferences.filter(hasCompleteVisualDossier);
   const visualReference = visualReferences.find(reference => reference.sequenceId === selectedReferenceId) || visualReferences[0];
+  const hasSourceLibrary = Boolean(visualReference?.analysis?.sourceLibrary);
+  const sourceLibraryActive = hasSourceLibrary && visualMode === 'library';
 
   useEffect(() => {
     if (!selected) return;
@@ -458,11 +461,11 @@ function TemplatesSection({
       {role === 'admin' && <button className="ci-content-primary" onClick={() => setCreating(true)}>Novo template</button>}
     </div>}
     {creating && <TemplateForm onCancel={() => setCreating(false)} onSaved={template => { setTemplates(current => [template, ...current]); setSelectedId(template.templateId); setCreating(false); }} />}
-    {!templates.length ? <EmptyState title="A biblioteca começa aqui" copy="Crie o primeiro template estrutural para ligar referências e publicações." /> : <div className={`ci-content-library-grid${visualReference ? ' is-visual-dossier' : ''}`}>
-      <aside className="ci-content-list-panel">
+    {!templates.length ? <EmptyState title="A biblioteca começa aqui" copy="Crie o primeiro template estrutural para ligar referências e publicações." /> : <div className={`ci-content-library-grid${visualReference ? ' is-visual-dossier' : ''}${hasSourceLibrary ? ' has-source-library' : ''}${sourceLibraryActive ? ' is-source-library' : ''}`}>
+      {!sourceLibraryActive && <aside className="ci-content-list-panel">
         <input className="ci-content-search" placeholder="Buscar template" value={query} onChange={event => setQuery(event.target.value)} />
         <div className="ci-content-template-list">{filtered.map(template => <button className={template.templateId === selected?.templateId ? 'active' : ''} key={template.templateId} onClick={() => setSelectedId(template.templateId)}><strong>{template.name}</strong><span>{template.tags.slice(0, 3).join(' · ') || 'Sem tags'}</span></button>)}</div>
-      </aside>
+      </aside>}
       {selected && <article className={visualReference ? 'ci-story-dossier-visual' : 'ci-story-dossier'}>
         {!visualReference && <header className="ci-story-dossier-head">
           <div className="ci-content-kicker">Dossiê vivo · versão {selected.schemaVersion}</div>
@@ -478,6 +481,7 @@ function TemplatesSection({
           linkedPublications={linkedPublications}
           onSelectReference={setSelectedReferenceId}
           onUseTemplate={templateId => onUseTemplate?.(templateId)}
+          onViewChange={setVisualMode}
         /> : <>
           <section className="ci-story-method"><h4>Regras do método</h4><div className="ci-story-rule-grid">
             <div><b>Preservar</b>{(definition.preserveRules || []).map(rule => <p key={rule}>✓ {rule}</p>)}</div>

@@ -80,6 +80,70 @@ def _slug(value: str) -> str:
     return re.sub(r"(^-|-$)", "", re.sub(r"[^a-z0-9]+", "-", ascii_value))
 
 
+def _validate_source_library(value: Any) -> None:
+    _require(isinstance(value, dict), "reference.analysis.sourceLibrary is invalid.")
+    total_pages = value.get("totalPages")
+    covered_start = value.get("coveredPageStart")
+    covered_end = value.get("coveredPageEnd")
+    _require(isinstance(total_pages, int) and 1 <= total_pages <= 10_000,
+             "sourceLibrary.totalPages is invalid.")
+    _require(
+        isinstance(covered_start, int)
+        and isinstance(covered_end, int)
+        and 1 <= covered_start <= covered_end <= total_pages,
+        "sourceLibrary covered page range is invalid.",
+    )
+    categories = _nonempty_list(value.get("categories"), "sourceLibrary.categories")
+    category_keys: set[str] = set()
+    for category in categories:
+        _require(isinstance(category, dict), "sourceLibrary category is invalid.")
+        key = str(category.get("key", ""))
+        _require(CANONICAL_KEY.fullmatch(key) is not None and key not in category_keys,
+                 "sourceLibrary category key is invalid or duplicated.")
+        _require(bool(str(category.get("label", "")).strip()),
+                 "sourceLibrary category label is required.")
+        category_keys.add(key)
+
+    modules = _nonempty_list(value.get("modules"), "sourceLibrary.modules")
+    _require(len(modules) <= 40, "sourceLibrary accepts at most 40 modules.")
+    orders: list[int] = []
+    module_keys: set[str] = set()
+    for module in modules:
+        _require(isinstance(module, dict), "sourceLibrary module is invalid.")
+        key = str(module.get("key", ""))
+        _require(CANONICAL_KEY.fullmatch(key) is not None and key not in module_keys,
+                 "sourceLibrary module key is invalid or duplicated.")
+        module_keys.add(key)
+        order = module.get("order")
+        _require(isinstance(order, int), "sourceLibrary module order is invalid.")
+        orders.append(order)
+        _require(module.get("category") in category_keys,
+                 "sourceLibrary module category is unknown.")
+        page_start = module.get("pageStart")
+        page_end = module.get("pageEnd")
+        _require(
+            isinstance(page_start, int)
+            and isinstance(page_end, int)
+            and covered_start <= page_start <= page_end <= covered_end,
+            "sourceLibrary module page range is invalid.",
+        )
+        quick = module.get("quick")
+        _require(isinstance(quick, dict), "sourceLibrary module quick layer is required.")
+        for field in ("summary", "outcome", "useWhen"):
+            _require(bool(str(quick.get(field, "")).strip()),
+                     f"sourceLibrary module quick.{field} is required.")
+        for field in ("principles", "techniques", "cautions", "brunoApplications"):
+            _nonempty_list(module.get(field), f"sourceLibrary module {field}")
+        mold = module.get("mold")
+        _require(isinstance(mold, dict), "sourceLibrary module mold is required.")
+        _require(bool(str(mold.get("name", "")).strip())
+                 and bool(str(mold.get("formula", "")).strip()),
+                 "sourceLibrary module mold name and formula are required.")
+        _nonempty_list(mold.get("steps"), "sourceLibrary module mold steps")
+    _require(orders == list(range(1, len(modules) + 1)),
+             "sourceLibrary module order must be continuous and start at 1.")
+
+
 def _mime_type(path: Path, declared: str | None) -> str:
     mime = declared or mimetypes.guess_type(path.name)[0]
     _require(mime in ALLOWED_MIME_TYPES, f"Unsupported MIME type for {path.name}.")
@@ -132,6 +196,8 @@ def _validate_dossier(payload: dict[str, Any]) -> None:
     _require(isinstance(registered, dict) and bool(str(registered.get("name", "")).strip()),
              "reference.analysis.registeredTemplate is required.")
     _nonempty_list(registered.get("steps"), "reference.analysis.registeredTemplate.steps")
+    if analysis.get("sourceLibrary") is not None:
+        _validate_source_library(analysis["sourceLibrary"])
 
 
 def prepare_payload(raw: dict[str, Any], payload_path: Path) -> tuple[dict[str, Any], dict[int, Path]]:

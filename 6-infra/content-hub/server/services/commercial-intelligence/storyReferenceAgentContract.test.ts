@@ -71,3 +71,75 @@ test('agent reference contract enforces asset and total size limits', () => {
   }));
   assert.throws(() => parseAgentReferenceInput(tooMany), /20 stories/i);
 });
+
+test('agent reference contract accepts a document library without turning pages into stories', () => {
+  const fixture = createAgentReferenceFixture() as any;
+  fixture.reference.analysis.sourceLibrary = {
+    title: 'Biblioteca do documento',
+    description: 'Catálogo completo de técnicas da fonte.',
+    sourceDocument: 'curso.pdf',
+    totalPages: 73,
+    coveredPageStart: 4,
+    coveredPageEnd: 72,
+    categories: [{ key: 'fundamentos', label: 'Fundamentos' }],
+    modules: [{
+      key: 'clareza-visual',
+      order: 1,
+      category: 'fundamentos',
+      lessonLabel: 'Aula 01',
+      title: 'Clareza visual',
+      pageStart: 4,
+      pageEnd: 8,
+      quick: {
+        summary: 'A mensagem vem antes da decoração.',
+        outcome: 'Uma tela legível.',
+        useWhen: 'Ao revisar um story.',
+      },
+      principles: ['Um foco por tela.'],
+      techniques: ['Remover elementos sem função.'],
+      cautions: ['Minimalismo não é descuido.'],
+      brunoApplications: ['Usar contraste alto.'],
+      mold: {
+        name: 'Ideia → foco',
+        formula: 'Mensagem → hierarquia',
+        steps: ['Definir a mensagem.', 'Remover o excesso.'],
+      },
+    }],
+  };
+
+  const parsed = parseAgentReferenceInput(fixture);
+
+  assert.equal(parsed.reference.items.length, 4);
+  assert.equal(parsed.reference.analysis?.sourceLibrary?.modules.length, 1);
+  assert.equal(parsed.reference.analysis?.sourceLibrary?.modules[0]?.pageStart, 4);
+});
+
+test('agent reference contract rejects invalid document library provenance', () => {
+  const fixture = createAgentReferenceFixture() as any;
+  fixture.reference.analysis.sourceLibrary = {
+    title: 'Biblioteca do documento',
+    description: 'Catálogo completo de técnicas da fonte.',
+    sourceDocument: 'curso.pdf',
+    totalPages: 10,
+    coveredPageStart: 2,
+    coveredPageEnd: 9,
+    categories: [{ key: 'fundamentos', label: 'Fundamentos' }],
+    modules: [{
+      key: 'modulo',
+      order: 1,
+      category: 'fundamentos',
+      lessonLabel: 'Aula',
+      title: 'Módulo',
+      pageStart: 8,
+      pageEnd: 11,
+      quick: { summary: 'Resumo.', outcome: 'Resultado.', useWhen: 'Quando usar.' },
+      principles: ['Princípio.'],
+      techniques: ['Técnica.'],
+      cautions: ['Cuidado.'],
+      brunoApplications: ['Aplicação.'],
+      mold: { name: 'Molde', formula: 'A → B', steps: ['A.', 'B.'] },
+    }],
+  };
+
+  assert.throws(() => parseAgentReferenceInput(fixture), /página.*inválid/i);
+});

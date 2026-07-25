@@ -34,6 +34,20 @@ Cross-sequence `analysis` requires:
 - `synthesis`;
 - `registeredTemplate.name` and `registeredTemplate.steps`.
 
+## Long source documents
+
+When a course, PDF, or other long document contains a real story sequence plus
+broader methodology, keep those layers separate:
+
+- `reference.items` contains only the actual ordered story screens;
+- `reference.analysis.sourceLibrary` contains the document-wide catalog;
+- lesson pages are provenance, not invented narrative steps.
+
+`sourceLibrary` includes document metadata, categories, and continuous ordered
+modules. Every module must include its page range, quick summary, principles,
+techniques, cautions, Bruno applications, and a reusable mold. Do not republish
+the full source document or long verbatim passages.
+
 Every item uses continuous `narrativeOrder` starting at 1 and contains distinct layers:
 
 - `metadata.quick`: compact navigation layer;

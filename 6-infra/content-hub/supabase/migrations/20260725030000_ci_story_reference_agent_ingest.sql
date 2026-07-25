@@ -210,6 +210,17 @@ begin
     raise exception 'template identity conflict' using errcode = '23505';
   end if;
 
+  update public.story_templates template
+  set name = p_template ->> 'name',
+      description = nullif(p_template ->> 'description', ''),
+      objective = p_template ->> 'objective',
+      definition = p_template -> 'definition',
+      tags = array(
+        select jsonb_array_elements_text(coalesce(p_template -> 'tags', '[]'::jsonb))
+      ),
+      status = 'active'
+  where template.template_id = v_template_id;
+
   select sequence.*
   into v_existing
   from public.story_sequences sequence

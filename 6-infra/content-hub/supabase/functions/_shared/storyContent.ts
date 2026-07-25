@@ -159,6 +159,50 @@ export interface StorySequenceMapItemInput {
   value: string;
 }
 
+export interface StorySourceLibraryCategoryInput {
+  key: string;
+  label: string;
+}
+
+export interface StorySourceLibraryModuleQuickInput {
+  summary: string;
+  outcome: string;
+  useWhen: string;
+}
+
+export interface StorySourceLibraryModuleMoldInput {
+  name: string;
+  formula: string;
+  steps: string[];
+}
+
+export interface StorySourceLibraryModuleInput {
+  key: string;
+  order: number;
+  category: string;
+  lessonLabel: string;
+  title: string;
+  pageStart: number;
+  pageEnd: number;
+  quick: StorySourceLibraryModuleQuickInput;
+  principles: string[];
+  techniques: string[];
+  cautions: string[];
+  brunoApplications: string[];
+  mold: StorySourceLibraryModuleMoldInput;
+}
+
+export interface StorySourceLibraryInput {
+  title: string;
+  description: string;
+  sourceDocument: string;
+  totalPages: number;
+  coveredPageStart: number;
+  coveredPageEnd: number;
+  categories: StorySourceLibraryCategoryInput[];
+  modules: StorySourceLibraryModuleInput[];
+}
+
 export interface StoryReferenceAnalysisInput {
   summary?: string | null;
   narrativeArc?: string[];
@@ -172,6 +216,7 @@ export interface StoryReferenceAnalysisInput {
   synthesis?: StorySynthesisInput[];
   registeredTemplate?: StoryRegisteredTemplateInput;
   sourceNote?: string | null;
+  sourceLibrary?: StorySourceLibraryInput;
 }
 
 export interface StoryReferenceItemInput extends StoryPublicationItemInput {
@@ -514,6 +559,143 @@ function parseEvidenceMetadata(value: unknown, index: number): StoryEvidenceMeta
   };
 }
 
+function positiveInteger(value: unknown, label: string, max = 100_000): number {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > max) {
+    throw new Error(`${label} inválido.`);
+  }
+  return parsed;
+}
+
+function parseSourceLibrary(value: unknown): StorySourceLibraryInput {
+  const library = object(value, 'Biblioteca da fonte');
+  const totalPages = positiveInteger(library.totalPages, 'Total de páginas da biblioteca', 10_000);
+  const coveredPageStart = positiveInteger(
+    library.coveredPageStart,
+    'Página inicial coberta pela biblioteca',
+    totalPages,
+  );
+  const coveredPageEnd = positiveInteger(
+    library.coveredPageEnd,
+    'Página final coberta pela biblioteca',
+    totalPages,
+  );
+  if (coveredPageEnd < coveredPageStart) {
+    throw new Error('A página final coberta precisa ser posterior à página inicial.');
+  }
+
+  const rawCategories = library.categories;
+  if (!Array.isArray(rawCategories) || rawCategories.length < 1 || rawCategories.length > 20) {
+    throw new Error('A biblioteca precisa de 1 a 20 categorias.');
+  }
+  const categoryKeys = new Set<string>();
+  const categories = rawCategories.map((raw, index) => {
+    const category = object(raw, `Categoria ${index + 1} da biblioteca`);
+    const key = text(category.key, `Chave da categoria ${index + 1}`, 80)!;
+    if (!canonicalKeyPattern.test(key) || categoryKeys.has(key)) {
+      throw new Error(`Chave da categoria ${index + 1} inválida ou repetida.`);
+    }
+    categoryKeys.add(key);
+    return {
+      key,
+      label: text(category.label, `Nome da categoria ${index + 1}`, 120)!,
+    };
+  });
+
+  const rawModules = library.modules;
+  if (!Array.isArray(rawModules) || rawModules.length < 1 || rawModules.length > 40) {
+    throw new Error('A biblioteca precisa de 1 a 40 módulos.');
+  }
+  const moduleKeys = new Set<string>();
+  const moduleOrders = new Set<number>();
+  const modules = rawModules.map((raw, index): StorySourceLibraryModuleInput => {
+    const module = object(raw, `Módulo ${index + 1} da biblioteca`);
+    const key = text(module.key, `Chave do módulo ${index + 1}`, 120)!;
+    if (!canonicalKeyPattern.test(key) || moduleKeys.has(key)) {
+      throw new Error(`Chave do módulo ${index + 1} inválida ou repetida.`);
+    }
+    moduleKeys.add(key);
+    const order = positiveInteger(module.order, `Ordem do módulo ${index + 1}`, 40);
+    if (moduleOrders.has(order)) throw new Error(`Ordem do módulo ${index + 1} repetida.`);
+    moduleOrders.add(order);
+    const category = text(module.category, `Categoria do módulo ${index + 1}`, 80)!;
+    if (!categoryKeys.has(category)) {
+      throw new Error(`Categoria do módulo ${index + 1} não existe na biblioteca.`);
+    }
+    const pageStart = positiveInteger(
+      module.pageStart,
+      `Página inicial do módulo ${index + 1}`,
+      totalPages,
+    );
+    const pageEnd = positiveInteger(
+      module.pageEnd,
+      `Página final do módulo ${index + 1}`,
+      totalPages,
+    );
+    if (pageEnd < pageStart
+      || pageStart < coveredPageStart
+      || pageEnd > coveredPageEnd
+    ) {
+      throw new Error(`Intervalo de páginas do módulo ${index + 1} inválido.`);
+    }
+
+    const quick = object(module.quick, `Leitura rápida do módulo ${index + 1}`);
+    const mold = object(module.mold, `Molde do módulo ${index + 1}`);
+    return {
+      key,
+      order,
+      category,
+      lessonLabel: text(module.lessonLabel, `Rótulo do módulo ${index + 1}`, 120)!,
+      title: text(module.title, `Título do módulo ${index + 1}`, 240)!,
+      pageStart,
+      pageEnd,
+      quick: {
+        summary: text(quick.summary, `Resumo rápido do módulo ${index + 1}`, 2000)!,
+        outcome: text(quick.outcome, `Resultado do módulo ${index + 1}`, 1000)!,
+        useWhen: text(quick.useWhen, `Momento de uso do módulo ${index + 1}`, 1000)!,
+      },
+      principles: textArray(module.principles, `Princípio do módulo ${index + 1}`, 12, 2000),
+      techniques: textArray(module.techniques, `Técnica do módulo ${index + 1}`, 20, 2000),
+      cautions: textArray(module.cautions, `Cuidado do módulo ${index + 1}`, 12, 2000),
+      brunoApplications: textArray(
+        module.brunoApplications,
+        `Aplicação do Bruno no módulo ${index + 1}`,
+        12,
+        2000,
+      ),
+      mold: {
+        name: text(mold.name, `Nome do molde do módulo ${index + 1}`, 240)!,
+        formula: text(mold.formula, `Fórmula do molde do módulo ${index + 1}`, 1000)!,
+        steps: textArray(mold.steps, `Etapa do molde do módulo ${index + 1}`, 12, 1000),
+      },
+    };
+  }).sort((left, right) => left.order - right.order);
+
+  if (modules.some((module, index) => module.order !== index + 1)) {
+    throw new Error('A ordem dos módulos precisa ser contínua e começar em 1.');
+  }
+  if (modules.some(module => (
+    module.principles.length < 1
+    || module.techniques.length < 1
+    || module.cautions.length < 1
+    || module.brunoApplications.length < 1
+    || module.mold.steps.length < 1
+  ))) {
+    throw new Error('Cada módulo precisa de análise detalhada e molde completo.');
+  }
+
+  return {
+    title: text(library.title, 'Título da biblioteca', 240)!,
+    description: text(library.description, 'Descrição da biblioteca', 4000)!,
+    sourceDocument: text(library.sourceDocument, 'Documento-fonte da biblioteca', 300)!,
+    totalPages,
+    coveredPageStart,
+    coveredPageEnd,
+    categories,
+    modules,
+  };
+}
+
 function parseReferenceAnalysis(value: unknown): StoryReferenceAnalysisInput {
   if (value == null) return {};
   const analysis = object(value, 'Análise estruturada');
@@ -572,6 +754,7 @@ function parseReferenceAnalysis(value: unknown): StoryReferenceAnalysisInput {
     ...(analysis.synthesis != null ? { synthesis } : {}),
     ...(parsedRegisteredTemplate ? { registeredTemplate: parsedRegisteredTemplate } : {}),
     ...(analysis.sourceNote != null ? { sourceNote: text(analysis.sourceNote, 'Nota de fonte', 2000, false) } : {}),
+    ...(analysis.sourceLibrary != null ? { sourceLibrary: parseSourceLibrary(analysis.sourceLibrary) } : {}),
   };
 }
 
