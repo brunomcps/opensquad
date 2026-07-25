@@ -23,6 +23,9 @@ type StoryContentSection = 'templates' | 'references' | 'publications' | 'approv
 interface StoryContentViewProps {
   section: StoryContentSection;
   role: MemberRole;
+  initialTemplateId?: string | null;
+  onUseTemplate?: (templateId: string) => void;
+  onInitialTemplateConsumed?: () => void;
 }
 
 const stateLabels: Record<StoryPublicationDto['publicationState'], string> = {
@@ -386,7 +389,7 @@ function VisualReferenceDossier({ template, reference }: {
   );
 }
 
-function TemplatesSection({ role }: { role: MemberRole }) {
+function TemplatesSection({ role, onUseTemplate }: { role: MemberRole; onUseTemplate?: (templateId: string) => void }) {
   const [templates, setTemplates] = useState<StoryTemplateDto[]>([]);
   const [references, setReferences] = useState<StoryReferenceDto[]>([]);
   const [publications, setPublications] = useState<StoryPublicationDto[]>([]);
@@ -682,15 +685,16 @@ function localDateTimeValue(value: string | null): string {
   return local.toISOString().slice(0, 16);
 }
 
-function PublicationForm({ templates, publication, onSaved, onCancel, onConflict }: {
+function PublicationForm({ templates, publication, initialTemplateId, onSaved, onCancel, onConflict }: {
   templates: StoryTemplateDto[];
   publication?: StoryPublicationDto;
+  initialTemplateId?: string | null;
   onSaved: (publication: StoryPublicationDto) => void;
   onCancel: () => void;
   onConflict?: () => Promise<void>;
 }) {
   const [title, setTitle] = useState(publication?.title || '');
-  const [templateId, setTemplateId] = useState(publication?.template?.templateId || templates[0]?.templateId || '');
+  const [templateId, setTemplateId] = useState(publication?.template?.templateId || initialTemplateId || templates[0]?.templateId || '');
   const [scheduledFor, setScheduledFor] = useState(localDateTimeValue(publication?.scheduledFor || null));
   const [stories, setStories] = useState<EditableStory[]>(publication?.items.map(item => ({
     mediaType: item.mediaType,
@@ -832,7 +836,11 @@ function PublicationDetail({ publication, role, onChanged, onEdit, onConflict }:
   );
 }
 
-function PublicationsSection({ role }: { role: MemberRole }) {
+function PublicationsSection({ role, initialTemplateId, onInitialTemplateConsumed }: {
+  role: MemberRole;
+  initialTemplateId?: string | null;
+  onInitialTemplateConsumed?: () => void;
+}) {
   const [publications, setPublications] = useState<StoryPublicationDto[]>([]);
   const [templates, setTemplates] = useState<StoryTemplateDto[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -840,7 +848,15 @@ function PublicationsSection({ role }: { role: MemberRole }) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [creationTemplateId, setCreationTemplateId] = useState<string | null>(initialTemplateId || null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!initialTemplateId) return;
+    setCreationTemplateId(initialTemplateId);
+    setCreating(true);
+    setEditingId(null);
+    onInitialTemplateConsumed?.();
+  }, [initialTemplateId, onInitialTemplateConsumed]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -878,7 +894,7 @@ function PublicationsSection({ role }: { role: MemberRole }) {
         {role === 'admin' && <button className="ci-content-primary" disabled={!templates.length} onClick={() => { setCreating(true); setEditingId(null); }}>Nova publicação</button>}
       </div>
       {notice && <div className="ci-content-notice" role="status">{notice}</div>}
-      {creating && <PublicationForm templates={templates} onCancel={() => setCreating(false)} onSaved={publication => { setPublications(current => [publication, ...current]); setSelectedId(publication.sequenceId); setCreating(false); setNotice(null); }} />}
+      {creating && <PublicationForm templates={templates} initialTemplateId={creationTemplateId} onCancel={() => { setCreating(false); setCreationTemplateId(null); }} onSaved={publication => { setPublications(current => [publication, ...current]); setSelectedId(publication.sequenceId); setCreating(false); setCreationTemplateId(null); setNotice(null); }} />}
       {selected && editingId === selected.sequenceId && <PublicationForm key={`${selected.sequenceId}-${selected.contentRevision}`} templates={templates} publication={selected} onCancel={() => setEditingId(null)} onConflict={refreshAfterConflict} onSaved={publication => { replace(publication); setEditingId(null); setNotice(null); }} />}
       {!templates.length && <div className="ci-content-notice">Crie um template antes da primeira publicação.</div>}
       {!publications.length ? <EmptyState title="Nenhuma publicação preparada" copy="O primeiro rascunho aparecerá aqui com sequência narrativa e preview." /> : (
@@ -968,9 +984,9 @@ function ApprovalsSection({ role }: { role: MemberRole }) {
   );
 }
 
-export function StoryContentView({ section, role }: StoryContentViewProps) {
-  if (section === 'templates') return <TemplatesSection role={role} />;
+export function StoryContentView({ section, role, initialTemplateId, onUseTemplate, onInitialTemplateConsumed }: StoryContentViewProps) {
+  if (section === 'templates') return <TemplatesSection role={role} onUseTemplate={onUseTemplate} />;
   if (section === 'references') return <ReferencesSection role={role} />;
-  if (section === 'publications') return <PublicationsSection role={role} />;
+  if (section === 'publications') return <PublicationsSection role={role} initialTemplateId={initialTemplateId} onInitialTemplateConsumed={onInitialTemplateConsumed} />;
   return <ApprovalsSection role={role} />;
 }

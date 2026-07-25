@@ -9,6 +9,8 @@ const sourcePath = path.resolve(directory, '../../../supabase/functions/ci-conte
 const source = () => fs.readFileSync(sourcePath, 'utf8');
 const viewPath = path.resolve(directory, '../../../src/components/commercial-intelligence/StoryContentView.tsx');
 const viewSource = () => fs.readFileSync(viewPath, 'utf8');
+const standalonePath = path.resolve(directory, '../../../ci-app/src/StandaloneCommercialIntelligenceView.tsx');
+const standaloneSource = () => fs.readFileSync(standalonePath, 'utf8');
 
 test('ci-content exige viewer para leitura e admin para mutação', () => {
   const code = source();
@@ -17,6 +19,16 @@ test('ci-content exige viewer para leitura e admin para mutação', () => {
   assert.match(code, /request\.method === 'GET'/);
   assert.match(code, /request\.method === 'POST'/);
   assert.match(code, /request\.method === 'PATCH'/);
+});
+
+test('usar molde abre o compositor de publicação com o template selecionado', () => {
+  const standalone = standaloneSource();
+  const view = viewSource();
+  assert.match(standalone, /const \[publicationTemplateId, setPublicationTemplateId\] = useState<string \| null>\(null\)/);
+  assert.match(standalone, /onUseTemplate=\{templateId => \{[\s\S]*?setPublicationTemplateId\(templateId\);[\s\S]*?setTab\('content-publications'\);[\s\S]*?\}\}/);
+  assert.match(view, /initialTemplateId\?: string \| null/);
+  assert.match(view, /onUseTemplate\?: \(templateId: string\) => void/);
+  assert.match(view, /publication\?\.template\?\.templateId \|\| initialTemplateId \|\| templates\[0\]\?\.templateId \|\| ''/);
 });
 
 test('ci-content usa operações atômicas para publicação e revisão', () => {

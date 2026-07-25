@@ -40,7 +40,7 @@ const GRUPOS: Array<{ titulo: string; itens: ItemNav[] }> = [
   {
     titulo: 'Conteúdo',
     itens: [
-      { chave: 'content-templates', rotulo: 'Templates', icone: '▦', copy: 'Biblioteca viva de estruturas, referências e aplicações.' },
+      { chave: 'content-templates', rotulo: 'Biblioteca de stories', icone: '▦', copy: 'Navegação rápida, evidências concretas e análise completa no mesmo dossiê.' },
       { chave: 'content-references', rotulo: 'Referências', icone: '◫', copy: 'Prints, fonte, cronologia e leitura estrutural de sequências que vale guardar.' },
       { chave: 'content-publications', rotulo: 'Publicações', icone: '▤', copy: 'Planejamento, sequência narrativa e preview dos stories.' },
       { chave: 'content-approvals', rotulo: 'Para aprovar', icone: '✓', copy: 'Fila editorial antes do agendamento ou da publicação.' },
@@ -72,6 +72,7 @@ export function StandaloneCommercialIntelligenceView({ actions, role }: { action
   // Lembra a aba entre re-montagens: se algo remontar a tela (token, reload),
   // o usuário continua onde estava em vez de cair na Visão comercial.
   const [tab, setTab] = useState<Tab>(abaInicial);
+  const [publicationTemplateId, setPublicationTemplateId] = useState<string | null>(null);
   useEffect(() => {
     try { sessionStorage.setItem(TAB_STORAGE_KEY, tab); } catch { /* ignora */ }
   }, [tab]);
@@ -121,9 +122,17 @@ export function StandaloneCommercialIntelligenceView({ actions, role }: { action
           {tab === 'instagram' && <InstagramInboxView />}
           {tab === 'emails' && <EmailInboxView />}
           {tab === 'quality' && <DataQualityTab />}
-          {tab === 'content-templates' && <StoryContentView section="templates" role={role} />}
+          {tab === 'content-templates' && <StoryContentView section="templates" role={role} onUseTemplate={templateId => {
+            setPublicationTemplateId(templateId);
+            setTab('content-publications');
+          }} />}
           {tab === 'content-references' && <StoryContentView section="references" role={role} />}
-          {tab === 'content-publications' && <StoryContentView section="publications" role={role} />}
+          {tab === 'content-publications' && <StoryContentView
+            section="publications"
+            role={role}
+            initialTemplateId={publicationTemplateId}
+            onInitialTemplateConsumed={() => setPublicationTemplateId(null)}
+          />}
           {tab === 'content-approvals' && <StoryContentView section="approvals" role={role} />}
         </div>
       </div>
