@@ -1,0 +1,4 @@
+interface:
+  display_name: "Catalogar referência de stories"
+  short_description: "Valida e publica dossiês completos na biblioteca"
+  default_prompt: "Valide e publique esta referência completa de stories na Biblioteca de stories."

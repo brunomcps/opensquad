@@ -1,0 +1,110 @@
+{
+  "referenceKey": "",
+  "template": {
+    "canonicalKey": "cena-real-lente-especialista-principio",
+    "name": "Cena real -> lente do especialista -> principio",
+    "objective": "Transformar uma situacao reconhecivel em posicionamento.",
+    "description": "A cena abre tensao, a lente muda o significado e o fechamento revela um principio.",
+    "tags": ["stories", "referencia"],
+    "definition": {
+      "editorialName": "Cena real -> lente -> principio",
+      "editorialSummary": "Uma situacao cotidiana ganha significado pela leitura do especialista.",
+      "formula": "Cena real -> interpretacao -> prova -> principio",
+      "preserveRules": ["Preservar a funcao narrativa de cada tela."],
+      "adaptRules": ["Adaptar cenario, voz e prova ao Bruno."],
+      "avoidRules": ["Nao copiar a superficie da referencia."],
+      "moldSteps": [
+        {
+          "title": "Cena e gancho",
+          "purpose": "Abrir uma pergunta narrativa.",
+          "fixedFunction": "Mostrar uma situacao real e especifica.",
+          "placeholders": [{"kind": "scene", "label": "Cena reconhecivel"}]
+        }
+      ],
+      "steps": [
+        {"role": "hook", "instruction": "Mostrar uma cena especifica."}
+      ]
+    },
+    "steps": [
+      {"role": "hook", "instruction": "Mostrar uma cena especifica."}
+    ]
+  },
+  "reference": {
+    "title": "TITULO DA REFERENCIA",
+    "description": "DESCRICAO COMPLETA",
+    "analysis": {
+      "summary": "RESUMO TRANSVERSAL",
+      "overview": ["LEITURA GERAL"],
+      "narrativeArc": ["ABERTURA", "DESENVOLVIMENTO", "FECHAMENTO"],
+      "whyItWorks": ["MECANISMO PRINCIPAL"],
+      "templateFit": "COMO A REFERENCIA SUSTENTA O TEMPLATE",
+      "sequenceMap": [{"label": "1 - Gancho", "value": "FUNCAO DA TELA"}],
+      "visualGrammar": "GRAMATICA VISUAL DA SEQUENCIA",
+      "productRevealed": "PRODUTO REAL OU PERSONA CONSTRUIDA",
+      "transferRules": ["REGRA TRANSFERIVEL PARA BRUNO"],
+      "synthesis": [{"title": "Leitura transversal", "paragraphs": ["ANALISE COMPLETA"]}],
+      "registeredTemplate": {
+        "name": "NOME DO TEMPLATE",
+        "steps": [{"title": "Cena", "description": "FUNCAO DA ETAPA"}]
+      },
+      "sourceNote": "NOTA SOBRE ORDEM E COMPLETUDE DA FONTE"
+    },
+    "platform": "instagram",
+    "sourceAccount": "@CONTA",
+    "sourceUrl": "https://www.instagram.com/CONTA/",
+    "sourceStartedAt": null,
+    "sourceEndedAt": null,
+    "items": [
+      {
+        "mediaType": "image",
+        "textContent": "TEXTO ORIGINAL",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 1,
+        "narrativeRole": "hook",
+        "metadata": {
+          "quick": {
+            "roleLabel": "PAPEL RAPIDO",
+            "title": "TITULO RAPIDO",
+            "summary": "RESUMO RAPIDO",
+            "evidence": "EVIDENCIA CONCRETA",
+            "audienceEffect": "EFEITO NO PUBLICO",
+            "subtext": "SUBTEXTO",
+            "funnelFunction": "FUNCAO NO FUNIL",
+            "extractedRule": "REGRA RAPIDA"
+          },
+          "visual": {
+            "roleLabel": "PAPEL VISUAL",
+            "title": "TITULO DO RAIO-X",
+            "scene": "CENA, PESSOA, ROUPA E AMBIENTE",
+            "typography": "TEXTO, POSICAO, FONTE E CONTRASTE",
+            "composition": "DISTRIBUICAO E HIERARQUIA",
+            "graphic": "GRAFICO, PRINT, STICKER OU PROVA",
+            "palette": ["#102f26", "#f6f1e7", "#9e1b32"],
+            "impression": "SENSACAO TRANSMITIDA",
+            "markers": [{"label": "1", "description": "MARCADOR VISUAL"}]
+          },
+          "deep": {
+            "roleLabel": "PAPEL DETALHADO",
+            "title": "TITULO DA ANALISE DETALHADA",
+            "lead": "LEITURA APROFUNDADA",
+            "sections": [
+              {
+                "title": "Mecanismo",
+                "paragraphs": ["ANALISE COMPLETA"],
+                "bullets": ["EVIDENCIA E INTERPRETACAO"]
+              }
+            ],
+            "extractedRule": "REGRA DETALHADA"
+          }
+        }
+      }
+    ]
+  },
+  "assets": [
+    {
+      "narrativeOrder": 1,
+      "localPath": "/CAMINHO/ABSOLUTO/story-1.jpg",
+      "mimeType": "image/jpeg"
+    }
+  ]
+}
