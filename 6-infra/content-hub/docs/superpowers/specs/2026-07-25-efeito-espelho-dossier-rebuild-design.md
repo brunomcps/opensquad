@@ -2,8 +2,8 @@
 
 **Status:** aprovado para implementação
 **Data:** 25 de julho de 2026
-**Referência:** `instagram-reservatoriodedopamina-efeito-espelho`
-**Template:** `efeito-espelho-identificacao-microexplicacao-entrega-dm`
+**Referência:** `instagram-reservatoriodedopamina-369dd31e183fba04ea5b`
+**Template:** `efeito-espelho`
 
 ## Objetivo
 
