@@ -174,7 +174,7 @@ async function prepare(page: Page) {
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
   });
   await page.goto(baseUrl, { waitUntil: 'networkidle' });
-  const templatesButton = page.getByRole('button', { name: 'Templates' });
+  const templatesButton = page.getByRole('button', { name: 'Biblioteca de stories' });
   try {
     await templatesButton.waitFor();
   } catch (error) {
@@ -356,7 +356,7 @@ const browser = await chromium.launch({ executablePath, headless: !keepOpen });
 try {
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   await prepare(desktop);
-  await desktop.getByRole('button', { name: 'Templates' }).click();
+  await desktop.getByRole('button', { name: 'Biblioteca de stories' }).click();
   await desktop.getByText('Cena → lente → princípio', { exact: true }).first().waitFor();
   await assertDesktopInternalScroll(desktop);
   await desktop.screenshot({ path: path.join(evidence, 'desktop-templates.png'), fullPage: true });
@@ -404,7 +404,7 @@ try {
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await prepare(mobile);
   const mobileScrollFailures: Error[] = [];
-  await mobile.getByRole('button', { name: 'Templates' }).click();
+  await mobile.getByRole('button', { name: 'Biblioteca de stories' }).click();
   await mobile.getByText('Ensinamento original', { exact: true }).first().waitFor();
   let overflow = await mobile.evaluate(() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth));
   if (overflow > 1) throw new Error(`Dossiê integrado no móvel com overflow horizontal de ${overflow}px.`);
@@ -414,7 +414,7 @@ try {
   await mobile.getByText('Molde aprovado · 9:16', { exact: true }).scrollIntoViewIfNeeded();
   await mobile.screenshot({ path: path.join(evidence, 'mobile-template-mold.png') });
   try {
-    await assertNativeDocumentReach(mobile, 'Templates', mobile.locator('.ci-story-learnings'));
+    await assertNativeDocumentReach(mobile, 'Biblioteca de stories', mobile.locator('.ci-story-learnings'));
     await mobile.screenshot({ path: path.join(evidence, 'mobile-templates-bottom.png') });
   } catch (error) {
     mobileScrollFailures.push(error instanceof Error ? error : new Error(String(error)));

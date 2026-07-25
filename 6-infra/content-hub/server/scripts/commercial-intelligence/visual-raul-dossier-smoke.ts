@@ -437,7 +437,7 @@ const session = {
   },
 };
 
-async function prepare(page: Page) {
+async function prepare(page: Page, initialPath = '') {
   page.on('console', message => {
     if (message.type() === 'error') console.error(`[browser console] ${message.text()}`);
   });
@@ -459,7 +459,7 @@ async function prepare(page: Page) {
         : { ok: true, member: { role: 'admin' }, publications: [] };
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
   });
-  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  await page.goto(`${baseUrl}${initialPath}`, { waitUntil: 'networkidle' });
   const templatesButton = page.getByRole('button', { name: 'Biblioteca de stories' });
   try {
     await templatesButton.waitFor({ timeout: 10_000 });
@@ -579,7 +579,15 @@ try {
   const visualId = `${quickId}-visual`;
   const deepId = `${quickId}-deep`;
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-  await prepare(desktop);
+  await prepare(
+    desktop,
+    `/?tab=content-templates&template=${raulTemplateId}&reference=${references[0].sequenceId}`,
+  );
+  const loadedUrl = new URL(desktop.url());
+  if (loadedUrl.searchParams.get('template') !== raulTemplateId
+    || loadedUrl.searchParams.get('reference') !== references[0].sequenceId) {
+    throw new Error('O deep link não preservou template e referência após a hidratação.');
+  }
   await desktop.getByRole('heading', { name: 'Biblioteca de stories', exact: true }).waitFor();
   await desktop.locator('.ci-dossier-quick').waitFor();
   if (await desktop.getByText(/Dossiê vivo · versão/i).count()) {
