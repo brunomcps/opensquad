@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   canonicalAgentIngestPayload,
+  canonicalAgentIngestRequestPath,
 } from '../../../supabase/functions/_shared/agentIngestAuth.ts';
 import {
   hmacSha256,
@@ -25,7 +26,7 @@ async function signedRequest(body: Record<string, unknown>, nonce: string): Prom
   const timestamp = String(now);
   const signature = await hmacSha256(secret, canonicalAgentIngestPayload(
     'POST',
-    endpointPath,
+    canonicalAgentIngestRequestPath(endpointPath),
     timestamp,
     nonce,
     await sha256Bytes(bytes),
@@ -62,6 +63,16 @@ function fakeClient(files: Map<string, Blob>) {
   return {
     calls,
     storage: {
+      async getBucket(bucket: string) {
+        assert.equal(bucket, STORY_REFERENCE_BUCKET);
+        return {
+          data: { id: STORY_REFERENCE_BUCKET, public: true },
+          error: null,
+        };
+      },
+      async createBucket() {
+        throw new Error('createBucket should not run when the bucket already exists');
+      },
       from(bucket: string) {
         assert.equal(bucket, STORY_REFERENCE_BUCKET);
         return {

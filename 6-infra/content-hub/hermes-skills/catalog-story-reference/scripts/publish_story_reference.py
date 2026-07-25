@@ -635,6 +635,11 @@ def canonical_signature(
     return hmac.new(secret.encode("utf-8"), canonical.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
+def canonical_request_path(path: str) -> str:
+    match = re.fullmatch(r"/functions/v1/([^/]+)/?", path)
+    return f"/{match.group(1)}" if match else path
+
+
 def signed_headers(
     endpoint: str,
     body: bytes,
@@ -652,7 +657,7 @@ def signed_headers(
         "x-ci-agent-timestamp": timestamp,
         "x-ci-agent-nonce": nonce,
         "x-ci-agent-signature": canonical_signature(
-            "POST", parsed.path, timestamp, nonce, body, secret
+            "POST", canonical_request_path(parsed.path), timestamp, nonce, body, secret
         ),
     }
 

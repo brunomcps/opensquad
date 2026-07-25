@@ -292,7 +292,7 @@ class FakeIngestHandler(BaseHTTPRequestHandler):
         body = self.rfile.read(int(self.headers["content-length"]))
         expected = client.canonical_signature(
             "POST",
-            self.path,
+            client.canonical_request_path(self.path),
             self.headers["x-ci-agent-timestamp"],
             self.headers["x-ci-agent-nonce"],
             body,
@@ -487,15 +487,17 @@ class PublishStoryReferenceTests(unittest.TestCase):
 
     def test_hmac_matches_the_server_vector(self):
         body = b'{"action":"prepare_assets","referenceKey":"reference-1"}'
+        self.assertEqual(client.canonical_request_path("/ci-story-ingest"), "/ci-story-ingest")
+        self.assertEqual(client.canonical_request_path("/functions/v1/ci-story-ingest"), "/ci-story-ingest")
         signature = client.canonical_signature(
             "POST",
-            "/functions/v1/ci-story-ingest",
+            "/ci-story-ingest",
             "1784916000000",
             "nonce_0123456789abcdef",
             body,
             SECRET,
         )
-        self.assertEqual(signature, "509cb040431e9e92801b9e1ef9e260c65b7fe8ab5b930ac0cd0f93c7fd476af5")
+        self.assertEqual(signature, "cf507df23254b1a6df2a94917c79fdbde1d021caf8a04b4725b8d5f70dd4af45")
 
     def test_publish_uses_exact_upload_urls_and_waits_for_every_upload(self):
         payload, path = make_payload(self.root)

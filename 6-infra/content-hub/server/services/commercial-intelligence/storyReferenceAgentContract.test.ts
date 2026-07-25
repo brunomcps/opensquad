@@ -11,7 +11,9 @@ test('agent reference contract accepts a complete dossier', () => {
 });
 
 test('agent reference contract preserves canonical machine fields', () => {
-  const parsed = parseAgentReferenceInput(createAgentReferenceFixture());
+  const fixture = createAgentReferenceFixture();
+  (fixture.template.definition.moldSteps[0]!.placeholders[0]! as { slot?: string }).slot = 'top';
+  const parsed = parseAgentReferenceInput(fixture);
 
   assert.equal(parsed.dossierContractVersion, '1.0');
   assert.equal(parsed.reference.sequenceConfirmed, true);
@@ -25,6 +27,13 @@ test('agent reference contract preserves canonical machine fields', () => {
     ['narrative', 'continuity'],
   );
   assert.deepEqual(parsed.template.definition?.moldSteps?.[1]?.templateStepIds, ['reinterpret-scene', 'support-reading']);
+  assert.equal(parsed.template.definition?.moldSteps?.[0]?.placeholders?.[0]?.slot, 'top');
+});
+
+test('agent reference contract rejects an invalid placeholder slot', () => {
+  const fixture = createAgentReferenceFixture();
+  (fixture.template.definition.moldSteps[0]!.placeholders[0]! as { slot?: string }).slot = 'overlap';
+  assert.throws(() => parseAgentReferenceInput(fixture), /posição.*placeholder.*inválida/i);
 });
 
 for (const layer of ['quick', 'visual', 'deep'] as const) {

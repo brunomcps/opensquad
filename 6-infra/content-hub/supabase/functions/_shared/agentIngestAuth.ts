@@ -9,6 +9,13 @@ export interface AgentIngestClaim {
   requestedAt: string;
 }
 
+export function canonicalAgentIngestRequestPath(pathname: string): string {
+  const publicFunctionPath = pathname.match(/^\/functions\/v1\/([^/]+)\/?$/);
+  return publicFunctionPath
+    ? `/${publicFunctionPath[1]}`
+    : pathname;
+}
+
 export function canonicalAgentIngestPayload(
   method: string,
   path: string,
@@ -96,7 +103,7 @@ export async function verifyAgentIngestRequest(
   const bodyHash = await sha256Bytes(bodyBytes);
   const expected = await hmacSha256(secret, canonicalAgentIngestPayload(
     request.method,
-    new URL(request.url).pathname,
+    canonicalAgentIngestRequestPath(new URL(request.url).pathname),
     timestamp,
     nonce,
     bodyHash,

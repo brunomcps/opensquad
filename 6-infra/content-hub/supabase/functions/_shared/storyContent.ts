@@ -43,6 +43,7 @@ export type StoryTemplatePlaceholderKind =
 export interface StoryTemplatePlaceholderInput {
   kind: StoryTemplatePlaceholderKind;
   label: string;
+  slot?: 'top' | 'upper' | 'middle' | 'lower' | 'bottom';
 }
 
 export interface StoryTemplateMoldStepInput {
@@ -483,14 +484,29 @@ function parseTemplateDefinition(value: unknown, legacySteps: unknown): StoryTem
     const placeholderKinds = new Set<StoryTemplatePlaceholderKind>([
       'scene', 'copy', 'person', 'proof', 'response', 'principle', 'reaction',
     ]);
+    const placeholderSlots = new Set<NonNullable<StoryTemplatePlaceholderInput['slot']>>([
+      'top', 'upper', 'middle', 'lower', 'bottom',
+    ]);
     const placeholders = rawPlaceholders.map((rawPlaceholder, placeholderIndex) => {
       const placeholder = object(rawPlaceholder, `Placeholder ${placeholderIndex + 1} da etapa ${index + 1}`);
       if (typeof placeholder.kind !== 'string' || !placeholderKinds.has(placeholder.kind as StoryTemplatePlaceholderKind)) {
         throw new Error(`Tipo do placeholder ${placeholderIndex + 1} da etapa ${index + 1} inválido.`);
       }
+      if (
+        placeholder.slot != null
+        && (
+          typeof placeholder.slot !== 'string'
+          || !placeholderSlots.has(placeholder.slot as NonNullable<StoryTemplatePlaceholderInput['slot']>)
+        )
+      ) {
+        throw new Error(`Posição do placeholder ${placeholderIndex + 1} da etapa ${index + 1} inválida.`);
+      }
       return {
         kind: placeholder.kind as StoryTemplatePlaceholderKind,
         label: text(placeholder.label, `Rótulo do placeholder ${placeholderIndex + 1} da etapa ${index + 1}`, 300)!,
+        ...(placeholder.slot != null
+          ? { slot: placeholder.slot as NonNullable<StoryTemplatePlaceholderInput['slot']> }
+          : {}),
       };
     });
     const id = step.id == null ? null : text(step.id, `ID da etapa do molde ${index + 1}`, 160, false);

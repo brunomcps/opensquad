@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   canonicalAgentIngestPayload,
+  canonicalAgentIngestRequestPath,
   claimAgentIngestNonce,
   parseAgentIngestKeys,
   verifyAgentIngestRequest,
@@ -32,7 +33,7 @@ async function signedRequest(input: {
   const signedBody = input.signedBody || bodyBytes;
   const signature = await hmacSha256(secret, canonicalAgentIngestPayload(
     input.signedMethod || method,
-    input.signedPath || requestPath,
+    canonicalAgentIngestRequestPath(input.signedPath || requestPath),
     timestamp,
     nonce,
     await sha256Bytes(signedBody),
@@ -60,6 +61,9 @@ test('agent ingest auth verifies method path timestamp nonce and body bytes', as
       requestedAt: '2026-07-24T18:00:00.000Z',
     },
   );
+
+  assert.equal(canonicalAgentIngestRequestPath('/functions/v1/ci-story-ingest'), '/ci-story-ingest');
+  assert.equal(canonicalAgentIngestRequestPath('/ci-story-ingest'), '/ci-story-ingest');
 
   const invalidRequests = [
     await signedRequest({ method: 'PATCH', signedMethod: 'POST' }),

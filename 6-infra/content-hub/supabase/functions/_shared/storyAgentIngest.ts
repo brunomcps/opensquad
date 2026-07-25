@@ -10,6 +10,14 @@ import {
 import { loadSequence, relationRows } from './storyContentRepository.ts';
 
 export const STORY_REFERENCE_BUCKET = 'story-reference-assets';
+const STORY_REFERENCE_ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'video/mp4',
+  'video/webm',
+];
+const STORY_REFERENCE_FILE_SIZE_LIMIT = 20 * 1024 * 1024;
 
 const extensionByMime: Record<StoryAgentAssetInput['mimeType'], string> = {
   'image/jpeg': 'jpg',
@@ -79,7 +87,26 @@ function storageApi(client: any) {
   return client.storage.from(STORY_REFERENCE_BUCKET);
 }
 
+async function ensureStoryReferenceBucket(client: any) {
+  const existing = await client.storage.getBucket(STORY_REFERENCE_BUCKET);
+  if (!existing.error && existing.data) return;
+
+  const created = await client.storage.createBucket(STORY_REFERENCE_BUCKET, {
+    public: true,
+    fileSizeLimit: STORY_REFERENCE_FILE_SIZE_LIMIT,
+    allowedMimeTypes: STORY_REFERENCE_ALLOWED_MIME_TYPES,
+  });
+  if (!created.error) return;
+
+  // Another request may have created the bucket between the read and write.
+  const raced = await client.storage.getBucket(STORY_REFERENCE_BUCKET);
+  if (raced.error || !raced.data) {
+    return fail('agent_ingest_storage_unavailable', 'Story reference storage is unavailable.', 503);
+  }
+}
+
 async function prepareAssets(client: any, payload: StoryAgentReferenceInput) {
+  await ensureStoryReferenceBucket(client);
   const storage = storageApi(client);
   const assets = [];
   for (const asset of payload.assets) {
