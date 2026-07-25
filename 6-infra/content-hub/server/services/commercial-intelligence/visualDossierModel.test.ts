@@ -181,7 +181,7 @@ test('monta o dossie Raul em ordem narrativa sem misturar os tres titulos editor
   ]).size === 3));
 });
 
-test('falha fechado para outra referencia, URL parecida ou vinculo com outro template', () => {
+test('falha fechado para outra referencia ou URL parecida e valida o vinculo no build', () => {
   const reference = createReference();
 
   const storiesReference = structuredClone(reference);
@@ -198,7 +198,7 @@ test('falha fechado para outra referencia, URL parecida ou vinculo com outro tem
     templateId: '20000000-0000-4000-8000-000000000999',
     name: 'Outro template',
   };
-  assert.equal(hasCompleteVisualDossier(wrongTemplate), false);
+  assert.equal(hasCompleteVisualDossier(wrongTemplate), true);
   assert.throws(
     () => buildVisualDossierViewModel(createTemplate(), wrongTemplate),
     { message: 'Dossiê visual incompleto.' },

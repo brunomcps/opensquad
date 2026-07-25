@@ -14,7 +14,6 @@ import type {
 } from '../../../../ci-app/src/api';
 
 const canonicalRaulSourceUrl = 'https://www.instagram.com/_raulsena/';
-const canonicalRaulTemplateId = '20000000-0000-4000-8000-000000000101';
 const incompleteDossierMessage = 'Dossiê visual incompleto.';
 
 export interface VisualDossierStory {
@@ -196,7 +195,6 @@ function isCompleteVisualDossier(
   if (!reference
     || reference.sourceUrl !== canonicalRaulSourceUrl
     || !reference.template
-    || reference.template.templateId !== canonicalRaulTemplateId
     || !hasCompleteAnalysis(reference.analysis)
     || reference.items.length !== 3
     || !reference.items.every(hasCompleteItem)
