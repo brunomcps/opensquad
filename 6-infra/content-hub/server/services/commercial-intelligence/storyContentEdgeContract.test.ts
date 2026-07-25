@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 const directory = path.dirname(fileURLToPath(import.meta.url));
 const sourcePath = path.resolve(directory, '../../../supabase/functions/ci-content/index.ts');
 const source = () => fs.readFileSync(sourcePath, 'utf8');
+const repositoryPath = path.resolve(directory, '../../../supabase/functions/_shared/storyContentRepository.ts');
+const repositorySource = () => fs.readFileSync(repositoryPath, 'utf8');
 const viewPath = path.resolve(directory, '../../../src/components/commercial-intelligence/StoryContentView.tsx');
 const viewSource = () => fs.readFileSync(viewPath, 'utf8');
 const standalonePath = path.resolve(directory, '../../../ci-app/src/StandaloneCommercialIntelligenceView.tsx');
@@ -97,10 +99,12 @@ test('interface recarrega o estado canônico quando outra aba vence a revisão',
 
 test('ci-content seleciona e devolve o dossiê JSONB sem reduzir definition, analysis ou metadata', () => {
   const code = source();
-  assert.match(code, /definition:\s*row\.definition/);
-  assert.match(code, /analysis:\s*row\.analysis/);
-  assert.match(code, /metadata:\s*item\.metadata/);
-  assert.match(code, /SEQUENCE_FIELDS[^\n]*\banalysis\b[^\n]*story_items\([^\n]*\bmetadata\b/);
+  const repository = repositorySource();
+  assert.match(code, /storyContentRepository/);
+  assert.match(repository, /definition:\s*row\.definition/);
+  assert.match(repository, /analysis:\s*row\.analysis/);
+  assert.match(repository, /metadata:\s*item\.metadata/);
+  assert.match(repository, /SEQUENCE_FIELDS[^\n]*\banalysis\b[^\n]*story_items\([^\n]*\bmetadata\b/);
 });
 
 test('criação propaga definition e analysis estruturadas até a persistência', () => {

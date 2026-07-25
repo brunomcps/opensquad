@@ -6,7 +6,7 @@ export function corsHeaders(request: Request): HeadersInit {
   const allowOrigin = resolveAllowedOrigin(origin, Deno.env.get('CI_ALLOWED_ORIGINS'));
   return {
     ...(allowOrigin ? { 'access-control-allow-origin': allowOrigin, vary: 'Origin' } : {}),
-    'access-control-allow-headers': 'authorization, content-type, x-ci-cron-secret, x-hotmart-hottok',
+    'access-control-allow-headers': 'authorization, content-type, x-ci-cron-secret, x-hotmart-hottok, x-ci-agent-key, x-ci-agent-timestamp, x-ci-agent-nonce, x-ci-agent-signature',
     'access-control-allow-methods': 'GET, POST, PATCH, OPTIONS',
     'content-type': 'application/json; charset=utf-8',
   };

@@ -359,6 +359,7 @@ export async function getAssociation(filters: {
 
 export interface StoryTemplateDto {
   templateId: string;
+  canonicalKey?: string;
   name: string;
   description: string | null;
   objective: string;
@@ -408,6 +409,8 @@ export interface StoryItemDto {
 
 export interface StoryPublicationDto {
   sequenceId: string;
+  referenceKey?: string | null;
+  contentHash?: string | null;
   kind: 'publication';
   title: string;
   description: string | null;
@@ -425,7 +428,7 @@ export interface StoryPublicationDto {
   approvedRevision: number | null;
   approvedAt: string | null;
   reviewNote: string | null;
-  template: { templateId: string; name: string } | null;
+  template: { templateId: string; canonicalKey?: string; name: string } | null;
   items: StoryItemDto[];
   createdAt: string;
   updatedAt: string;

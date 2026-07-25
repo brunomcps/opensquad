@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.ci-content]
 verify_jwt = false
+
+[functions.ci-story-ingest]
+verify_jwt = false
