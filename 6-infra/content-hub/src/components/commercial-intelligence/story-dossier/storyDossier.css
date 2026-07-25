@@ -1137,6 +1137,31 @@
   background: transparent;
 }
 
+.ci-dossier-placeholder.is-slot-top {
+  top: 10%;
+  bottom: auto;
+}
+
+.ci-dossier-placeholder.is-slot-upper {
+  top: 31%;
+  bottom: auto;
+}
+
+.ci-dossier-placeholder.is-slot-middle {
+  top: 48%;
+  bottom: auto;
+}
+
+.ci-dossier-placeholder.is-slot-lower {
+  top: 65%;
+  bottom: auto;
+}
+
+.ci-dossier-placeholder.is-slot-bottom {
+  top: auto;
+  bottom: 6%;
+}
+
 .ci-dossier-fixed-function {
   max-width: 280px;
   min-height: 50px;

@@ -41,7 +41,13 @@ export function VisualDossierMold({
             <div className="ci-dossier-mold-phone">
               {(step.placeholders || []).map((placeholder, placeholderIndex) => (
                 <div
-                  className={`ci-dossier-placeholder is-${placeholder.kind}`}
+                  className={[
+                    'ci-dossier-placeholder',
+                    `is-${placeholder.kind}`,
+                    'slot' in placeholder && placeholder.slot
+                      ? `is-slot-${placeholder.slot}`
+                      : '',
+                  ].filter(Boolean).join(' ')}
                   key={`${placeholder.kind}-${placeholderIndex}`}
                 >
                   [{placeholder.label}]

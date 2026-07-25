@@ -122,6 +122,16 @@
         },
         "label": {
           "$ref": "#/$defs/nonEmptyString"
+        },
+        "slot": {
+          "type": "string",
+          "enum": [
+            "top",
+            "upper",
+            "middle",
+            "lower",
+            "bottom"
+          ]
         }
       },
       "additionalProperties": false

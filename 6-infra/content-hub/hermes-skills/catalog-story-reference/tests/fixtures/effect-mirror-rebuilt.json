@@ -53,19 +53,23 @@
           "placeholders": [
             {
               "kind": "scene",
-              "label": "Fundo ou contexto cotidiano ligado ao comportamento"
+              "label": "Fundo ou contexto cotidiano ligado ao comportamento",
+              "slot": "lower"
             },
             {
               "kind": "proof",
-              "label": "Recorte, dado ou sinal externo verificavel"
+              "label": "Recorte, dado ou sinal externo verificavel",
+              "slot": "upper"
             },
             {
               "kind": "copy",
-              "label": "Pergunta direta sobre uma experiencia, sem diagnosticar"
+              "label": "Pergunta direta sobre uma experiencia, sem diagnosticar",
+              "slot": "top"
             },
             {
               "kind": "reaction",
-              "label": "Enquete ou resposta de baixa friccao"
+              "label": "Enquete ou resposta de baixa friccao",
+              "slot": "bottom"
             }
           ]
         },
@@ -82,19 +86,23 @@
           "placeholders": [
             {
               "kind": "copy",
-              "label": "Frase que acolhe a resistencia ou contradicao vivida"
+              "label": "Frase que acolhe a resistencia ou contradicao vivida",
+              "slot": "top"
             },
             {
               "kind": "proof",
-              "label": "Microexplicacao ou mecanismo sustentado com rigor proporcional"
+              "label": "Microexplicacao ou mecanismo sustentado com rigor proporcional",
+              "slot": "upper"
             },
             {
               "kind": "scene",
-              "label": "Imagem, meme ou demonstracao que concretiza a ideia"
+              "label": "Imagem, meme ou demonstracao que concretiza a ideia",
+              "slot": "lower"
             },
             {
               "kind": "reaction",
-              "label": "Reacao leve que prolonga a interacao"
+              "label": "Reacao leve que prolonga a interacao",
+              "slot": "bottom"
             }
           ]
         },
@@ -110,19 +118,23 @@
           "placeholders": [
             {
               "kind": "copy",
-              "label": "Oferta especifica e coerente com o problema"
+              "label": "Oferta especifica e coerente com o problema",
+              "slot": "top"
             },
             {
               "kind": "proof",
-              "label": "Previa, mockup ou trecho real do que sera entregue"
+              "label": "Previa, mockup ou trecho real do que sera entregue",
+              "slot": "upper"
             },
             {
               "kind": "copy",
-              "label": "Instrucao unica com a palavra ou resposta esperada"
+              "label": "Instrucao unica com a palavra ou resposta esperada",
+              "slot": "lower"
             },
             {
               "kind": "response",
-              "label": "Campo de DM ou outro canal de continuidade"
+              "label": "Campo de DM ou outro canal de continuidade",
+              "slot": "bottom"
             }
           ]
         }
