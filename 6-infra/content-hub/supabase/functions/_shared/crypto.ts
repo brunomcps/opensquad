@@ -9,6 +9,12 @@ export async function sha256(value: string): Promise<string> {
   return toHex(new Uint8Array(digest));
 }
 
+export async function sha256Bytes(value: Uint8Array): Promise<string> {
+  const copy = Uint8Array.from(value);
+  const digest = await crypto.subtle.digest('SHA-256', copy.buffer);
+  return toHex(new Uint8Array(digest));
+}
+
 export async function hmacSha256(secret: string, value: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     'raw',
