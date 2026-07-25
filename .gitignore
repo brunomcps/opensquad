@@ -1,6 +1,7 @@
 node_modules/
 .env
 *.log
+__pycache__/
 squads/*/output/
 _opensquad/_memory/company.md
 _opensquad/_memory/preferences.md
