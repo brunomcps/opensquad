@@ -192,6 +192,32 @@ export interface StoryReferenceInput {
   items: StoryReferenceItemInput[];
 }
 
+export interface StoryAgentAssetInput {
+  narrativeOrder: number;
+  fileName: string;
+  sha256: string;
+  mimeType: 'image/jpeg' | 'image/png' | 'image/webp' | 'video/mp4' | 'video/webm';
+  sizeBytes: number;
+  storagePath?: string | null;
+  publicUrl?: string | null;
+}
+
+export interface StoryAgentTemplateInput extends StoryTemplateInput {
+  canonicalKey: string;
+}
+
+export type StoryAgentReferenceDetailsInput = Omit<StoryReferenceInput, 'templateId' | 'items'> & {
+  items: Array<Omit<StoryReferenceItemInput, 'assetUrl'>>;
+};
+
+export interface StoryAgentReferenceInput {
+  referenceKey: string;
+  contentHash: string;
+  template: StoryAgentTemplateInput;
+  reference: StoryAgentReferenceDetailsInput;
+  assets: StoryAgentAssetInput[];
+}
+
 export interface StoryReviewInput {
   decision: 'approved' | 'changes_requested';
   note: string | null;
@@ -200,6 +226,19 @@ export interface StoryReviewInput {
 const roles = new Set<StoryNarrativeRole>(['hook', 'context', 'development', 'proof', 'cta', 'closing', 'other']);
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const htmlPattern = /<\/?[a-z][^>]*>/i;
+const sha256Pattern = /^[0-9a-f]{64}$/i;
+const canonicalKeyPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const agentMimeTypes = new Set<StoryAgentAssetInput['mimeType']>([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'video/mp4',
+  'video/webm',
+]);
+
+export const MAX_AGENT_BODY_BYTES = 1024 * 1024;
+export const MAX_AGENT_ASSET_BYTES = 20 * 1024 * 1024;
+export const MAX_AGENT_TOTAL_ASSET_BYTES = 200 * 1024 * 1024;
 
 function object(value: unknown, label: string): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`${label} inválido.`);
@@ -588,6 +627,143 @@ export function parseCreateReferenceInput(value: unknown): StoryReferenceInput {
     sourceEndedAt,
     templateId,
     items: items.sort((a, b) => a.narrativeOrder - b.narrativeOrder),
+  };
+}
+
+function requiredAgentList(value: unknown[] | undefined, label: string): void {
+  if (!Array.isArray(value) || value.length === 0) throw new Error(`${label} é obrigatório no dossiê do Hermes.`);
+}
+
+export function parseAgentReferenceInput(value: unknown): StoryAgentReferenceInput {
+  const input = object(value, 'Referência do Hermes');
+  const referenceKey = text(input.referenceKey, 'referenceKey', 160)!;
+  if (!canonicalKeyPattern.test(referenceKey)) {
+    throw new Error('referenceKey precisa usar apenas letras minúsculas, números e hífens.');
+  }
+  const contentHash = text(input.contentHash, 'contentHash', 64)!;
+  if (!sha256Pattern.test(contentHash)) throw new Error('contentHash precisa ser um SHA-256 hexadecimal.');
+
+  const rawTemplate = object(input.template, 'Template do Hermes');
+  const canonicalKey = text(rawTemplate.canonicalKey, 'canonicalKey do template', 160)!;
+  if (!canonicalKeyPattern.test(canonicalKey)) {
+    throw new Error('canonicalKey do template precisa usar apenas letras minúsculas, números e hífens.');
+  }
+  const template = parseCreateTemplateInput(rawTemplate) as StoryAgentTemplateInput;
+  template.canonicalKey = canonicalKey;
+  const definition = template.definition!;
+  requiredAgentList(definition.moldSteps, 'O molde 9:16');
+  requiredAgentList(definition.preserveRules, 'A lista preservar');
+  requiredAgentList(definition.adaptRules, 'A lista adaptar');
+  requiredAgentList(definition.avoidRules, 'A lista evitar');
+
+  const rawReference = object(input.reference, 'Dossiê da referência');
+  if (!Array.isArray(rawReference.items) || rawReference.items.length < 1 || rawReference.items.length > 20) {
+    throw new Error('O dossiê do Hermes precisa de 1 a 20 stories.');
+  }
+  const provisionalItems = rawReference.items.map((raw, index) => {
+    const item = object(raw, `Story ${index + 1} do Hermes`);
+    const narrativeOrder = Number(item.narrativeOrder);
+    return {
+      ...item,
+      assetUrl: item.mediaType === 'text' ? null : `https://agent.invalid/story-${narrativeOrder}`,
+    };
+  });
+  const parsedReference = parseCreateReferenceInput({
+    ...rawReference,
+    templateId: '00000000-0000-4000-8000-000000000001',
+    items: provisionalItems,
+  });
+  parsedReference.items.forEach((item, index) => {
+    if (item.narrativeOrder !== index + 1) throw new Error('A ordem narrativa precisa ser contínua e começar em 1.');
+    const metadata = item.metadata;
+    if (!metadata?.quick) throw new Error(`A camada quick é obrigatória no story ${item.narrativeOrder}.`);
+    if (!metadata.visual) throw new Error(`A camada visual é obrigatória no story ${item.narrativeOrder}.`);
+    if (!metadata.deep) throw new Error(`A camada deep é obrigatória no story ${item.narrativeOrder}.`);
+    const visualRequired = [
+      metadata.visual.roleLabel,
+      metadata.visual.title,
+      metadata.visual.scene,
+      metadata.visual.typography,
+      metadata.visual.composition,
+      metadata.visual.impression,
+    ];
+    if (visualRequired.some(field => typeof field !== 'string' || !field.trim())) {
+      throw new Error(`O raio-X visual do story ${item.narrativeOrder} está incompleto.`);
+    }
+    requiredAgentList(metadata.visual.palette, `A paleta visual do story ${item.narrativeOrder}`);
+    const titles = [metadata.quick.title, metadata.visual.title!, metadata.deep.title]
+      .map(title => title.trim().toLocaleLowerCase('pt-BR'));
+    if (new Set(titles).size !== titles.length) {
+      throw new Error(`Os títulos quick, visual e deep precisam ser distintos no story ${item.narrativeOrder}.`);
+    }
+  });
+
+  const analysis = parsedReference.analysis;
+  if (!analysis?.summary) throw new Error('O summary transversal é obrigatório.');
+  requiredAgentList(analysis.overview, 'O overview transversal');
+  requiredAgentList(analysis.sequenceMap, 'O mapa da sequência');
+  if (!analysis.visualGrammar) throw new Error('A gramática visual é obrigatória.');
+  if (!analysis.productRevealed) throw new Error('O produto revelado é obrigatório.');
+  requiredAgentList(analysis.transferRules, 'As regras de transferência');
+  requiredAgentList(analysis.synthesis, 'A síntese transversal');
+  if (!analysis.registeredTemplate?.name) throw new Error('O template registrado é obrigatório.');
+  requiredAgentList(analysis.registeredTemplate.steps, 'Os passos do template registrado');
+
+  if (!Array.isArray(input.assets)) throw new Error('O manifesto de assets é obrigatório.');
+  const assetOrders = new Set<number>();
+  let totalSize = 0;
+  const assets = input.assets.map((raw, index): StoryAgentAssetInput => {
+    const asset = object(raw, `Asset ${index + 1}`);
+    const narrativeOrder = Number(asset.narrativeOrder);
+    if (!Number.isInteger(narrativeOrder) || narrativeOrder < 1 || assetOrders.has(narrativeOrder)) {
+      throw new Error('A ordem dos assets precisa ser inteira, positiva e sem repetição.');
+    }
+    assetOrders.add(narrativeOrder);
+    const fileName = text(asset.fileName, `Nome do asset ${index + 1}`, 255)!;
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]*$/.test(fileName)) throw new Error(`Nome do asset ${index + 1} inválido.`);
+    const sha256 = text(asset.sha256, `SHA-256 do asset ${index + 1}`, 64)!;
+    if (!sha256Pattern.test(sha256)) throw new Error(`SHA-256 do asset ${index + 1} inválido.`);
+    if (typeof asset.mimeType !== 'string' || !agentMimeTypes.has(asset.mimeType as StoryAgentAssetInput['mimeType'])) {
+      throw new Error(`MIME do asset ${index + 1} inválido.`);
+    }
+    const sizeBytes = Number(asset.sizeBytes);
+    if (!Number.isInteger(sizeBytes) || sizeBytes < 1) throw new Error(`Tamanho do asset ${index + 1} inválido.`);
+    if (sizeBytes > MAX_AGENT_ASSET_BYTES) throw new Error(`Cada asset aceita no máximo 20 MiB.`);
+    totalSize += sizeBytes;
+    return {
+      narrativeOrder,
+      fileName,
+      sha256: sha256.toLowerCase(),
+      mimeType: asset.mimeType as StoryAgentAssetInput['mimeType'],
+      sizeBytes,
+      ...(asset.storagePath != null
+        ? { storagePath: text(asset.storagePath, `Caminho do asset ${index + 1}`, 500, false) }
+        : {}),
+      ...(asset.publicUrl != null
+        ? { publicUrl: optionalHttpsUrl(asset.publicUrl, `URL pública do asset ${index + 1}`) }
+        : {}),
+    };
+  }).sort((left, right) => left.narrativeOrder - right.narrativeOrder);
+  if (totalSize > MAX_AGENT_TOTAL_ASSET_BYTES) throw new Error('Os assets aceitam no máximo 200 MiB no total.');
+
+  const mediaOrders = parsedReference.items
+    .filter(item => item.mediaType !== 'text')
+    .map(item => item.narrativeOrder);
+  if (assets.length !== mediaOrders.length || mediaOrders.some(order => !assetOrders.has(order))) {
+    throw new Error('Cada story visual precisa de exatamente um asset no manifesto.');
+  }
+
+  const referenceItems = parsedReference.items.map(item => {
+    const { assetUrl: _assetUrl, ...rest } = item;
+    return rest;
+  });
+  const { templateId: _templateId, items: _items, ...reference } = parsedReference;
+  return {
+    referenceKey,
+    contentHash: contentHash.toLowerCase(),
+    template,
+    reference: { ...reference, items: referenceItems },
+    assets,
   };
 }
 
