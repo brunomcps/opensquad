@@ -23,7 +23,7 @@ if (!supabaseUrl) throw new Error('URL do Supabase não encontrada no bundle.');
 const storageKey = `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`;
 const evidenceDirectory = path.resolve(
   process.cwd(),
-  'docs/commercial-intelligence/evidence/raul-visual-dossier',
+  'docs/commercial-intelligence/evidence/raul-dossier-fidelity',
 );
 fs.mkdirSync(evidenceDirectory, { recursive: true });
 
@@ -38,6 +38,8 @@ const templates = [
     description: 'Cena cotidiana reinterpretada pela lente do especialista.',
     objective: 'Transformar rotina em posicionamento sem abrir com uma aula.',
     definition: {
+      editorialName: 'Cena comum → lente do especialista → valor pessoal',
+      editorialSummary: 'Raul Sena · 3 telas · dossiê completo',
       formula: 'Cena real → lente do especialista → reação do público → princípio pessoal',
       preserveRules: ['Função, continuidade espacial e hierarquia entre cena, prova e texto.'],
       adaptRules: ['Cenário, roupa, paleta, fonte, dado e interação para a linguagem do Bruno.'],
@@ -145,6 +147,91 @@ const visualTitles = [
   'Virada de nicho com prova gráfica',
   'Status atribuído pelo público',
 ];
+const quickLayers = [
+  {
+    roleLabel: 'Story 1 · Identificação e curiosidade',
+    title: 'A cena já contém a pergunta narrativa',
+    summary: 'Uma situação cotidiana e comprovável abre uma pergunta antes da decisão.',
+    evidence: 'O número “uma vez a cada 10 voos” dá aparência de observação real.',
+    audienceEffect: 'A frase para antes da decisão e produz: “ele troca ou se recusa?”',
+    subtext: 'A viagem comunica status, mas o assunto permanece cotidiano e acessível.',
+    funnelFunction: 'Relacionamento. A situação discutível convida respostas espontâneas.',
+    extractedRule: 'Comece por uma cena banal, específica e visualmente comprovável que já abra uma pergunta.',
+  },
+  {
+    roleLabel: 'Story 2 · Recompensa, humor e autoridade',
+    title: 'A cena muda de significado pela lente financeira',
+    summary: 'O mesmo ambiente reaparece como POV e a situação vira uma interpretação de nicho.',
+    evidence: 'O gráfico sobre o rombo do INSS materializa a piada financeira.',
+    audienceEffect: 'A recompensa vem em humor e repertório, sem interromper a história.',
+    subtext: 'Raul demonstra especialidade pela associação que faz, não por uma aula.',
+    funnelFunction: 'Autoridade. O público reconhece uma leitura que pertence ao nicho.',
+    extractedRule: 'A lente do especialista deve reinterpretar a cena e continuar a história.',
+  },
+  {
+    roleLabel: 'Story 3 · Prova social, posicionamento e confiança',
+    title: 'O público introduz o status e Raul revela o princípio',
+    summary: 'A resposta de um seguidor permite fechar a sequência com um valor pessoal.',
+    evidence: 'O print do comentário atribui status antes de Raul responder.',
+    audienceEffect: 'A audiência recebe uma declaração de princípio sem autopromoção direta.',
+    subtext: 'O status aparece pela voz do público; a resposta preserva sobriedade.',
+    funnelFunction: 'Confiança. O fechamento revela como o criador toma decisões.',
+    extractedRule: 'Use a reação da audiência para revelar um valor que organize suas escolhas.',
+  },
+];
+const deepLayers = [
+  {
+    roleLabel: 'Story 1 · Identificação e curiosidade',
+    title: 'A cena e o gancho',
+    lead: 'Selfie no avião, uma família ao fundo e um dado específico. A pessoa entra pela situação concreta e quer descobrir como Raul vai reagir.',
+    sections: [
+      {
+        title: 'O que ele faz aqui',
+        bullets: [
+          'Usa uma situação reconhecível e levemente incômoda.',
+          'A família ao fundo comprova visualmente a história.',
+        ],
+      },
+      {
+        title: 'Função narrativa',
+        paragraphs: ['É a abertura da novela: a pessoa avança para descobrir a decisão e comparar com a própria.'],
+      },
+    ],
+    extractedRule: 'A cena inicial precisa ser específica, discutível e visualmente comprovável.',
+  },
+  {
+    roleLabel: 'Story 2 · Recompensa, humor e autoridade',
+    title: 'A virada para o nicho',
+    lead: 'O POV do assento paga a curiosidade. A troca vira uma piada financeira sobre uma criança a mais colaborando com o INSS.',
+    sections: [
+      {
+        title: 'O pulo do gato',
+        paragraphs: ['A autoridade aparece como repertório espontâneo, sem virar explicação didática.'],
+      },
+      {
+        title: 'Por que o gráfico está ali',
+        bullets: ['O gráfico ancora a piada.', 'A mudança de enquadramento renova o estímulo.'],
+      },
+    ],
+    extractedRule: 'A lente do especialista precisa reinterpretar a cena e continuar a história.',
+  },
+  {
+    roleLabel: 'Story 3 · Prova social, posicionamento e confiança',
+    title: 'Dinheiro, status e valores',
+    lead: 'O público atribui status e Raul responde com sobriedade. A cena termina revelando um princípio de decisão financeira.',
+    sections: [
+      {
+        title: 'O que está sendo comunicado',
+        paragraphs: ['A resposta transforma elogio em posicionamento e fecha a narrativa com um valor pessoal.'],
+      },
+      {
+        title: 'Prova social indireta',
+        bullets: ['O status vem do seguidor.', 'Raul controla o fechamento pela resposta.'],
+      },
+    ],
+    extractedRule: 'O fechamento deve revelar um princípio sem transformar status em autopropaganda.',
+  },
+];
 const raulItems = roles.map((role, index) => ({
   itemId: `41000000-0000-4000-8000-00000000010${index + 1}`,
   mediaType: 'image',
@@ -164,6 +251,8 @@ const raulItems = roles.map((role, index) => ({
     extractedRule: `Regra estrutural extraída do story ${index + 1}.`,
     editorialStatus: 'approved',
     moldConsequence: 'Preservar a função, sem copiar a superfície.',
+    quick: quickLayers[index],
+    deep: deepLayers[index],
     analysisSections: [
       {
         title: index === 1 ? 'O pulo do gato' : 'O que ele faz aqui',
@@ -231,6 +320,53 @@ const references = [
       visualGrammar: 'O ambiente continua; rosto, gráfico e print alternam como elemento dominante.',
       productRevealed: 'Uma persona acessível, espirituosa e financeiramente racional.',
       transferRules: ['Começar pela vida real.', 'Deixar a autoridade aparecer pela interpretação.'],
+      synthesis: [
+        {
+          title: 'Papel de cada tela',
+          paragraphs: [
+            'Story 1: identificação e curiosidade.',
+            'Story 2: recompensa, humor e autoridade.',
+            'Story 3: prova social, posicionamento e confiança.',
+          ],
+        },
+        {
+          title: 'Mudança de estímulo',
+          paragraphs: ['Rosto → ambiente com gráfico → ambiente com print de seguidor.'],
+        },
+        {
+          title: 'Estética e produção',
+          paragraphs: ['Selfie, câmera no chão, print de mensagem e texto nativo do Instagram.'],
+        },
+        {
+          title: 'Forças e limitações',
+          paragraphs: [
+            'A sequência combina prova visual, humor, autoridade indireta e status atribuído por terceiro.',
+            'O gráfico é pouco legível e a piada depende de contexto.',
+          ],
+        },
+      ],
+      registeredTemplate: {
+        name: 'Cena comum → lente do especialista → valor pessoal',
+        steps: [
+          {
+            title: 'Cena real com pequeno conflito',
+            description: 'Acontecimento banal, específico e visualmente comprovável.',
+          },
+          {
+            title: 'Virada de nicho',
+            description: 'Piada, dado ou interpretação que somente aquele especialista faria.',
+          },
+          {
+            title: 'Resposta do público',
+            description: 'Comentário ou mensagem vira continuação narrativa.',
+          },
+          {
+            title: 'Declaração de princípio',
+            description: 'A resposta revela como o criador pensa e toma decisões.',
+          },
+        ],
+      },
+      sourceNote: 'Referência fundadora: sequência de 3 stories de Raul Sena. Análise vinculada ao template, sem separar referência e abstração.',
     },
     platform: 'instagram',
     sourceAccount: '@_raulsena',
@@ -324,7 +460,7 @@ async function prepare(page: Page) {
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
   });
   await page.goto(baseUrl, { waitUntil: 'networkidle' });
-  const templatesButton = page.getByRole('button', { name: 'Templates' });
+  const templatesButton = page.getByRole('button', { name: 'Biblioteca de stories' });
   try {
     await templatesButton.waitFor({ timeout: 10_000 });
   } catch (error) {
@@ -360,62 +496,176 @@ async function assertImagesLoaded(page: Page, selector: string, expected: number
   if (broken) throw new Error(`${broken} imagens falharam em ${selector}.`);
 }
 
+async function assertSelectorCount(page: Page, selector: string, expected: number) {
+  const actual = await page.locator(selector).count();
+  if (actual !== expected) {
+    throw new Error(`${selector} deveria ter ${expected} elementos, mas tem ${actual}.`);
+  }
+}
+
+async function assertActiveAnchor(page: Page, id: string) {
+  await page.waitForFunction(
+    targetId => document.activeElement?.id === targetId,
+    id,
+  );
+}
+
+async function captureViewport(page: Page, selector: string, fileName: string) {
+  await page.locator(selector).first().scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: path.join(evidenceDirectory, fileName),
+    fullPage: false,
+  });
+}
+
+async function assertIndependentTemplate(page: Page) {
+  await page.getByText('Regras do método', { exact: true }).waitFor();
+  await page.getByText('Stories para Enriquecer, páginas 42–46', { exact: true }).waitFor();
+  await assertImagesLoaded(page, '.ci-story-evidence img', 5);
+  await assertSelectorCount(page, '.ci-dossier-quick', 0);
+  for (const raulCopy of [
+    'A cena já contém a pergunta narrativa',
+    'Raio-X visual da referência',
+    'Template registrado',
+  ]) {
+    if (await page.getByText(raulCopy, { exact: true }).count()) {
+      throw new Error(`O template protegido recebeu conteúdo do Raul: ${raulCopy}.`);
+    }
+  }
+}
+
+function assertFixtureIntegrity() {
+  if (raulItems.length !== 3) throw new Error('A fixture do Raul deve ter exatamente três stories.');
+  for (const [index, item] of raulItems.entries()) {
+    const titles = [
+      item.metadata.quick.title,
+      item.metadata.visual.title,
+      item.metadata.deep.title,
+    ].map(title => title.trim().toLocaleLowerCase('pt-BR'));
+    if (new Set(titles).size !== 3) {
+      throw new Error(`Story ${index + 1} mistura títulos das camadas quick, visual e deep.`);
+    }
+  }
+  const analysis = references[0].analysis;
+  if (analysis.synthesis?.length !== 4) throw new Error('A fixture deve conter quatro sínteses.');
+  if (analysis.registeredTemplate?.steps.length !== 4) {
+    throw new Error('A fixture deve conter quatro passos do template registrado.');
+  }
+  if (historyItems.some(item => (
+    'quick' in item.metadata || 'visual' in item.metadata || 'deep' in item.metadata
+  ))) {
+    throw new Error('O template protegido não pode receber camadas do dossiê visual.');
+  }
+}
+
+assertFixtureIntegrity();
+
 const browser = await chromium.launch({ executablePath, headless: true });
 try {
+  const quickId = `dossier-${raulTemplateId}`;
+  const visualId = `${quickId}-visual`;
+  const deepId = `${quickId}-deep`;
   const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   await prepare(desktop);
-  await desktop.getByText('Raio-X visual da referência', { exact: true }).waitFor();
-  await desktop.getByText('Um storyboard funcional para modelar a estrutura', { exact: true }).waitFor();
-  await desktop.getByText('Análise completa · Referência fundadora', { exact: true }).waitFor();
-  await desktop.getByRole('button', { name: /Story 2/ }).click();
-  await desktop.getByText('Virada de nicho com prova gráfica', { exact: true }).first().waitFor();
-  await desktop.getByRole('button', { name: 'Sequência completa' }).click();
-  await desktop.getByText('A história vende uma forma de pensar', { exact: true }).waitFor();
-  await assertImagesLoaded(desktop, '.ci-visual-xray-grid img', 3);
-  await assertNoHorizontalOverflow(desktop, 'Dossiê Raul no desktop');
-  await desktop.screenshot({
-    path: path.join(evidenceDirectory, 'desktop-raul-dossier.png'),
-    fullPage: true,
-  });
-
-  await desktop.getByText('História → pequena entrega → CTA', { exact: true }).first().click();
-  await desktop.getByText('Regras do método', { exact: true }).waitFor();
-  await desktop.getByText('Stories para Enriquecer, páginas 42–46', { exact: true }).waitFor();
-  await desktop.getByText('Molde aprovado · 9:16', { exact: true }).waitFor();
-  if (await desktop.getByText('Raio-X visual da referência', { exact: true }).count()) {
-    throw new Error('O template História → pequena entrega → CTA recebeu o dossiê do Raul.');
+  await desktop.getByRole('heading', { name: 'Biblioteca de stories', exact: true }).waitFor();
+  await desktop.locator('.ci-dossier-quick').waitFor();
+  if (await desktop.getByText(/Dossiê vivo · versão/i).count()) {
+    throw new Error('O cabeçalho administrativo antigo ainda aparece antes do modo rápido.');
   }
-  await assertImagesLoaded(desktop, '.ci-story-evidence img', 5);
-  await desktop.screenshot({
-    path: path.join(evidenceDirectory, 'desktop-history-delivery-cta.png'),
-    fullPage: true,
-  });
+  if (await desktop.getByRole('heading', { name: 'Templates de stories', exact: true }).count()) {
+    throw new Error('O cabeçalho genérico de templates ainda precede o dossiê visual.');
+  }
+  for (const oldTab of ['Leitura', 'Arquitetura', 'Template', 'Aplicação']) {
+    if (await desktop.getByRole('tab', { name: oldTab, exact: true }).count()) {
+      throw new Error(`A aba experimental ${oldTab} ainda existe.`);
+    }
+  }
+  await desktop.getByText(quickLayers[0].title, { exact: true }).waitFor();
+  await assertNoHorizontalOverflow(desktop, 'Modo rápido no desktop 1440');
+  await captureViewport(desktop, '.ci-dossier-quick', 'desktop-quick.png');
+
+  for (const [index, layer] of quickLayers.entries()) {
+    await desktop.getByRole('button', { name: new RegExp(`Story ${index + 1}`) }).click();
+    await desktop.locator('.ci-dossier-quick').getByText(layer.title, { exact: true }).waitFor();
+  }
+  await desktop.getByRole('button', { name: 'Sequência completa' }).click();
+  await assertImagesLoaded(desktop, '.ci-dossier-quick img', 3);
+
+  await desktop.getByRole('button', { name: 'Ver raio-X visual' }).click();
+  await assertActiveAnchor(desktop, visualId);
+  await desktop.getByText('Raio-X visual da referência', { exact: true }).waitFor();
+  await assertSelectorCount(desktop, '.ci-dossier-xray-grid > article', 3);
+  await assertImagesLoaded(desktop, '.ci-dossier-xray-grid img', 3);
+  for (const title of visualTitles) {
+    await desktop.locator('.ci-dossier-xray-grid').getByText(title, { exact: true }).waitFor();
+  }
+  await captureViewport(desktop, '.ci-dossier-xray-grid', 'desktop-xray.png');
+
+  await desktop.getByText('Um storyboard funcional para modelar a estrutura', { exact: true }).waitFor();
+  await assertSelectorCount(desktop, '.ci-dossier-mold-grid .ci-dossier-phone', 3);
+  await captureViewport(desktop, '.ci-dossier-mold-grid', 'desktop-mold.png');
+
+  await desktop.getByRole('button', { name: 'Abrir análise completa' }).click();
+  await assertActiveAnchor(desktop, deepId);
+  await desktop.getByText('Leitura geral', { exact: true }).waitFor();
+  await assertSelectorCount(desktop, '.ci-dossier-deep-story', 3);
+  await assertImagesLoaded(desktop, '.ci-dossier-deep-story img', 3);
+  for (const layer of deepLayers) {
+    await desktop.locator(`#${deepId}`).getByText(layer.title, { exact: true }).waitFor();
+  }
+  await assertSelectorCount(desktop, '.ci-dossier-synthesis-grid > article', 4);
+  await desktop.getByText('Template registrado', { exact: true }).waitFor();
+  await assertSelectorCount(desktop, '.ci-dossier-registered-template .ci-dossier-template-step', 4);
+  for (const rule of references[0].analysis.transferRules || []) {
+    await desktop.getByText(rule, { exact: true }).waitFor();
+  }
+  await desktop.getByText(references[0].analysis.sourceNote || '', { exact: true }).waitFor();
+  await captureViewport(desktop, `#${deepId}`, 'desktop-deep.png');
+
+  await desktop.getByRole('button', { name: 'Voltar ao modo rápido' }).click();
+  await assertActiveAnchor(desktop, quickId);
+  await desktop.getByRole('button', { name: 'Usar este molde' }).click();
+  await desktop.getByRole('heading', { name: 'Publicações de stories', exact: true }).waitFor();
+  const selectedTemplate = desktop.getByLabel('Template');
+  await selectedTemplate.waitFor();
+  if (await selectedTemplate.inputValue() !== raulTemplateId) {
+    throw new Error('Usar este molde não abriu Publicações com o template do Raul selecionado.');
+  }
+
+  await desktop.getByRole('button', { name: 'Biblioteca de stories' }).click();
+  await desktop.getByText('História → pequena entrega → CTA', { exact: true }).first().click();
+  await assertIndependentTemplate(desktop);
+
+  const wideDesktop = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+  await prepare(wideDesktop);
+  await wideDesktop.locator('.ci-dossier-quick').waitFor();
+  await assertNoHorizontalOverflow(wideDesktop, 'Dossiê Raul no desktop 1920');
+  await wideDesktop.close();
 
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await prepare(mobile);
-  await mobile.getByText('Raio-X visual da referência', { exact: true }).waitFor();
-  await mobile.getByText('Um storyboard funcional para modelar a estrutura', { exact: true }).waitFor();
-  await assertNoHorizontalOverflow(mobile, 'Dossiê Raul no mobile');
-  await mobile.screenshot({
-    path: path.join(evidenceDirectory, 'mobile-raul-dossier.png'),
-    fullPage: true,
-  });
+  await mobile.locator('.ci-dossier-quick').waitFor();
+  await assertNoHorizontalOverflow(mobile, 'Modo rápido no mobile');
+  await captureViewport(mobile, '.ci-dossier-quick', 'mobile-quick.png');
 
+  await mobile.getByRole('button', { name: 'Abrir análise completa' }).click();
+  await assertActiveAnchor(mobile, deepId);
+  await assertSelectorCount(mobile, '.ci-dossier-deep-story', 3);
+  await assertNoHorizontalOverflow(mobile, 'Análise completa no mobile');
+  await captureViewport(mobile, `#${deepId}`, 'mobile-deep.png');
+
+  await mobile.getByRole('button', { name: 'Biblioteca de stories' }).click();
   await mobile.getByText('História → pequena entrega → CTA', { exact: true }).first().click();
-  await mobile.getByText('Stories para Enriquecer, páginas 42–46', { exact: true }).waitFor();
+  await assertIndependentTemplate(mobile);
   await assertNoHorizontalOverflow(mobile, 'Template história no mobile');
-  await assertImagesLoaded(mobile, '.ci-story-evidence img', 5);
-  await mobile.screenshot({
-    path: path.join(evidenceDirectory, 'mobile-history-delivery-cta.png'),
-    fullPage: true,
-  });
+  await captureViewport(mobile, '.ci-story-dossier', 'mobile-independent-template.png');
 
   console.log(JSON.stringify({
     ok: true,
-    templatesVerified: [templates[0].name, templates[1].name],
+    templatesVerified: 2,
     raulStories: raulItems.length,
     historyPages: historyItems.length,
-    screenshots: 4,
+    screenshots: 7,
   }));
 } finally {
   await browser.close();
