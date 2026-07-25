@@ -1,8 +1,10 @@
 import type {
   StoryEvidenceMetadataInput,
   StoryEvidenceSectionInput,
+  StoryDeepAnalysisInput,
   StoryPublicationInput,
   StoryPublicationUpdateInput,
+  StoryQuickAnalysisInput,
   StoryReferenceAnalysisInput,
   StoryReferenceInput,
   StoryReviewInput,
@@ -387,7 +389,9 @@ export interface StoryEvidenceMetadataDto extends StoryEvidenceMetadataInput {
   funnelFunction?: string | null;
   extractedRule?: string | null;
   analysisSections?: StoryEvidenceSectionInput[];
+  quick?: StoryQuickAnalysisInput;
   visual?: StoryVisualAnalysisInput;
+  deep?: StoryDeepAnalysisInput;
 }
 
 export interface StoryItemDto {

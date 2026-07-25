@@ -36,6 +36,8 @@ export interface StoryTemplateMoldStepInput {
 }
 
 export interface StoryTemplateDefinitionInput {
+  editorialName?: string | null;
+  editorialSummary?: string | null;
   formula?: string | null;
   risks?: string[];
   preserveRules?: string[];
@@ -90,7 +92,9 @@ export interface StoryEvidenceMetadataInput {
   funnelFunction?: string | null;
   extractedRule?: string | null;
   analysisSections?: StoryEvidenceSectionInput[];
+  quick?: StoryQuickAnalysisInput;
   visual?: StoryVisualAnalysisInput;
+  deep?: StoryDeepAnalysisInput;
 }
 
 export interface StoryEvidenceSectionInput {
@@ -116,6 +120,40 @@ export interface StoryVisualAnalysisInput {
   markers?: StoryVisualMarkerInput[];
 }
 
+export interface StoryQuickAnalysisInput {
+  roleLabel: string;
+  title: string;
+  summary: string;
+  evidence: string;
+  audienceEffect: string;
+  subtext: string;
+  funnelFunction: string;
+  extractedRule: string;
+}
+
+export interface StoryDeepAnalysisInput {
+  roleLabel: string;
+  title: string;
+  lead: string;
+  sections: StoryEvidenceSectionInput[];
+  extractedRule: string;
+}
+
+export interface StorySynthesisInput {
+  title: string;
+  paragraphs: string[];
+}
+
+export interface StoryRegisteredTemplateStepInput {
+  title: string;
+  description: string;
+}
+
+export interface StoryRegisteredTemplateInput {
+  name: string;
+  steps: StoryRegisteredTemplateStepInput[];
+}
+
 export interface StorySequenceMapItemInput {
   label: string;
   value: string;
@@ -131,6 +169,9 @@ export interface StoryReferenceAnalysisInput {
   visualGrammar?: string | null;
   productRevealed?: string | null;
   transferRules?: string[];
+  synthesis?: StorySynthesisInput[];
+  registeredTemplate?: StoryRegisteredTemplateInput;
+  sourceNote?: string | null;
 }
 
 export interface StoryReferenceItemInput extends StoryPublicationItemInput {
@@ -250,6 +291,8 @@ function parseTemplateDefinition(value: unknown, legacySteps: unknown): StoryTem
   });
   return {
     ...(definition.formula != null ? { formula: text(definition.formula, 'Fórmula', 2000, false) } : {}),
+    ...(definition.editorialName != null ? { editorialName: text(definition.editorialName, 'Nome editorial', 300, false) } : {}),
+    ...(definition.editorialSummary != null ? { editorialSummary: text(definition.editorialSummary, 'Resumo editorial', 2000, false) } : {}),
     ...(definition.risks != null ? { risks: textArray(definition.risks, 'Risco') } : {}),
     ...(definition.preserveRules != null ? { preserveRules: textArray(definition.preserveRules, 'Regra de preservação') } : {}),
     ...(definition.adaptRules != null ? { adaptRules: textArray(definition.adaptRules, 'Regra de adaptação') } : {}),
@@ -337,6 +380,19 @@ function parseEvidenceMetadata(value: unknown, index: number): StoryEvidenceMeta
         : {}),
     };
   });
+  const quick = metadata.quick == null ? null : object(metadata.quick, `Leitura rápida ${index}`);
+  const parsedQuick = quick
+    ? {
+        roleLabel: text(quick.roleLabel, `Papel da leitura rápida ${index}`, 2000)!,
+        title: text(quick.title, `Título da leitura rápida ${index}`, 2000)!,
+        summary: text(quick.summary, `Resumo da leitura rápida ${index}`, 2000)!,
+        evidence: text(quick.evidence, `Evidência da leitura rápida ${index}`, 2000)!,
+        audienceEffect: text(quick.audienceEffect, `Efeito da leitura rápida ${index}`, 2000)!,
+        subtext: text(quick.subtext, `Subtexto da leitura rápida ${index}`, 2000)!,
+        funnelFunction: text(quick.funnelFunction, `Função da leitura rápida ${index}`, 2000)!,
+        extractedRule: text(quick.extractedRule, `Regra da leitura rápida ${index}`, 2000)!,
+      }
+    : undefined;
   const visual = metadata.visual == null ? null : object(metadata.visual, `Raio-X visual ${index}`);
   let parsedVisual: StoryVisualAnalysisInput | undefined;
   if (visual) {
@@ -370,6 +426,33 @@ function parseEvidenceMetadata(value: unknown, index: number): StoryEvidenceMeta
       ...(visual.markers != null ? { markers } : {}),
     };
   }
+  const deep = metadata.deep == null ? null : object(metadata.deep, `Análise profunda ${index}`);
+  let parsedDeep: StoryDeepAnalysisInput | undefined;
+  if (deep) {
+    const rawDeepSections = deep.sections ?? [];
+    if (!Array.isArray(rawDeepSections) || rawDeepSections.length > 12) {
+      throw new Error(`Seções da análise profunda ${index} têm tamanho inválido.`);
+    }
+    const sections = rawDeepSections.map((raw, sectionIndex) => {
+      const section = object(raw, `Seção profunda ${sectionIndex + 1} do story ${index}`);
+      return {
+        title: text(section.title, `Título da seção profunda ${sectionIndex + 1}`, 300)!,
+        ...(section.paragraphs != null
+          ? { paragraphs: textArray(section.paragraphs, `Parágrafo da seção profunda ${sectionIndex + 1}`, 20, 4000) }
+          : {}),
+        ...(section.bullets != null
+          ? { bullets: textArray(section.bullets, `Item da seção profunda ${sectionIndex + 1}`, 30, 2000) }
+          : {}),
+      };
+    });
+    parsedDeep = {
+      roleLabel: text(deep.roleLabel, `Papel da análise profunda ${index}`, 2000)!,
+      title: text(deep.title, `Título da análise profunda ${index}`, 2000)!,
+      lead: text(deep.lead, `Abertura da análise profunda ${index}`, 4000)!,
+      sections,
+      extractedRule: text(deep.extractedRule, `Regra da análise profunda ${index}`, 4000)!,
+    };
+  }
   return {
     ...(metadata.sourcePage != null ? { sourcePage: page } : {}),
     ...(metadata.canonicalPageUrl != null ? { canonicalPageUrl: dossierUrl(metadata.canonicalPageUrl, `URL canônica ${index}`) } : {}),
@@ -386,7 +469,9 @@ function parseEvidenceMetadata(value: unknown, index: number): StoryEvidenceMeta
     ...optionalField('funnelFunction', 'Função no funil', 10_000),
     ...optionalField('extractedRule', 'Regra extraída', 10_000),
     ...(metadata.analysisSections != null ? { analysisSections } : {}),
+    ...(parsedQuick ? { quick: parsedQuick } : {}),
     ...(parsedVisual ? { visual: parsedVisual } : {}),
+    ...(parsedDeep ? { deep: parsedDeep } : {}),
   };
 }
 
@@ -404,6 +489,37 @@ function parseReferenceAnalysis(value: unknown): StoryReferenceAnalysisInput {
       value: text(item.value, `Valor ${index + 1} do mapa da sequência`, 500)!,
     };
   });
+  const rawSynthesis = analysis.synthesis ?? [];
+  if (!Array.isArray(rawSynthesis) || rawSynthesis.length > 20) {
+    throw new Error('Síntese da referência tem tamanho inválido.');
+  }
+  const synthesis = rawSynthesis.map((raw, index) => {
+    const block = object(raw, `Bloco ${index + 1} da síntese`);
+    return {
+      title: text(block.title, `Título do bloco ${index + 1} da síntese`, 300)!,
+      paragraphs: textArray(block.paragraphs, `Parágrafo do bloco ${index + 1} da síntese`, 12, 4000),
+    };
+  });
+  const registeredTemplate = analysis.registeredTemplate == null
+    ? null
+    : object(analysis.registeredTemplate, 'Template registrado');
+  let parsedRegisteredTemplate: StoryRegisteredTemplateInput | undefined;
+  if (registeredTemplate) {
+    const rawSteps = registeredTemplate.steps ?? [];
+    if (!Array.isArray(rawSteps) || rawSteps.length > 8) {
+      throw new Error('Passos do template registrado têm tamanho inválido.');
+    }
+    parsedRegisteredTemplate = {
+      name: text(registeredTemplate.name, 'Nome do template registrado', 300)!,
+      steps: rawSteps.map((raw, index) => {
+        const step = object(raw, `Passo ${index + 1} do template registrado`);
+        return {
+          title: text(step.title, `Título do passo ${index + 1} do template registrado`, 300)!,
+          description: text(step.description, `Descrição do passo ${index + 1} do template registrado`, 2000)!,
+        };
+      }),
+    };
+  }
   return {
     ...(analysis.summary != null ? { summary: text(analysis.summary, 'Resumo da análise', 10_000, false) } : {}),
     ...(analysis.narrativeArc != null ? { narrativeArc: textArray(analysis.narrativeArc, 'Arco narrativo', 30, 500) } : {}),
@@ -414,6 +530,9 @@ function parseReferenceAnalysis(value: unknown): StoryReferenceAnalysisInput {
     ...(analysis.visualGrammar != null ? { visualGrammar: text(analysis.visualGrammar, 'Gramática visual', 10_000, false) } : {}),
     ...(analysis.productRevealed != null ? { productRevealed: text(analysis.productRevealed, 'Produto revelado', 10_000, false) } : {}),
     ...(analysis.transferRules != null ? { transferRules: textArray(analysis.transferRules, 'Regra de transferência', 30, 2000) } : {}),
+    ...(analysis.synthesis != null ? { synthesis } : {}),
+    ...(parsedRegisteredTemplate ? { registeredTemplate: parsedRegisteredTemplate } : {}),
+    ...(analysis.sourceNote != null ? { sourceNote: text(analysis.sourceNote, 'Nota de fonte', 2000, false) } : {}),
   };
 }
 

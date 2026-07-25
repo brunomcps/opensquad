@@ -220,6 +220,114 @@ test('referência preserva análise estruturada da sequência e metadata de evid
   assert.deepEqual(parsed.items[0]?.metadata, metadata);
 });
 
+test('dossiê visual preserva quick, visual e deep como camadas independentes', () => {
+  const quick = {
+    roleLabel: 'Story 1 · Identificação e curiosidade',
+    title: 'A cena já contém a pergunta narrativa',
+    summary: 'Uma situação cotidiana e comprovável abre uma pergunta antes da decisão.',
+    evidence: 'O número específico dá aparência de observação real.',
+    audienceEffect: 'A pessoa quer descobrir se Raul troca ou se recusa.',
+    subtext: 'A viagem comunica status sem dominar o assunto.',
+    funnelFunction: 'Relacionamento e resposta espontânea.',
+    extractedRule: 'Comece por uma cena que já contenha a pergunta narrativa.',
+  };
+  const visual = {
+    roleLabel: 'Story 1 · Rosto e contexto',
+    title: 'Cena cotidiana com prova visual',
+    scene: 'Selfie dentro do avião com uma família ao fundo.',
+  };
+  const deep = {
+    roleLabel: 'Story 1 · Identificação e curiosidade',
+    title: 'A cena e o gancho',
+    lead: 'Selfie no avião, uma família ao fundo e um dado específico.',
+    sections: [{
+      title: 'O que ele faz aqui',
+      paragraphs: ['A situação cotidiana vira matéria-prima narrativa.'],
+      bullets: ['A família comprova a história.', 'O dedo orienta o olhar.'],
+    }],
+    extractedRule: 'A cena inicial precisa ser específica, discutível e visualmente comprovável.',
+  };
+  const analysis = {
+    synthesis: [{ title: 'Papel de cada story', paragraphs: ['O primeiro abre a pergunta.'] }],
+    registeredTemplate: {
+      name: 'Cena comum → lente do especialista → valor pessoal',
+      steps: [{ title: 'Cena cotidiana', description: 'Abra pela vida real.' }],
+    },
+    sourceNote: 'Análise produzida a partir dos três prints originais.',
+  };
+  const input = {
+    title: 'Raul Sena, cena → humor → princípio',
+    description: 'Referência visual completa.',
+    analysis,
+    platform: 'instagram',
+    sourceAccount: '@_raulsena',
+    sourceUrl: 'https://www.instagram.com/_raulsena/',
+    sourceStartedAt: null,
+    sourceEndedAt: null,
+    templateId: '784fef37-8cc4-4ea1-b79e-8b5094dddc1f',
+    items: [{
+      mediaType: 'image',
+      assetUrl: 'https://example.com/story-1.jpg',
+      textContent: 'Cena cotidiana com conflito leve.',
+      sourceOccurredAt: null,
+      narrativeOrder: 1,
+      narrativeRole: 'hook',
+      metadata: { quick, visual, deep },
+    }],
+  } as const;
+
+  const parsed = parseCreateReferenceInput(input);
+  assert.deepEqual(parsed.items[0]?.metadata?.quick, quick);
+  assert.deepEqual(parsed.items[0]?.metadata?.visual, visual);
+  assert.deepEqual(parsed.items[0]?.metadata?.deep, deep);
+  assert.deepEqual(parsed.analysis, analysis);
+
+  assert.throws(
+    () => parseCreateReferenceInput({
+      ...input,
+      items: [{ ...input.items[0], metadata: { quick: { ...quick, title: '<b>gancho</b>' }, visual, deep } }],
+    }),
+    /HTML/i,
+  );
+  assert.throws(
+    () => parseCreateReferenceInput({
+      ...input,
+      items: [{
+        ...input.items[0],
+        metadata: {
+          quick,
+          visual,
+          deep: { ...deep, sections: Array.from({ length: 13 }, (_, index) => ({ title: `Seção ${index + 1}` })) },
+        },
+      }],
+    }),
+    /seç|tamanho/i,
+  );
+  assert.throws(
+    () => parseCreateReferenceInput({
+      ...input,
+      analysis: {
+        ...analysis,
+        synthesis: Array.from({ length: 21 }, (_, index) => ({ title: `Síntese ${index + 1}`, paragraphs: [] })),
+      },
+    }),
+    /síntese|tamanho/i,
+  );
+  assert.throws(
+    () => parseCreateReferenceInput({
+      ...input,
+      analysis: {
+        ...analysis,
+        registeredTemplate: {
+          ...analysis.registeredTemplate,
+          steps: Array.from({ length: 9 }, (_, index) => ({ title: `Passo ${index + 1}`, description: 'Descrição.' })),
+        },
+      },
+    }),
+    /registrado|passo|tamanho/i,
+  );
+});
+
 test('dossiê do Raul preserva raio-X visual, análise completa e placeholders sem contaminar o contrato base', () => {
   const definition = {
     formula: 'Cena real → lente do especialista → princípio pessoal',
