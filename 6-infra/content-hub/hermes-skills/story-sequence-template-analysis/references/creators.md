@@ -23,3 +23,14 @@ Este arquivo guarda contexto editorial compacto. Não é banco de métricas em t
 - **Força transferível para stories:** cena cotidiana específica lida pela psicologia e pela neurociência; consultório como janela exclusiva, sempre anonimizado; relação ativa com comentários e respostas.
 - **Cuidados:** sintoma em terceira pessoa; nada identificável de pacientes; evitar produtividade genérica, autobiografia sem conexão com a dor do público e frase de efeito de coach.
 - **Fonte operacional:** `~/.hermes/bruno-instagram/ESTRATEGIA.md`, `FICHA-BRUNO.md` e `VOZ.md`.
+
+## Ícaro de Carvalho
+
+- **Nome canônico:** Ícaro de Carvalho
+- **Marcas associadas:** O Novo Mercado e A Minha Casa
+- **Área:** escrita, marketing, educação e produtos digitais
+- **Arquétipo editorial observado:** fundador que constrói autoridade mostrando várias dimensões da própria persona, com respostas diretas, provas concretas, memória, humor e exposição pessoal controlada.
+- **Recursos recorrentes a observar:** caixa ampla de perguntas; seleção de temas profissionais e pessoais; prints, cenas e lembranças como prova; respostas longas com destaques cromáticos; comentários de seguidores como eco social; produto apresentado dentro de um bastidor real de construção.
+- **Funil provável:** a caixa gera participação; as respostas aumentam familiaridade e confiança; provas de trajetória, relacionamento, produto e valores tornam a persona mais nítida; ofertas aparecem como consequência contextual, não como assunto obrigatório de toda resposta.
+- **Cuidados de leitura:** não transformar toda resposta pessoal em conselho universal; não confundir exposição familiar com ausência de limites; verificar produtos e funcionalidades atuais antes de descrevê-los como vigentes.
+- **Origem deste perfil:** identificação fornecida por Bruno e sequência de cinco stories do perfil `@icarode.carvalho`, analisada em 25/07/2026.
