@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { CampaignTracking } from '../../src/components/commercial-intelligence/CampaignTracking';
 import { CommercialOverview } from '../../src/components/commercial-intelligence/CommercialOverview';
 import { DataQualityTab } from '../../src/components/commercial-intelligence/DataQualityTab';
@@ -7,6 +7,10 @@ import { InstagramInboxView } from '../../src/components/commercial-intelligence
 import { ProjecoesSimulador } from '../../src/components/commercial-intelligence/ProjecoesSimulador';
 import { Rota2027View } from '../../src/components/commercial-intelligence/Rota2027View';
 import { StoryContentView } from '../../src/components/commercial-intelligence/StoryContentView';
+import {
+  readStoryDeepLink,
+  storyDeepLinkUrl,
+} from '../../src/components/commercial-intelligence/storyReferenceDeepLink';
 import { VideoSalesAssociation } from '../../src/components/commercial-intelligence/VideoSalesAssociation';
 import type { MemberRole } from './api';
 
@@ -61,6 +65,8 @@ const TAB_STORAGE_KEY = 'ci-aba-ativa';
 const TAB_VALIDAS = new Set(TODOS.map(item => item.chave));
 
 function abaInicial(): Tab {
+  const tabParam = new URLSearchParams(window.location.search).get('tab');
+  if (tabParam && TAB_VALIDAS.has(tabParam as Tab)) return tabParam as Tab;
   try {
     const salva = sessionStorage.getItem(TAB_STORAGE_KEY);
     if (salva && TAB_VALIDAS.has(salva as Tab)) return salva as Tab;
@@ -72,10 +78,17 @@ export function StandaloneCommercialIntelligenceView({ actions, role }: { action
   // Lembra a aba entre re-montagens: se algo remontar a tela (token, reload),
   // o usuário continua onde estava em vez de cair na Visão comercial.
   const [tab, setTab] = useState<Tab>(abaInicial);
+  const [initialStorySelection] = useState(() => readStoryDeepLink(window.location.search));
   const [publicationTemplateId, setPublicationTemplateId] = useState<string | null>(null);
   useEffect(() => {
     try { sessionStorage.setItem(TAB_STORAGE_KEY, tab); } catch { /* ignora */ }
+    const url = storyDeepLinkUrl(window.location.href, tab, readStoryDeepLink(window.location.search));
+    window.history.replaceState(window.history.state, '', url);
   }, [tab]);
+  const handleStorySelectionChange = useCallback((templateId: string, referenceId: string | null) => {
+    const url = storyDeepLinkUrl(window.location.href, 'content-templates', { templateId, referenceId });
+    window.history.replaceState(window.history.state, '', url);
+  }, []);
   const atual = TODOS.find(i => i.chave === tab) ?? TODOS[0];
 
   return (
@@ -122,10 +135,17 @@ export function StandaloneCommercialIntelligenceView({ actions, role }: { action
           {tab === 'instagram' && <InstagramInboxView />}
           {tab === 'emails' && <EmailInboxView />}
           {tab === 'quality' && <DataQualityTab />}
-          {tab === 'content-templates' && <StoryContentView section="templates" role={role} onUseTemplate={templateId => {
-            setPublicationTemplateId(templateId);
-            setTab('content-publications');
-          }} />}
+          {tab === 'content-templates' && <StoryContentView
+            section="templates"
+            role={role}
+            initialTemplateId={initialStorySelection.templateId}
+            initialReferenceId={initialStorySelection.referenceId}
+            onSelectionChange={handleStorySelectionChange}
+            onUseTemplate={templateId => {
+              setPublicationTemplateId(templateId);
+              setTab('content-publications');
+            }}
+          />}
           {tab === 'content-references' && <StoryContentView section="references" role={role} />}
           {tab === 'content-publications' && <StoryContentView
             section="publications"

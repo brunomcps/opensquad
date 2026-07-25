@@ -19,6 +19,7 @@ import {
 } from '../../../ci-app/src/api';
 import { VisualReferenceDossier } from './story-dossier/VisualReferenceDossier';
 import { hasCompleteVisualDossier } from './story-dossier/visualDossierModel';
+import { resolveStoryDeepLinkSelection } from './storyReferenceDeepLink';
 
 type StoryContentSection = 'templates' | 'references' | 'publications' | 'approvals';
 
@@ -26,6 +27,8 @@ interface StoryContentViewProps {
   section: StoryContentSection;
   role: MemberRole;
   initialTemplateId?: string | null;
+  initialReferenceId?: string | null;
+  onSelectionChange?: (templateId: string, referenceId: string | null) => void;
   onUseTemplate?: (templateId: string) => void;
   onInitialTemplateConsumed?: () => void;
 }
@@ -387,11 +390,24 @@ function LegacyVisualReferenceDossier({ template, reference }: {
   );
 }
 
-function TemplatesSection({ role, onUseTemplate }: { role: MemberRole; onUseTemplate?: (templateId: string) => void }) {
+function TemplatesSection({
+  role,
+  initialTemplateId,
+  initialReferenceId,
+  onSelectionChange,
+  onUseTemplate,
+}: {
+  role: MemberRole;
+  initialTemplateId?: string | null;
+  initialReferenceId?: string | null;
+  onSelectionChange?: (templateId: string, referenceId: string | null) => void;
+  onUseTemplate?: (templateId: string) => void;
+}) {
   const [templates, setTemplates] = useState<StoryTemplateDto[]>([]);
   const [references, setReferences] = useState<StoryReferenceDto[]>([]);
   const [publications, setPublications] = useState<StoryPublicationDto[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedReferenceId, setSelectedReferenceId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -406,9 +422,16 @@ function TemplatesSection({ role, onUseTemplate }: { role: MemberRole; onUseTemp
       setTemplates(templateResult.templates);
       setReferences(referenceResult.references);
       setPublications(publicationResult.publications);
-      setSelectedId(current => current || templateResult.templates[0]?.templateId || null);
+      const selection = resolveStoryDeepLinkSelection(
+        templateResult.templates,
+        referenceResult.references,
+        { templateId: initialTemplateId || null, referenceId: initialReferenceId || null },
+        { templateId: null, referenceId: null },
+      );
+      setSelectedId(selection.templateId);
+      setSelectedReferenceId(selection.referenceId);
     } catch (cause) { setError(errorMessage(cause)); } finally { setLoading(false); }
-  }, []);
+  }, [initialReferenceId, initialTemplateId]);
 
   useEffect(() => { void load(); }, [load]);
   const filtered = useMemo(() => templates.filter(template => `${template.name} ${template.objective} ${template.tags.join(' ')}`.toLocaleLowerCase('pt-BR').includes(query.trim().toLocaleLowerCase('pt-BR'))), [query, templates]);
@@ -416,7 +439,15 @@ function TemplatesSection({ role, onUseTemplate }: { role: MemberRole; onUseTemp
   const linkedReferences = selected ? references.filter(reference => reference.template?.templateId === selected.templateId) : [];
   const linkedPublications = selected ? publications.filter(publication => publication.template?.templateId === selected.templateId) : [];
   const definition = selected?.definition || ({ steps: selected?.steps || [] } as StoryTemplateDto['definition']);
-  const visualReference = linkedReferences.find(hasCompleteVisualDossier);
+  const visualReferences = linkedReferences.filter(hasCompleteVisualDossier);
+  const visualReference = visualReferences.find(reference => reference.sequenceId === selectedReferenceId) || visualReferences[0];
+
+  useEffect(() => {
+    if (!selected) return;
+    const nextReferenceId = visualReference?.sequenceId || null;
+    if (nextReferenceId !== selectedReferenceId) setSelectedReferenceId(nextReferenceId);
+    onSelectionChange?.(selected.templateId, nextReferenceId);
+  }, [onSelectionChange, selected, selectedReferenceId, visualReference]);
 
   if (loading) return <div className="ci-loading">Carregando biblioteca de templates...</div>;
   if (error) return <div className="ci-content-error-panel"><p>{error}</p><button onClick={() => void load()}>Tentar de novo</button></div>;
@@ -443,7 +474,9 @@ function TemplatesSection({ role, onUseTemplate }: { role: MemberRole; onUseTemp
         {visualReference ? <VisualReferenceDossier
           template={selected}
           reference={visualReference}
+          references={visualReferences}
           linkedPublications={linkedPublications}
+          onSelectReference={setSelectedReferenceId}
           onUseTemplate={templateId => onUseTemplate?.(templateId)}
         /> : <>
           <section className="ci-story-method"><h4>Regras do método</h4><div className="ci-story-rule-grid">
@@ -989,8 +1022,22 @@ function ApprovalsSection({ role }: { role: MemberRole }) {
   );
 }
 
-export function StoryContentView({ section, role, initialTemplateId, onUseTemplate, onInitialTemplateConsumed }: StoryContentViewProps) {
-  if (section === 'templates') return <TemplatesSection role={role} onUseTemplate={onUseTemplate} />;
+export function StoryContentView({
+  section,
+  role,
+  initialTemplateId,
+  initialReferenceId,
+  onSelectionChange,
+  onUseTemplate,
+  onInitialTemplateConsumed,
+}: StoryContentViewProps) {
+  if (section === 'templates') return <TemplatesSection
+    role={role}
+    initialTemplateId={initialTemplateId}
+    initialReferenceId={initialReferenceId}
+    onSelectionChange={onSelectionChange}
+    onUseTemplate={onUseTemplate}
+  />;
   if (section === 'references') return <ReferencesSection role={role} />;
   if (section === 'publications') return <PublicationsSection role={role} initialTemplateId={initialTemplateId} onInitialTemplateConsumed={onInitialTemplateConsumed} />;
   return <ApprovalsSection role={role} />;

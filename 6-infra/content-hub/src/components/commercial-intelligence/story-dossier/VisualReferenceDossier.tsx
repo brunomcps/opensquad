@@ -14,7 +14,9 @@ import './storyDossier.css';
 interface VisualReferenceDossierProps {
   template: StoryTemplateDto;
   reference: StoryReferenceDto;
+  references: StoryReferenceDto[];
   linkedPublications: StoryPublicationDto[];
+  onSelectReference: (referenceId: string) => void;
   onUseTemplate: (templateId: string) => void;
 }
 
@@ -41,7 +43,9 @@ function publicationStateLabel(state: StoryPublicationDto['publicationState']) {
 export function VisualReferenceDossier({
   template,
   reference,
+  references,
   linkedPublications,
+  onSelectReference,
   onUseTemplate,
 }: VisualReferenceDossierProps) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -64,6 +68,21 @@ export function VisualReferenceDossier({
 
   return (
     <div className="ci-dossier-stage">
+      {references.length > 1 && (
+        <div className="ci-dossier-reference-selector">
+          <label htmlFor="ci-dossier-reference">Referência analisada</label>
+          <select
+            id="ci-dossier-reference"
+            value={reference.sequenceId}
+            onChange={event => onSelectReference(event.target.value)}
+          >
+            {references.map(option => (
+              <option key={option.sequenceId} value={option.sequenceId}>{option.title}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <VisualDossierQuickMode
         id={ids.top}
         model={model}
