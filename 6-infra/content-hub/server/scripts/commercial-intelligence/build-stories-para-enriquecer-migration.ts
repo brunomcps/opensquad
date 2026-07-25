@@ -74,6 +74,7 @@ for (const asset of rawAssets) {
 preparedAssets.sort((left, right) => left.narrativeOrder - right.narrativeOrder);
 
 const hashInput = {
+  dossierContractVersion: raw.dossierContractVersion,
   template: raw.template,
   reference: raw.reference,
   assets: preparedAssets,

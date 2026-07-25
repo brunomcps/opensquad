@@ -102,6 +102,15 @@ function databaseClient(
 ) {
   return {
     storage: {
+      async getBucket(bucket: string) {
+        assert.equal(bucket, 'story-reference-assets');
+        return { data: { id: bucket, public: true }, error: null };
+      },
+      async createBucket() {
+        throw new Error(
+          'createBucket should not run when the story reference bucket already exists',
+        );
+      },
       from() {
         return {
           async createSignedUploadUrl(storagePath: string) {
@@ -244,6 +253,7 @@ test('Hermes client publishes, repeats, corrects and reads back one canonical re
       });
     }
     const payload = {
+      dossierContractVersion: fixture.dossierContractVersion,
       referenceKey: fixture.referenceKey,
       template: fixture.template,
       reference: fixture.reference,

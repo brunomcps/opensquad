@@ -138,12 +138,21 @@ async function publishReference(
     ...item,
     assetUrl: item.mediaType === 'text' ? null : urls.get(item.narrativeOrder),
   }));
+  const persistedReference = {
+    ...payload.reference,
+    analysis: {
+      ...payload.reference.analysis,
+      dossierContractVersion: payload.dossierContractVersion,
+      sequenceConfirmed: payload.reference.sequenceConfirmed,
+      sequenceConfirmationSource: payload.reference.sequenceConfirmationSource,
+    },
+  };
   const persisted = await client.rpc('story_upsert_agent_reference', {
     p_reference_key: payload.referenceKey,
     p_content_hash: payload.contentHash,
     p_template_canonical_key: payload.template.canonicalKey,
     p_template: payload.template,
-    p_reference: payload.reference,
+    p_reference: persistedReference,
     p_items: items,
   });
   const result = relationRows(persisted.data)[0];
@@ -155,6 +164,9 @@ async function publishReference(
   const actualOrders = reference.items.map((item: any) => item.narrativeOrder);
   if (reference.referenceKey !== payload.referenceKey
     || reference.contentHash !== payload.contentHash
+    || reference.analysis?.dossierContractVersion !== payload.dossierContractVersion
+    || reference.analysis?.sequenceConfirmed !== true
+    || reference.analysis?.sequenceConfirmationSource !== payload.reference.sequenceConfirmationSource
     || reference.template?.templateId !== result.template_id
     || reference.template?.canonicalKey !== payload.template.canonicalKey
     || reference.contentRevision !== result.content_revision

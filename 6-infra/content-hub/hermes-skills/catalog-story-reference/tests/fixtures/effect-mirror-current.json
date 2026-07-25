@@ -1,0 +1,269 @@
+{
+  "dossierContractVersion": "1.0",
+  "referenceKey": "instagram-reservatoriodedopamina-efeito-espelho",
+  "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "template": {
+    "canonicalKey": "efeito-espelho-identificacao-microexplicacao-entrega-dm",
+    "name": "Efeito Espelho: identificacao -> microexplicacao -> entrega por DM",
+    "objective": "Gerar identificacao, explicar o mecanismo e oferecer um recurso por DM.",
+    "description": "Estado atual capturado antes do contrato canonico 1.0.",
+    "tags": ["stories", "identificacao", "educacao"],
+    "definition": {
+      "editorialName": "Efeito Espelho",
+      "editorialSummary": "A oferta aparece depois que o publico se reconhece no problema.",
+      "formula": "identificacao -> microexplicacao -> entrega por DM",
+      "preserveRules": [
+        "Preservar a autoidentificacao de baixa friccao antes da explicacao."
+      ],
+      "adaptRules": [
+        "Adaptar rigor cientifico, linguagem e recurso para Bruno."
+      ],
+      "avoidRules": [
+        "Nao sugerir diagnostico nem fazer promessa clinica."
+      ],
+      "moldSteps": [
+        {
+          "title": "Reconhecimento e identificacao",
+          "purpose": "Abrir uma autoavaliacao simples.",
+          "fixedFunction": "Apresentar um estimulo concreto e uma enquete.",
+          "placeholders": [
+            {"kind": "scene", "label": "Recorte ou situacao reconhecivel"},
+            {"kind": "copy", "label": "Pergunta sobre experiencia cotidiana"}
+          ]
+        },
+        {
+          "title": "Microexplicacao",
+          "purpose": "Pagar a atencao com contexto.",
+          "fixedFunction": "Explicar um mecanismo com leveza.",
+          "placeholders": [
+            {"kind": "proof", "label": "Explicacao ou prova"},
+            {"kind": "copy", "label": "Acolhimento e mecanismo"}
+          ]
+        },
+        {
+          "title": "Entrega por DM",
+          "purpose": "Oferecer um recurso ligado a dor.",
+          "fixedFunction": "Provar a entrega e indicar a acao.",
+          "placeholders": [
+            {"kind": "proof", "label": "Mockup ou previa"},
+            {"kind": "copy", "label": "Instrucao para responder"}
+          ]
+        }
+      ],
+      "steps": [
+        {"role": "hook", "instruction": "Gerar identificacao."},
+        {"role": "development", "instruction": "Dar uma microexplicacao."},
+        {"role": "cta", "instruction": "Oferecer a entrega por DM."}
+      ]
+    },
+    "steps": [
+      {"role": "hook", "instruction": "Gerar identificacao."},
+      {"role": "development", "instruction": "Dar uma microexplicacao."},
+      {"role": "cta", "instruction": "Oferecer a entrega por DM."}
+    ]
+  },
+  "reference": {
+    "title": "Efeito Espelho",
+    "description": "Sequencia do perfil da plataforma Reservatorio de Dopamina.",
+    "analysis": {
+      "summary": "A sequencia conduz do reconhecimento de um comportamento a uma entrega gratuita por DM.",
+      "overview": [
+        "O publico se ve no problema antes de receber explicacao e oferta."
+      ],
+      "narrativeArc": [
+        "identificacao",
+        "microexplicacao",
+        "entrega por DM"
+      ],
+      "whyItWorks": [
+        "A oferta aparece apenas depois de identificacao e recompensa cognitiva."
+      ],
+      "templateFit": "As tres telas seguem a formula declarada.",
+      "sequenceMap": [
+        {"label": "1 - Identificacao", "value": "Recorte externo, pergunta pessoal e enquete."},
+        {"label": "2 - Microexplicacao", "value": "Acolhimento, mecanismo breve e humor."},
+        {"label": "3 - Entrega por DM", "value": "Oferta gratuita, prova visual e instrucao."}
+      ],
+      "visualGrammar": "A primeira tela usa fundo frio; as seguintes migram para vinho, amarelo e branco.",
+      "productRevealed": "Curadoria, educacao e entrega de um recurso gratuito.",
+      "transferRules": [
+        "Entregar valor e contexto antes do CTA."
+      ],
+      "synthesis": [
+        {
+          "title": "Papel de cada tela",
+          "paragraphs": ["Identificacao, explicacao e conversao por DM."]
+        },
+        {
+          "title": "Mudanca de estimulo",
+          "paragraphs": ["Noticia, meme e mockups renovam a atencao."]
+        }
+      ],
+      "registeredTemplate": {
+        "name": "Efeito Espelho",
+        "steps": [
+          {"title": "Identificacao", "description": "Fazer o publico se reconhecer."},
+          {"title": "Microexplicacao", "description": "Explicar brevemente."},
+          {"title": "CTA", "description": "Pedir resposta por DM."}
+        ]
+      },
+      "sourceNote": "A sequencia tem tres stories enviados por Bruno."
+    },
+    "platform": "instagram",
+    "sourceAccount": "@reservatoriodedopamina",
+    "sourceUrl": "https://www.instagram.com/reservatoriodedopamina/",
+    "sourceStartedAt": null,
+    "sourceEndedAt": null,
+    "items": [
+      {
+        "mediaType": "image",
+        "textContent": "Voce sofre desse novo tipo de insonia?",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 1,
+        "narrativeRole": "hook",
+        "metadata": {
+          "quick": {
+            "roleLabel": "Story 1 - Identificacao",
+            "title": "A noticia vira um espelho",
+            "summary": "Um recorte sobre adiar o sono pergunta se a experiencia acontece com a pessoa.",
+            "evidence": "A tela combina manchete, pergunta direta e enquete binaria.",
+            "audienceEffect": "Produz reconhecimento imediato.",
+            "subtext": "A plataforma mostra que entende um comportamento cotidiano.",
+            "funnelFunction": "Relacionamento e segmentacao inicial.",
+            "extractedRule": "Abra com uma situacao reconhecivel."
+          },
+          "visual": {
+            "roleLabel": "Story 1 - Recorte e enquete",
+            "title": "Autoridade emprestada sobre fundo cotidiano",
+            "scene": "Fundo fotografico frio e desfocado coberto por recorte de noticia.",
+            "typography": "Manchete preta em bloco branco e pergunta grande centralizada.",
+            "composition": "Recorte no topo, pergunta no centro e enquete na base.",
+            "graphic": "Recorte externo e enquete Sim/Nao.",
+            "palette": ["#eef1f2", "#ffffff", "#111318"],
+            "impression": "Atualidade, reconhecimento e baixa pressao.",
+            "markers": [{"label": "1", "description": "Recorte da noticia."}]
+          },
+          "deep": {
+            "roleLabel": "Story 1",
+            "title": "Reconhecimento antes da explicacao",
+            "lead": "A tela usa uma fonte externa para transformar um tema em experiencia pessoal.",
+            "sections": [
+              {
+                "title": "Mecanismo de identificacao",
+                "paragraphs": ["A enquete reduz a resposta a um toque."]
+              }
+            ],
+            "extractedRule": "Pedir experiencia, nao diagnostico."
+          }
+        }
+      },
+      {
+        "mediaType": "image",
+        "textContent": "A gente entende que dormir nao e nada divertido, mas e uma forma de cuidar de si mesmo.",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 2,
+        "narrativeRole": "development",
+        "metadata": {
+          "quick": {
+            "roleLabel": "Story 2 - Microexplicacao",
+            "title": "A explicacao paga a atencao",
+            "summary": "Acolhimento, mecanismo breve e humor desenvolvem o tema.",
+            "evidence": "Texto explicativo e meme aparecem na mesma tela.",
+            "audienceEffect": "Reduz resistencia sem abandonar o assunto.",
+            "subtext": "A plataforma ensina com linguagem acessivel.",
+            "funnelFunction": "Educacao e autoridade.",
+            "extractedRule": "Explique o mecanismo sem virar aula."
+          },
+          "visual": {
+            "roleLabel": "Story 2 - Educacao com humor",
+            "title": "Vinho institucional, amarelo de enfase e meme",
+            "scene": "Tela grafica sem rosto com fundo vinho e meme central.",
+            "typography": "Headline amarela grande e explicacao branca menor.",
+            "composition": "Headline no topo, explicacao, meme e reacao na base.",
+            "graphic": "Meme e reacao com emoji.",
+            "palette": ["#552225", "#ffc53d", "#fff7ee"],
+            "impression": "Acolhimento e autoridade acessivel.",
+            "markers": [{"label": "1", "description": "Meme no centro."}]
+          },
+          "deep": {
+            "roleLabel": "Story 2",
+            "title": "Recompensa cognitiva com leveza",
+            "lead": "A tela explica por que o comportamento importa e usa humor como alivio.",
+            "sections": [
+              {
+                "title": "Educacao e ritmo",
+                "paragraphs": ["O meme evita que a explicacao pareca uma aula isolada."]
+              }
+            ],
+            "extractedRule": "Pagar a curiosidade antes da oferta."
+          }
+        }
+      },
+      {
+        "mediaType": "image",
+        "textContent": "Temos uma aula gratuita e material para fazer higiene do sono. Responda a este story.",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 3,
+        "narrativeRole": "cta",
+        "metadata": {
+          "quick": {
+            "roleLabel": "Story 3 - Entrega por DM",
+            "title": "A oferta concretiza a solucao",
+            "summary": "A plataforma mostra os materiais e pede resposta ao story.",
+            "evidence": "Dois mockups e uma seta apontam para o campo de mensagem.",
+            "audienceEffect": "Transforma interesse em uma acao simples.",
+            "subtext": "A entrega existe e esta pronta.",
+            "funnelFunction": "Conversao por DM.",
+            "extractedRule": "Mostre o que sera entregue e como pedir."
+          },
+          "visual": {
+            "roleLabel": "Story 3 - Oferta e acao",
+            "title": "Mockups concretizam a promessa",
+            "scene": "Tela institucional com texto, dois materiais e CTA.",
+            "typography": "Oferta branca e CTA amarelo maior.",
+            "composition": "Oferta no topo, mockups no centro e seta na metade inferior.",
+            "graphic": "Capas do material e seta desenhada.",
+            "palette": ["#552225", "#ffc53d", "#fff7ee"],
+            "impression": "Utilidade concreta e chamada direta.",
+            "markers": [{"label": "1", "description": "Mockups dos materiais."}]
+          },
+          "deep": {
+            "roleLabel": "Story 3",
+            "title": "Entrega e instrucao de resposta",
+            "lead": "A prova visual reduz incerteza sobre o que a pessoa recebera.",
+            "sections": [
+              {
+                "title": "Oferta e conversao",
+                "paragraphs": ["A seta conecta a instrucao ao campo de mensagem."]
+              }
+            ],
+            "extractedRule": "Fechar com uma unica acao especifica."
+          }
+        }
+      }
+    ]
+  },
+  "assets": [
+    {
+      "narrativeOrder": 1,
+      "fileName": "story-1.jpg",
+      "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "mimeType": "image/jpeg",
+      "sizeBytes": 100001
+    },
+    {
+      "narrativeOrder": 2,
+      "fileName": "story-2.jpg",
+      "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "mimeType": "image/jpeg",
+      "sizeBytes": 100002
+    },
+    {
+      "narrativeOrder": 3,
+      "fileName": "story-3.jpg",
+      "sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "mimeType": "image/jpeg",
+      "sizeBytes": 100003
+    }
+  ]
+}

@@ -39,6 +39,11 @@ set description = $template_description$Molde editorial em que perguntas ou cena
           "kind": "response",
           "label": "Microdiagnóstico ou direção"
         }
+      ],
+      "id": "screen-entry-question",
+      "templateStepIds": [
+        "recognizable-situation",
+        "short-reading"
       ]
     },
     {
@@ -54,6 +59,11 @@ set description = $template_description$Molde editorial em que perguntas ou cena
           "kind": "proof",
           "label": "Nome da etapa ou mecanismo"
         }
+      ],
+      "id": "screen-second-layer",
+      "templateStepIds": [
+        "short-reading",
+        "problem-progression"
       ]
     },
     {
@@ -66,9 +76,17 @@ set description = $template_description$Molde editorial em que perguntas ou cena
           "label": "Consequência concreta"
         },
         {
+          "kind": "proof",
+          "label": "Manifestação ou consequência observável"
+        },
+        {
           "kind": "principle",
           "label": "Leitura que organiza o problema"
         }
+      ],
+      "id": "screen-consequence",
+      "templateStepIds": [
+        "problem-progression"
       ]
     },
     {
@@ -88,25 +106,43 @@ set description = $template_description$Molde editorial em que perguntas ou cena
           "kind": "reaction",
           "label": "Seta ou indicação visual"
         }
+      ],
+      "id": "screen-proportional-cta",
+      "templateStepIds": [
+        "proportional-continuation"
       ]
     }
   ],
   "steps": [
     {
       "role": "hook",
-      "instruction": "Abrir com uma pergunta concreta que permita autoidentificação."
+      "instruction": "Abrir com uma pergunta concreta que permita autoidentificação.",
+      "templateStepIds": [
+        "recognizable-situation",
+        "short-reading"
+      ]
     },
     {
       "role": "development",
-      "instruction": "Adicionar uma segunda manifestação e entregar uma leitura curta."
+      "instruction": "Adicionar uma segunda manifestação e entregar uma leitura curta.",
+      "templateStepIds": [
+        "short-reading",
+        "problem-progression"
+      ]
     },
     {
       "role": "proof",
-      "instruction": "Mostrar a consequência e organizar o problema em uma estrutura compreensível."
+      "instruction": "Mostrar a consequência e organizar o problema em uma estrutura compreensível.",
+      "templateStepIds": [
+        "problem-progression"
+      ]
     },
     {
       "role": "cta",
-      "instruction": "Convidar para um conteúdo que aprofunde a mesma estrutura."
+      "instruction": "Convidar para um conteúdo que aprofunde a mesma estrutura.",
+      "templateStepIds": [
+        "proportional-continuation"
+      ]
     }
   ]
 }$template_definition$::jsonb,
@@ -134,7 +170,7 @@ begin
   into v_result
   from public.story_upsert_agent_reference(
     'other-stories-para-enriquecer-legacy',
-    'a11ab02d6ac7df459f12f1bfc141d48f9a4591938700685be5ec07f7e192c2ab',
+    'db07b60453cc1569a2a341722985a4386d5ef623e6e05486745e947938020d2b',
     'historia-pequena-entrega-cta',
     $template${
   "canonicalKey": "historia-pequena-entrega-cta",
@@ -181,6 +217,11 @@ begin
             "kind": "response",
             "label": "Microdiagnóstico ou direção"
           }
+        ],
+        "id": "screen-entry-question",
+        "templateStepIds": [
+          "recognizable-situation",
+          "short-reading"
         ]
       },
       {
@@ -196,6 +237,11 @@ begin
             "kind": "proof",
             "label": "Nome da etapa ou mecanismo"
           }
+        ],
+        "id": "screen-second-layer",
+        "templateStepIds": [
+          "short-reading",
+          "problem-progression"
         ]
       },
       {
@@ -208,9 +254,17 @@ begin
             "label": "Consequência concreta"
           },
           {
+            "kind": "proof",
+            "label": "Manifestação ou consequência observável"
+          },
+          {
             "kind": "principle",
             "label": "Leitura que organiza o problema"
           }
+        ],
+        "id": "screen-consequence",
+        "templateStepIds": [
+          "problem-progression"
         ]
       },
       {
@@ -230,44 +284,76 @@ begin
             "kind": "reaction",
             "label": "Seta ou indicação visual"
           }
+        ],
+        "id": "screen-proportional-cta",
+        "templateStepIds": [
+          "proportional-continuation"
         ]
       }
     ],
     "steps": [
       {
         "role": "hook",
-        "instruction": "Abrir com uma pergunta concreta que permita autoidentificação."
+        "instruction": "Abrir com uma pergunta concreta que permita autoidentificação.",
+        "templateStepIds": [
+          "recognizable-situation",
+          "short-reading"
+        ]
       },
       {
         "role": "development",
-        "instruction": "Adicionar uma segunda manifestação e entregar uma leitura curta."
+        "instruction": "Adicionar uma segunda manifestação e entregar uma leitura curta.",
+        "templateStepIds": [
+          "short-reading",
+          "problem-progression"
+        ]
       },
       {
         "role": "proof",
-        "instruction": "Mostrar a consequência e organizar o problema em uma estrutura compreensível."
+        "instruction": "Mostrar a consequência e organizar o problema em uma estrutura compreensível.",
+        "templateStepIds": [
+          "problem-progression"
+        ]
       },
       {
         "role": "cta",
-        "instruction": "Convidar para um conteúdo que aprofunde a mesma estrutura."
+        "instruction": "Convidar para um conteúdo que aprofunde a mesma estrutura.",
+        "templateStepIds": [
+          "proportional-continuation"
+        ]
       }
     ]
   },
   "steps": [
     {
       "role": "hook",
-      "instruction": "Abrir com uma pergunta concreta que permita autoidentificação."
+      "instruction": "Abrir com uma pergunta concreta que permita autoidentificação.",
+      "templateStepIds": [
+        "recognizable-situation",
+        "short-reading"
+      ]
     },
     {
       "role": "development",
-      "instruction": "Adicionar uma segunda manifestação e entregar uma leitura curta."
+      "instruction": "Adicionar uma segunda manifestação e entregar uma leitura curta.",
+      "templateStepIds": [
+        "short-reading",
+        "problem-progression"
+      ]
     },
     {
       "role": "proof",
-      "instruction": "Mostrar a consequência e organizar o problema em uma estrutura compreensível."
+      "instruction": "Mostrar a consequência e organizar o problema em uma estrutura compreensível.",
+      "templateStepIds": [
+        "problem-progression"
+      ]
     },
     {
       "role": "cta",
-      "instruction": "Convidar para um conteúdo que aprofunde a mesma estrutura."
+      "instruction": "Convidar para um conteúdo que aprofunde a mesma estrutura.",
+      "templateStepIds": [
+        "proportional-continuation"
+      ]
     }
   ]
 }$template$::jsonb,
@@ -294,20 +380,33 @@ begin
     "templateFit": "É a demonstração visual mais concreta do PDF para o molde História → pequena entrega → CTA: a história é a progressão do problema, a entrega são os diagnósticos curtos e o CTA aprofunda o mesmo assunto.",
     "sequenceMap": [
       {
+        "kind": "story",
+        "storyOrder": 1,
         "label": "1 · Entrada",
         "value": "Crescimento travado → falta topo de funil"
       },
       {
+        "kind": "story",
+        "storyOrder": 2,
         "label": "2 · Progressão",
         "value": "Engajamento fraco → falta meio de funil"
       },
       {
+        "kind": "story",
+        "storyOrder": 3,
         "label": "3 · Consequência",
         "value": "Venda travada → falta fundo de funil"
       },
       {
+        "kind": "story",
+        "storyOrder": 4,
         "label": "4 · CTA",
         "value": "Conteúdo longo que organiza o sistema"
+      },
+      {
+        "kind": "product",
+        "label": "Produto real",
+        "value": "Método simples de diagnóstico editorial e autoridade da autora"
       }
     ],
     "visualGrammar": "As três perguntas repetem enquadramento, tipografia central, contraste forte e destaques cromáticos. As cores variam entre amarelo, rosa e preto, mas a assinatura permanece. O CTA conserva o fundo escuro, usa uma capa como prova visual e uma seta amarela para orientar o olhar.",
@@ -320,26 +419,31 @@ begin
     ],
     "synthesis": [
       {
+        "key": "screen-roles",
         "title": "Papel de cada tela",
         "paragraphs": [
           "A primeira pergunta abre identificação; a segunda amplia o mapa; a terceira mostra o custo comercial; a quarta transforma a tensão acumulada em aprofundamento."
         ]
       },
       {
+        "key": "stimulus-change",
         "title": "Mudança de estímulo",
         "paragraphs": [
           "A cor de fundo muda, mas a construção tipográfica permanece. Essa combinação renova a atenção sem quebrar a sensação de sequência."
         ]
       },
       {
-        "title": "Entrega antes do convite",
+        "key": "aesthetics-production",
+        "title": "Estética e produção",
         "paragraphs": [
-          "Topo, meio e fundo de funil já são uma pequena organização do problema. Mesmo sem clicar, a pessoa sai com uma leitura mais clara."
+          "As três perguntas repetem enquadramento, tipografia central, contraste forte e destaques cromáticos. As cores variam entre amarelo, rosa e preto, mas a assinatura permanece. O CTA conserva o fundo escuro, usa uma capa como prova visual e uma seta amarela para orientar o olhar."
         ]
       },
       {
-        "title": "Limite da referência",
+        "key": "strengths-limitations",
+        "title": "Forças e limitações",
         "paragraphs": [
+          "Topo, meio e fundo de funil já são uma pequena organização do problema. Mesmo sem clicar, a pessoa sai com uma leitura mais clara.",
           "O diagnóstico é simplificado e binário. Ao adaptar, Bruno precisa evitar que perguntas sobre sofrimento ou funcionamento adulto soem como diagnóstico clínico."
         ]
       }
@@ -349,21 +453,78 @@ begin
       "steps": [
         {
           "title": "Situação reconhecível",
-          "description": "Abrir uma pergunta que permita a pessoa se localizar."
+          "description": "Abrir uma pergunta que permita a pessoa se localizar.",
+          "id": "recognizable-situation",
+          "mechanism": "Uma pergunta específica permite que a pessoa se localize antes de receber qualquer explicação.",
+          "condition": "A situação precisa ser cotidiana, concreta e compreensível sem contexto anterior.",
+          "expectedResult": "Autoidentificação e abertura de uma lacuna narrativa.",
+          "evidenceStoryOrders": [
+            1
+          ]
         },
         {
           "title": "Leitura curta",
-          "description": "Nomear o mecanismo ou a camada ausente."
+          "description": "Nomear o mecanismo ou a camada ausente.",
+          "id": "short-reading",
+          "mechanism": "Nomear a camada ausente converte a pergunta em uma pequena entrega útil.",
+          "condition": "A leitura precisa responder diretamente à manifestação apresentada.",
+          "expectedResult": "Clareza imediata e percepção de repertório.",
+          "evidenceStoryOrders": [
+            1,
+            2,
+            3
+          ]
         },
         {
           "title": "Progressão",
-          "description": "Mostrar outra manifestação ou consequência do mesmo problema."
+          "description": "Mostrar outra manifestação ou consequência do mesmo problema.",
+          "id": "problem-progression",
+          "mechanism": "Novas manifestações mostram que o problema pertence a um sistema, não a um caso isolado.",
+          "condition": "Cada tela deve acrescentar precisão sem reiniciar o assunto.",
+          "expectedResult": "Necessidade percebida de organizar o sistema completo.",
+          "evidenceStoryOrders": [
+            2,
+            3
+          ]
         },
         {
           "title": "Continuação",
-          "description": "Oferecer um conteúdo que aprofunde a estrutura já apresentada."
+          "description": "Oferecer um conteúdo que aprofunde a estrutura já apresentada.",
+          "id": "proportional-continuation",
+          "mechanism": "O conteúdo longo aparece como continuação lógica da estrutura já entregue.",
+          "condition": "A promessa do CTA precisa aprofundar o mesmo diagnóstico e mostrar onde será cumprida.",
+          "expectedResult": "Clique ou avanço sem sensação de ruptura promocional.",
+          "evidenceStoryOrders": [
+            4
+          ]
         }
-      ]
+      ],
+      "formula": "Pergunta concreta → microdiagnóstico → progressão do problema → CTA proporcional",
+      "useWhen": "Quando manifestações diferentes do mesmo problema permitem entregar uma leitura curta antes de oferecer aprofundamento.",
+      "primaryFunction": "Transformar autoidentificação em necessidade de aprofundamento sem interromper a narrativa com promoção precoce.",
+      "requiredElements": [
+        "Pergunta concreta e reconhecível",
+        "Microdiagnóstico ligado à pergunta",
+        "Progressão temática entre as telas",
+        "Pequena entrega antes do convite",
+        "CTA que aprofunda a mesma estrutura"
+      ],
+      "optionalElements": [
+        "Mudança cromática entre telas",
+        "Capa do conteúdo indicado",
+        "Seta ou indicação visual"
+      ],
+      "executionRisks": [
+        "Transformar identificação em diagnóstico absoluto",
+        "Repetir perguntas sem aumentar a precisão",
+        "Usar CTA desconectado da pequena entrega"
+      ],
+      "capturesOrInputs": [
+        "Perguntas reais do público",
+        "Nome curto para cada camada do problema",
+        "Capa ou prova visual do conteúdo de aprofundamento"
+      ],
+      "brunoAdaptation": "Usar situações reconhecíveis de adultos com TDAH, formular hipóteses editoriais sem diagnosticar e conduzir para um conteúdo que aprofunde exatamente a estrutura apresentada."
     },
     "sourceNote": "A sequência analisada contém quatro stories recortados da página 44. As páginas 42, 43, 45 e 46 são evidências metodológicas da aula prática, não etapas adicionais da sequência. A biblioteca cobre o conteúdo acionável das páginas 4–72 sem republicar o PDF integral.",
     "sourceLibrary": {
@@ -1114,13 +1275,17 @@ begin
           }
         }
       ]
-    }
+    },
+    "apparentProduct": "Um post que explica funil de conteúdo de forma simples.",
+    "personaConstructed": "Educadora de conteúdo que diagnostica gargalos e simplifica sistemas editoriais."
   },
   "platform": "other",
   "sourceAccount": "Luana Carolina · Stories para Enriquecer",
   "sourceUrl": null,
   "sourceStartedAt": null,
-  "sourceEndedAt": null
+  "sourceEndedAt": null,
+  "sequenceConfirmed": true,
+  "sequenceConfirmationSource": "Sequência completa confirmada pelos quatro recortes consecutivos da página 44 do PDF Stories para Enriquecer."
 }$reference$::jsonb,
     $items$[
   {
@@ -1182,17 +1347,36 @@ begin
               "Situação específica",
               "Resposta imediata",
               "Loop para as próximas camadas"
+            ],
+            "covers": [
+              "narrative",
+              "continuity"
             ]
           },
           {
             "title": "Entrega",
             "paragraphs": [
               "Topo de funil funciona como microdiagnóstico. A pessoa já recebe uma categoria útil antes de qualquer CTA."
+            ],
+            "covers": [
+              "funnel",
+              "template-consequence"
             ]
           }
         ],
-        "extractedRule": "Comece pelo resultado que a pessoa não consegue obter e entregue uma primeira hipótese organizadora."
-      }
+        "extractedRule": "Comece pelo resultado que a pessoa não consegue obter e entregue uma primeira hipótese organizadora.",
+        "dimensionAssessments": {
+          "interaction": {
+            "status": "not-applicable",
+            "rationale": "O recorte mostra uma tela gráfica sem sticker ou outro mecanismo nativo de resposta."
+          },
+          "critique": {
+            "status": "present",
+            "rationale": "A relação entre crescimento e topo de funil é uma hipótese editorial útil, não uma causa única."
+          }
+        }
+      },
+      "noSourceTextReason": null
     },
     "assetUrl": "https://opensquad-commercial-intelligence.pages.dev/story-references/stories-para-enriquecer/sequence-page-44/01-topo-de-funil.webp"
   },
@@ -1255,17 +1439,36 @@ begin
               "Mesmo formato",
               "Nova variável",
               "Nova pequena entrega"
+            ],
+            "covers": [
+              "narrative",
+              "continuity"
             ]
           },
           {
             "title": "Efeito editorial",
             "paragraphs": [
               "Ao cobrir uma segunda dor, a sequência amplia relevância sem abandonar o tema."
+            ],
+            "covers": [
+              "subtext",
+              "template-consequence"
             ]
           }
         ],
-        "extractedRule": "Mantenha a forma e mude a manifestação para ensinar que o problema possui camadas."
-      }
+        "extractedRule": "Mantenha a forma e mude a manifestação para ensinar que o problema possui camadas.",
+        "dimensionAssessments": {
+          "interaction": {
+            "status": "not-applicable",
+            "rationale": "O recorte mostra uma tela gráfica sem sticker ou outro mecanismo nativo de resposta."
+          },
+          "critique": {
+            "status": "present",
+            "rationale": "A repetição amplia identificação, mas precisa acrescentar uma camada real para não soar mecânica."
+          }
+        }
+      },
+      "noSourceTextReason": null
     },
     "assetUrl": "https://opensquad-commercial-intelligence.pages.dev/story-references/stories-para-enriquecer/sequence-page-44/02-meio-de-funil.webp"
   },
@@ -1328,17 +1531,36 @@ begin
               "Concessão",
               "Custo final",
               "Necessidade de organização"
+            ],
+            "covers": [
+              "narrative",
+              "continuity"
             ]
           },
           {
             "title": "Limite",
             "paragraphs": [
               "A relação causal é simplificada. Na adaptação, a resposta precisa ser tratada como hipótese editorial, não diagnóstico absoluto."
+            ],
+            "covers": [
+              "evidence",
+              "template-consequence"
             ]
           }
         ],
-        "extractedRule": "Feche a progressão mostrando o custo que permanece mesmo quando as etapas anteriores parecem resolvidas."
-      }
+        "extractedRule": "Feche a progressão mostrando o custo que permanece mesmo quando as etapas anteriores parecem resolvidas.",
+        "dimensionAssessments": {
+          "interaction": {
+            "status": "not-applicable",
+            "rationale": "O recorte mostra uma tela gráfica sem sticker ou outro mecanismo nativo de resposta."
+          },
+          "critique": {
+            "status": "present",
+            "rationale": "A ligação entre venda e fundo de funil organiza o raciocínio, porém simplifica outras causas comerciais."
+          }
+        }
+      },
+      "noSourceTextReason": null
     },
     "assetUrl": "https://opensquad-commercial-intelligence.pages.dev/story-references/stories-para-enriquecer/sequence-page-44/03-fundo-de-funil.webp"
   },
@@ -1401,17 +1623,36 @@ begin
               "Promessa alinhada",
               "Prova visual",
               "Direção explícita"
+            ],
+            "covers": [
+              "narrative",
+              "continuity"
             ]
           },
           {
             "title": "Conversão sem ruptura",
             "paragraphs": [
               "A oferta do post é proporcional porque a sequência já ensinou as três categorias. O público não é obrigado a clicar para receber algum valor."
+            ],
+            "covers": [
+              "funnel",
+              "continuity"
             ]
           }
         ],
-        "extractedRule": "Promova apenas depois de tornar o conteúdo seguinte necessário e mostrar com precisão onde a promessa será cumprida."
-      }
+        "extractedRule": "Promova apenas depois de tornar o conteúdo seguinte necessário e mostrar com precisão onde a promessa será cumprida.",
+        "dimensionAssessments": {
+          "interaction": {
+            "status": "not-applicable",
+            "rationale": "O recorte mostra uma tela gráfica sem sticker ou outro mecanismo nativo de resposta."
+          },
+          "critique": {
+            "status": "present",
+            "rationale": "O CTA é proporcional e comprovável; sua qualidade depende de o post cumprir a promessa de simplicidade."
+          }
+        }
+      },
+      "noSourceTextReason": null
     },
     "assetUrl": "https://opensquad-commercial-intelligence.pages.dev/story-references/stories-para-enriquecer/sequence-page-44/04-cta-conteudo-longo.webp"
   }

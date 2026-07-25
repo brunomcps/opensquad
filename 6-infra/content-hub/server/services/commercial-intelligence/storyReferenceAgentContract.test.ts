@@ -10,6 +10,23 @@ test('agent reference contract accepts a complete dossier', () => {
   assert.deepEqual(parsed.reference.items.map(item => item.narrativeOrder), [1, 2, 3, 4]);
 });
 
+test('agent reference contract preserves canonical machine fields', () => {
+  const parsed = parseAgentReferenceInput(createAgentReferenceFixture());
+
+  assert.equal(parsed.dossierContractVersion, '1.0');
+  assert.equal(parsed.reference.sequenceConfirmed, true);
+  assert.equal(parsed.reference.analysis?.sequenceMap?.at(-1)?.kind, 'product');
+  assert.deepEqual(
+    parsed.reference.analysis?.synthesis?.map(block => block.key),
+    ['screen-roles', 'stimulus-change', 'aesthetics-production', 'strengths-limitations'],
+  );
+  assert.deepEqual(
+    parsed.reference.items[0]?.metadata?.deep?.sections[0]?.covers,
+    ['narrative', 'continuity'],
+  );
+  assert.deepEqual(parsed.template.definition?.moldSteps?.[1]?.templateStepIds, ['reinterpret-scene', 'support-reading']);
+});
+
 for (const layer of ['quick', 'visual', 'deep'] as const) {
   test(`agent reference contract rejects missing ${layer}`, () => {
     const fixture = createAgentReferenceFixture();
@@ -70,6 +87,53 @@ test('agent reference contract enforces asset and total size limits', () => {
     narrativeOrder: index + 1,
   }));
   assert.throws(() => parseAgentReferenceInput(tooMany), /20 stories/i);
+});
+
+test('agent reference contract requires the explicit contract version', () => {
+  const fixture = createAgentReferenceFixture() as any;
+  delete fixture.dossierContractVersion;
+  assert.throws(() => parseAgentReferenceInput(fixture), /dossierContractVersion.*1\.0/i);
+});
+
+test('agent reference contract requires exclusive source provenance', () => {
+  const missing = createAgentReferenceFixture() as any;
+  missing.reference.items[0]!.metadata.sourceExcerpt = null;
+  missing.reference.items[0]!.metadata.noSourceTextReason = null;
+  assert.throws(() => parseAgentReferenceInput(missing), /sourceExcerpt.*noSourceTextReason/i);
+
+  const conflicting = createAgentReferenceFixture() as any;
+  conflicting.reference.items[0]!.metadata.noSourceTextReason = 'Não deveria coexistir.';
+  assert.throws(() => parseAgentReferenceInput(conflicting), /não pode usar.*ao mesmo tempo/i);
+});
+
+test('agent reference contract requires narrative and continuity coverage', () => {
+  const fixture = createAgentReferenceFixture();
+  fixture.reference.items[1]!.metadata.deep.sections[0]!.covers = ['evidence'];
+  assert.throws(() => parseAgentReferenceInput(fixture), /narrative.*continuity/i);
+});
+
+test('agent reference contract requires one product in the sequence map', () => {
+  const fixture = createAgentReferenceFixture();
+  fixture.reference.analysis.sequenceMap.pop();
+  assert.throws(() => parseAgentReferenceInput(fixture), /entrada product/i);
+});
+
+test('agent reference contract requires the four canonical synthesis keys', () => {
+  const fixture = createAgentReferenceFixture();
+  fixture.reference.analysis.synthesis.pop();
+  assert.throws(() => parseAgentReferenceInput(fixture), /quatro chaves canônicas/i);
+});
+
+test('agent reference contract rejects conceptual movements without a mold screen', () => {
+  const fixture = createAgentReferenceFixture();
+  fixture.template.definition.moldSteps[1]!.templateStepIds = ['reinterpret-scene'];
+  assert.throws(() => parseAgentReferenceInput(fixture), /Movimentos sem tela.*support-reading/i);
+});
+
+test('agent reference contract requires a confirmed sequence', () => {
+  const fixture = createAgentReferenceFixture() as any;
+  fixture.reference.sequenceConfirmed = false;
+  assert.throws(() => parseAgentReferenceInput(fixture), /confirmação.*verdadeira|sequência.*confirmada/i);
 });
 
 test('agent reference contract accepts a document library without turning pages into stories', () => {

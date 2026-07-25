@@ -713,6 +713,27 @@
   font: 600 16px/1.48 Georgia, serif;
 }
 
+.ci-dossier-source-gap {
+  margin: 18px 0;
+  padding: 14px 16px;
+  border-left: 4px solid #8d8068;
+  background: #f0eee8;
+}
+
+.ci-dossier-source-gap b {
+  color: #6d624e;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.ci-dossier-source-gap p {
+  margin: 6px 0 0;
+  color: #56564f;
+  font-size: 14px;
+  line-height: 1.48;
+}
+
 .ci-dossier-quick-grid b,
 .ci-dossier-rule b,
 .ci-dossier-impression b,
@@ -1294,6 +1315,36 @@
   padding-left: 19px;
 }
 
+.ci-dossier-assessments dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.ci-dossier-assessments dl > div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--dossier-line);
+  border-radius: 5px;
+  background: #f6f3ec;
+}
+
+.ci-dossier-assessments dt {
+  margin-bottom: 5px;
+  color: var(--dossier-red);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.ci-dossier-assessments dd {
+  margin: 0;
+  color: #494a43;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .ci-dossier-synthesis {
   padding: 34px;
   background: var(--dossier-cream);
@@ -1349,6 +1400,22 @@
   line-height: 1.45;
 }
 
+.ci-dossier-product.is-canonical {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  padding: 0;
+}
+
+.ci-dossier-product.is-canonical > div {
+  min-width: 0;
+  padding: 18px;
+}
+
+.ci-dossier-product.is-canonical > div + div {
+  border-left: 1px solid rgba(255, 255, 255, .16);
+}
+
 .ci-dossier-registered-template {
   padding: 34px;
   background: var(--dossier-paper);
@@ -1359,10 +1426,66 @@
   font-size: 26px;
 }
 
-.ci-dossier-registered-template > div {
+.ci-dossier-template-steps {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.ci-dossier-template-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.ci-dossier-template-meta > div {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--dossier-line);
+  border-radius: 6px;
+  background: var(--dossier-cream);
+}
+
+.ci-dossier-template-meta b,
+.ci-dossier-template-lists h4,
+.ci-dossier-template-step dt {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--dossier-red);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.ci-dossier-template-meta p {
+  margin: 0;
+  color: #41423b;
+  font: 700 16px/1.45 Georgia, 'Times New Roman', serif;
+}
+
+.ci-dossier-template-lists {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 2px;
+}
+
+.ci-dossier-template-lists section {
+  min-width: 0;
+  padding: 15px;
+  border-top: 1px solid var(--dossier-line);
+}
+
+.ci-dossier-template-lists ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.ci-dossier-template-lists p,
+.ci-dossier-template-lists li {
+  color: #494a43;
+  line-height: 1.5;
 }
 
 .ci-dossier-registered-template article {
@@ -1396,6 +1519,34 @@
   margin-bottom: 0;
   color: var(--dossier-muted);
   line-height: 1.45;
+}
+
+.ci-dossier-template-step dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px 14px;
+  margin: 13px 0 0;
+}
+
+.ci-dossier-template-step dl > div {
+  min-width: 0;
+  padding-top: 9px;
+  border-top: 1px solid var(--dossier-line);
+}
+
+.ci-dossier-template-step dt {
+  margin: 0 0 4px;
+}
+
+.ci-dossier-template-step dd {
+  margin: 0;
+  color: #494a43;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ci-dossier-bruno-adaptation {
+  margin: 14px 0 18px;
 }
 
 .ci-dossier-transfer {
@@ -1693,7 +1844,10 @@
   .ci-dossier-quick-grid,
   .ci-dossier-sequence-map,
   .ci-dossier-synthesis-grid,
-  .ci-dossier-registered-template > div,
+  .ci-dossier-template-meta,
+  .ci-dossier-template-lists,
+  .ci-dossier-template-steps,
+  .ci-dossier-product.is-canonical,
   .ci-dossier-transfer ul,
   .ci-dossier-publication-list,
   .ci-dossier-model-rules {
@@ -1746,6 +1900,22 @@
 
   .ci-dossier-deep-story.is-reverse > * {
     order: initial;
+  }
+
+  .ci-dossier-assessments dl,
+  .ci-dossier-template-step dl {
+    grid-template-columns: 1fr;
+  }
+
+  .ci-dossier-product.is-canonical > div + div {
+    border-top: 1px solid rgba(255, 255, 255, .16);
+    border-left: 0;
+  }
+
+  .ci-dossier-template-meta,
+  .ci-dossier-template-lists,
+  .ci-dossier-template-steps {
+    gap: 8px;
   }
 
   .ci-dossier-synthesis,

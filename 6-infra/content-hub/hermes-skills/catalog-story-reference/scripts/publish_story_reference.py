@@ -35,6 +35,9 @@ ALLOWED_MIME_TYPES = {
     "video/webm",
 }
 CANONICAL_KEY = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+SCHEMA_PATH = (
+    Path(__file__).resolve().parents[2] / "_shared" / "canonical-story-dossier.schema.json"
+)
 RECEIPT_DIR = Path(
     os.environ.get(
         "HERMES_STORY_RECEIPT_DIR",
@@ -44,8 +47,12 @@ RECEIPT_DIR = Path(
 
 
 class PublishError(RuntimeError):
-    pass
+    def __init__(self, message: str, report: dict[str, Any] | None = None):
+        super().__init__(message)
+        self.report = report
 
+
+_SCHEMA_CACHE: dict[str, Any] | None = None
 
 def canonical_json(value: Any) -> bytes:
     return json.dumps(
@@ -62,6 +69,131 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def load_contract_schema() -> dict[str, Any]:
+    global _SCHEMA_CACHE
+    if _SCHEMA_CACHE is None:
+        try:
+            schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise PublishError(f"Canonical dossier schema could not be loaded: {error}") from None
+        _require(isinstance(schema, dict), "Canonical dossier schema root is invalid.")
+        _SCHEMA_CACHE = schema
+    return _SCHEMA_CACHE
+
+
+def _resolve_schema_ref(root: dict[str, Any], reference: str) -> dict[str, Any]:
+    _require(reference.startswith("#/"), f"Unsupported schema reference: {reference}")
+    current: Any = root
+    for raw_part in reference[2:].split("/"):
+        part = raw_part.replace("~1", "/").replace("~0", "~")
+        _require(isinstance(current, dict) and part in current, f"Unknown schema reference: {reference}")
+        current = current[part]
+    _require(isinstance(current, dict), f"Schema reference is not an object: {reference}")
+    return current
+
+
+def _schema_type_matches(value: Any, expected: str) -> bool:
+    if expected == "null":
+        return value is None
+    if expected == "object":
+        return isinstance(value, dict)
+    if expected == "array":
+        return isinstance(value, list)
+    if expected == "string":
+        return isinstance(value, str)
+    if expected == "integer":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if expected == "number":
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    if expected == "boolean":
+        return isinstance(value, bool)
+    return False
+
+
+def _validate_schema_node(
+    value: Any,
+    schema: dict[str, Any],
+    path: str,
+    root: dict[str, Any],
+    errors: list[str],
+) -> None:
+    if "$ref" in schema:
+        _validate_schema_node(value, _resolve_schema_ref(root, str(schema["$ref"])), path, root, errors)
+        return
+
+    if "anyOf" in schema:
+        valid_branch = False
+        for branch in schema["anyOf"]:
+            branch_errors: list[str] = []
+            _validate_schema_node(value, branch, path, root, branch_errors)
+            if not branch_errors:
+                valid_branch = True
+                break
+        if not valid_branch:
+            errors.append(f"{path} does not satisfy any allowed schema shape.")
+
+    expected_type = schema.get("type")
+    if expected_type is not None:
+        expected_types = expected_type if isinstance(expected_type, list) else [expected_type]
+        if not any(_schema_type_matches(value, str(item)) for item in expected_types):
+            errors.append(f"{path} must be of type {' or '.join(map(str, expected_types))}.")
+            return
+
+    if "const" in schema and value != schema["const"]:
+        errors.append(f"{path} must equal {schema['const']!r}.")
+    if "enum" in schema and value not in schema["enum"]:
+        errors.append(f"{path} must be one of {schema['enum']}.")
+
+    if isinstance(value, str):
+        min_length = int(schema.get("minLength", 0))
+        if min_length and len(value.strip()) < min_length:
+            errors.append(f"{path} must not be empty.")
+        pattern = schema.get("pattern")
+        if pattern and re.fullmatch(str(pattern), value) is None:
+            errors.append(f"{path} does not match the required pattern.")
+
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        if "minimum" in schema and value < schema["minimum"]:
+            errors.append(f"{path} must be at least {schema['minimum']}.")
+        if "maximum" in schema and value > schema["maximum"]:
+            errors.append(f"{path} must be at most {schema['maximum']}.")
+
+    if isinstance(value, list):
+        if len(value) < int(schema.get("minItems", 0)):
+            errors.append(f"{path} must contain at least {schema['minItems']} item(s).")
+        if "maxItems" in schema and len(value) > int(schema["maxItems"]):
+            errors.append(f"{path} must contain at most {schema['maxItems']} item(s).")
+        if schema.get("uniqueItems"):
+            serialized = [canonical_json(item) for item in value]
+            if len(set(serialized)) != len(serialized):
+                errors.append(f"{path} must contain unique items.")
+        item_schema = schema.get("items")
+        if isinstance(item_schema, dict):
+            for index, item in enumerate(value):
+                _validate_schema_node(item, item_schema, f"{path}[{index}]", root, errors)
+
+    if isinstance(value, dict):
+        for key in schema.get("required", []):
+            if key not in value:
+                errors.append(f"{path}.{key} is required.")
+        properties = schema.get("properties", {})
+        if isinstance(properties, dict):
+            for key, child_schema in properties.items():
+                if key in value and isinstance(child_schema, dict):
+                    _validate_schema_node(value[key], child_schema, f"{path}.{key}", root, errors)
+            if schema.get("additionalProperties") is False:
+                extras = sorted(set(value) - set(properties))
+                if extras:
+                    errors.append(f"{path} contains unsupported field(s): {', '.join(extras)}.")
+
+
+def schema_errors(payload: dict[str, Any]) -> list[str]:
+    schema = load_contract_schema()
+    errors: list[str] = []
+    _validate_schema_node(payload, schema, "$", schema, errors)
+    return errors
 
 
 def _require(condition: bool, message: str) -> None:
@@ -150,54 +282,268 @@ def _mime_type(path: Path, declared: str | None) -> str:
     return str(mime)
 
 
-def _validate_dossier(payload: dict[str, Any]) -> None:
-    template = payload.get("template")
-    reference = payload.get("reference")
-    _require(isinstance(template, dict), "template is required.")
-    _require(isinstance(reference, dict), "reference is required.")
-    _require(CANONICAL_KEY.fullmatch(str(template.get("canonicalKey", ""))) is not None,
-             "template.canonicalKey must use lowercase letters, numbers, and hyphens.")
+def _meaningful(value: Any) -> str:
+    return str(value).strip() if isinstance(value, str) else ""
 
-    definition = template.get("definition")
-    _require(isinstance(definition, dict), "template.definition is required.")
-    for key in ("moldSteps", "preserveRules", "adaptRules", "avoidRules", "steps"):
-        _nonempty_list(definition.get(key), f"template.definition.{key}")
 
-    items = _nonempty_list(reference.get("items"), "reference.items")
-    orders = [item.get("narrativeOrder") for item in items if isinstance(item, dict)]
-    _require(orders == list(range(1, len(items) + 1)),
-             "reference.items must have continuous narrativeOrder starting at 1.")
-    for order, item in enumerate(items, 1):
-        _require(isinstance(item, dict), f"Story {order} is invalid.")
-        metadata = item.get("metadata")
-        _require(isinstance(metadata, dict), f"Story {order} metadata is required.")
-        for layer in ("quick", "visual", "deep"):
-            _require(isinstance(metadata.get(layer), dict), f"Story {order} layer {layer} is required.")
-        visual = metadata["visual"]
-        for field in ("roleLabel", "title", "scene", "typography", "composition", "impression"):
-            _require(bool(str(visual.get(field, "")).strip()),
-                     f"Story {order} visual.{field} is required.")
-        _nonempty_list(visual.get("palette"), f"Story {order} visual.palette")
-        titles = [
-            str(metadata[layer].get("title", "")).strip().casefold()
-            for layer in ("quick", "visual", "deep")
-        ]
-        _require(all(titles) and len(set(titles)) == 3,
-                 f"Story {order} quick, visual, and deep titles must be distinct.")
+def _flatten_strings(value: Any) -> list[str]:
+    if isinstance(value, str):
+        text = value.strip()
+        return [text] if text else []
+    if isinstance(value, list):
+        return [text for item in value for text in _flatten_strings(item)]
+    if isinstance(value, dict):
+        return [text for item in value.values() for text in _flatten_strings(item)]
+    return []
 
-    analysis = reference.get("analysis")
-    _require(isinstance(analysis, dict), "reference.analysis is required.")
-    _require(bool(str(analysis.get("summary", "")).strip()), "reference.analysis.summary is required.")
-    for key in ("overview", "sequenceMap", "transferRules", "synthesis"):
-        _nonempty_list(analysis.get(key), f"reference.analysis.{key}")
-    for key in ("visualGrammar", "productRevealed"):
-        _require(bool(str(analysis.get(key, "")).strip()), f"reference.analysis.{key} is required.")
-    registered = analysis.get("registeredTemplate")
-    _require(isinstance(registered, dict) and bool(str(registered.get("name", "")).strip()),
-             "reference.analysis.registeredTemplate is required.")
-    _nonempty_list(registered.get("steps"), "reference.analysis.registeredTemplate.steps")
-    if analysis.get("sourceLibrary") is not None:
-        _validate_source_library(analysis["sourceLibrary"])
+
+def _normalized_texts(value: Any) -> set[str]:
+    return {
+        re.sub(r"\s+", " ", text).strip().casefold()
+        for text in _flatten_strings(value)
+        if len(text.strip()) >= 12
+    }
+
+
+def validate_dossier(
+    payload: dict[str, Any],
+    *,
+    raise_on_error: bool = True,
+) -> dict[str, Any]:
+    schema = load_contract_schema()
+    core_dimensions = list(schema["$defs"]["coreDimension"]["enum"])
+    synthesis_keys = list(schema["$defs"]["synthesisKey"]["enum"])
+    report: dict[str, Any] = {
+        "contractVersion": payload.get("dossierContractVersion"),
+        "errors": schema_errors(payload),
+        "warnings": [],
+        "storyCoverage": [],
+        "sequenceCoverage": {},
+        "networkAccessed": False,
+    }
+    errors: list[str] = report["errors"]
+    warnings: list[str] = report["warnings"]
+
+    if not errors:
+        template = payload["template"]
+        definition = template["definition"]
+        reference = payload["reference"]
+        items = reference["items"]
+        analysis = reference["analysis"]
+        expected_orders = list(range(1, len(items) + 1))
+        actual_orders = [item["narrativeOrder"] for item in items]
+        if actual_orders != expected_orders:
+            errors.append("reference.items must have continuous narrativeOrder starting at 1.")
+
+        for order, item in zip(expected_orders, items):
+            metadata = item["metadata"]
+            quick = metadata["quick"]
+            visual = metadata["visual"]
+            deep = metadata["deep"]
+            source_excerpt = _meaningful(metadata.get("sourceExcerpt"))
+            no_source_reason = _meaningful(metadata.get("noSourceTextReason"))
+            if not source_excerpt and not no_source_reason:
+                errors.append(
+                    f"Story {order} requires sourceExcerpt or noSourceTextReason."
+                )
+            if source_excerpt and no_source_reason:
+                errors.append(
+                    f"Story {order} cannot use sourceExcerpt and noSourceTextReason together."
+                )
+
+            titles = [
+                _meaningful(quick.get("title")).casefold(),
+                _meaningful(visual.get("title")).casefold(),
+                _meaningful(deep.get("title")).casefold(),
+            ]
+            if len(set(titles)) != 3:
+                errors.append(
+                    f"Story {order} quick, visual, and deep titles must be distinct."
+                )
+
+            if (
+                _meaningful(quick.get("summary")).casefold()
+                == _meaningful(visual.get("scene")).casefold()
+                == _meaningful(deep.get("lead")).casefold()
+            ):
+                errors.append(
+                    f"Story {order} reuses the same sentence as all three dossier layers."
+                )
+
+            covered = {
+                "evidence",
+                "funnel",
+                "subtext",
+                "template-consequence",
+            }
+            if _meaningful(visual.get("composition")) or visual.get("markers"):
+                covered.add("attention")
+            explicit_deep: set[str] = set()
+            for section_index, section in enumerate(deep["sections"], 1):
+                section_text = _flatten_strings({
+                    "paragraphs": section.get("paragraphs"),
+                    "bullets": section.get("bullets"),
+                })
+                if not section_text:
+                    errors.append(
+                        f"Story {order} deep section {section_index} has no analysis content."
+                    )
+                    continue
+                section_covers = set(section["covers"])
+                covered.update(section_covers)
+                explicit_deep.update(section_covers)
+                if sum(len(text) for text in section_text) > 1_600:
+                    warnings.append(
+                        f"Story {order} deep section {section_index} is unusually long."
+                    )
+
+            missing = [dimension for dimension in core_dimensions if dimension not in covered]
+            if missing:
+                errors.append(
+                    f"Story {order} is missing core coverage: {', '.join(missing)}."
+                )
+            for required_deep in ("narrative", "continuity"):
+                if required_deep not in explicit_deep:
+                    errors.append(
+                        f"Story {order} must cover {required_deep} explicitly in deep.sections."
+                    )
+
+            if not visual.get("markers"):
+                warnings.append(f"Story {order} has no visual markers.")
+            if sum(len(text) for text in _flatten_strings(deep)) < 180:
+                warnings.append(f"Story {order} deep analysis is unusually sparse.")
+
+            def layer_body(layer: dict[str, Any]) -> dict[str, Any]:
+                return {key: value for key, value in layer.items() if key not in {"roleLabel", "title"}}
+
+            layer_sets = {
+                "quick": _normalized_texts(layer_body(quick)),
+                "visual": _normalized_texts(layer_body(visual)),
+                "deep": _normalized_texts(layer_body(deep)),
+            }
+            repeated = (
+                layer_sets["quick"] & layer_sets["visual"]
+                | layer_sets["quick"] & layer_sets["deep"]
+                | layer_sets["visual"] & layer_sets["deep"]
+            )
+            if repeated:
+                warnings.append(
+                    f"Story {order} repeats exact text across layers: {sorted(repeated)[0][:80]}."
+                )
+
+            assessments = deep["dimensionAssessments"]
+            report["storyCoverage"].append({
+                "narrativeOrder": order,
+                "covered": [dimension for dimension in core_dimensions if dimension in covered],
+                "missing": missing,
+                "contextual": {
+                    key: assessments[key]["status"]
+                    for key in ("interaction", "critique")
+                },
+            })
+
+        sequence_map = analysis["sequenceMap"]
+        story_map = [entry for entry in sequence_map if entry["kind"] == "story"]
+        product_map = [entry for entry in sequence_map if entry["kind"] == "product"]
+        mapped_orders = [entry.get("storyOrder") for entry in story_map]
+        if mapped_orders != expected_orders:
+            errors.append("reference.analysis.sequenceMap must map every story once and in order.")
+        if len(product_map) != 1:
+            errors.append("reference.analysis.sequenceMap must contain exactly one product entry.")
+        if any("storyOrder" in entry for entry in product_map):
+            errors.append("The product sequenceMap entry must not declare storyOrder.")
+
+        actual_synthesis_keys = [block["key"] for block in analysis["synthesis"]]
+        if set(actual_synthesis_keys) != set(synthesis_keys) or len(actual_synthesis_keys) != len(synthesis_keys):
+            errors.append(
+                "reference.analysis.synthesis must contain each canonical key exactly once."
+            )
+
+        registered = analysis["registeredTemplate"]
+        registered_steps = registered["steps"]
+        registered_ids = [step["id"] for step in registered_steps]
+        if len(set(registered_ids)) != len(registered_ids):
+            errors.append("registeredTemplate step ids must be unique.")
+        expected_order_set = set(expected_orders)
+        generic_labels = {"identificacao", "identificaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o", "conteudo", "conteÃƒÆ’Ã‚Âºdo", "cta"}
+        for step in registered_steps:
+            evidence_orders = set(step["evidenceStoryOrders"])
+            if not evidence_orders <= expected_order_set:
+                errors.append(
+                    f"Registered step {step['id']} references an unknown story order."
+                )
+            semantic_values = {
+                _meaningful(step[field]).casefold()
+                for field in ("title", "description", "mechanism", "condition", "expectedResult")
+            }
+            if len(semantic_values) < 4 or _meaningful(step["title"]).casefold() in generic_labels:
+                errors.append(
+                    f"Registered step {step['id']} is a label, not an operational movement."
+                )
+
+        mold_steps = definition["moldSteps"]
+        mold_ids = [step["id"] for step in mold_steps]
+        if len(set(mold_ids)) != len(mold_ids):
+            errors.append("template.definition.moldSteps ids must be unique.")
+        linked_template_ids: set[str] = set()
+        valid_template_ids = set(registered_ids)
+        message_kinds = {"copy", "principle"}
+        evidence_kinds = {"scene", "person", "proof", "response"}
+        for mold_step in mold_steps:
+            linked = set(mold_step["templateStepIds"])
+            linked_template_ids.update(linked)
+            unknown = linked - valid_template_ids
+            if unknown:
+                errors.append(
+                    f"Mold step {mold_step['id']} references unknown template step(s): "
+                    f"{', '.join(sorted(unknown))}."
+                )
+            kinds = {placeholder["kind"] for placeholder in mold_step["placeholders"]}
+            if not kinds & message_kinds:
+                errors.append(f"Mold step {mold_step['id']} needs a message placeholder.")
+            if not kinds & evidence_kinds:
+                errors.append(f"Mold step {mold_step['id']} needs an evidence or scene placeholder.")
+        unlinked = valid_template_ids - linked_template_ids
+        if unlinked:
+            errors.append(
+                f"Conceptual template steps without a mold screen: {', '.join(sorted(unlinked))}."
+            )
+
+        if template["steps"] != definition["steps"]:
+            errors.append(
+                "template.steps and template.definition.steps must be identical compatibility projections."
+            )
+        if len(mold_steps) != len(items):
+            warnings.append(
+                "The number of mold screens differs from the number of reference stories."
+            )
+        if analysis.get("sourceLibrary") is not None:
+            try:
+                _validate_source_library(analysis["sourceLibrary"])
+            except PublishError as error:
+                errors.append(str(error))
+
+        report["sequenceCoverage"] = {
+            "storyCount": len(items),
+            "mappedStoryOrders": mapped_orders,
+            "hasProduct": len(product_map) == 1,
+            "synthesisKeys": actual_synthesis_keys,
+            "templateStepIds": registered_ids,
+            "moldStepIds": mold_ids,
+            "coveredTemplateStepIds": sorted(linked_template_ids),
+        }
+
+    report["ok"] = not errors
+    if errors and raise_on_error:
+        summary = "; ".join(errors[:8])
+        if len(errors) > 8:
+            summary += f"; and {len(errors) - 8} more error(s)"
+        raise PublishError(f"Dossier validation failed: {summary}", report=report)
+    return report
+
+
+def _validate_dossier(payload: dict[str, Any]) -> dict[str, Any]:
+    return validate_dossier(payload, raise_on_error=True)
 
 
 def prepare_payload(raw: dict[str, Any], payload_path: Path) -> tuple[dict[str, Any], dict[int, Path]]:
@@ -242,6 +588,7 @@ def prepare_payload(raw: dict[str, Any], payload_path: Path) -> tuple[dict[str, 
              "Assets exceed 200 MiB in total.")
 
     payload = {
+        "dossierContractVersion": raw["dossierContractVersion"],
         "template": raw["template"],
         "reference": raw["reference"],
         "assets": assets,
@@ -266,6 +613,7 @@ def prepare_payload(raw: dict[str, Any], payload_path: Path) -> tuple[dict[str, 
     payload["referenceKey"] = str(reference_key)
 
     hash_input = {
+        "dossierContractVersion": payload["dossierContractVersion"],
         "template": payload["template"],
         "reference": payload["reference"],
         "assets": payload["assets"],
@@ -467,10 +815,11 @@ def main(argv: list[str] | None = None) -> int:
     try:
         raw = json.loads(args.payload.read_text(encoding="utf-8"))
         _require(isinstance(raw, dict), "Payload root must be an object.")
+        report = validate_dossier(raw)
         payload, local_files = prepare_payload(raw, args.payload.resolve())
         if args.command == "validate":
             result = {
-                "ok": True,
+                **report,
                 "referenceKey": payload["referenceKey"],
                 "contentHash": payload["contentHash"],
                 "stories": len(payload["reference"]["items"]),
@@ -481,7 +830,10 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
         return 0
     except (OSError, json.JSONDecodeError, PublishError, ValueError) as error:
-        print(f"ERROR: {error}", file=sys.stderr)
+        if isinstance(error, PublishError) and error.report is not None:
+            print(json.dumps(error.report, ensure_ascii=False, sort_keys=True), file=sys.stderr)
+        else:
+            print(f"ERROR: {error}", file=sys.stderr)
         return 1
 
 

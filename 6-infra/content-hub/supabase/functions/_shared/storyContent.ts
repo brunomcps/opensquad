@@ -1,4 +1,20 @@
 export type StoryNarrativeRole = 'hook' | 'context' | 'development' | 'proof' | 'cta' | 'closing' | 'other';
+export type StoryDossierContractVersion = '1.0';
+export type StoryCoreDimension =
+  | 'evidence'
+  | 'attention'
+  | 'narrative'
+  | 'continuity'
+  | 'funnel'
+  | 'subtext'
+  | 'template-consequence';
+export type StoryContextualDimensionStatus = 'present' | 'not-applicable' | 'unknown';
+export type StorySynthesisKey =
+  | 'screen-roles'
+  | 'stimulus-change'
+  | 'aesthetics-production'
+  | 'strengths-limitations';
+export type StorySequenceMapKind = 'story' | 'product';
 export type StoryPublicationState =
   | 'draft'
   | 'pending_approval'
@@ -12,6 +28,7 @@ export type StoryPublicationState =
 export interface StoryTemplateStepInput {
   role: StoryNarrativeRole;
   instruction: string;
+  templateStepIds?: string[];
 }
 
 export type StoryTemplatePlaceholderKind =
@@ -29,6 +46,8 @@ export interface StoryTemplatePlaceholderInput {
 }
 
 export interface StoryTemplateMoldStepInput {
+  id?: string | null;
+  templateStepIds?: string[];
   title: string;
   purpose: string;
   fixedFunction?: string | null;
@@ -82,6 +101,7 @@ export interface StoryEvidenceMetadataInput {
   canonicalPageAssetUrl?: string | null;
   evidenceType?: string | null;
   sourceExcerpt?: string | null;
+  noSourceTextReason?: string | null;
   analysis?: string | null;
   criticism?: string | null;
   brunoAdaptation?: string | null;
@@ -99,8 +119,14 @@ export interface StoryEvidenceMetadataInput {
 
 export interface StoryEvidenceSectionInput {
   title: string;
+  covers?: StoryCoreDimension[];
   paragraphs?: string[];
   bullets?: string[];
+}
+
+export interface StoryDimensionAssessmentInput {
+  status: StoryContextualDimensionStatus;
+  rationale: string;
 }
 
 export interface StoryVisualMarkerInput {
@@ -135,26 +161,46 @@ export interface StoryDeepAnalysisInput {
   roleLabel: string;
   title: string;
   lead: string;
+  dimensionAssessments?: {
+    interaction: StoryDimensionAssessmentInput;
+    critique: StoryDimensionAssessmentInput;
+  };
   sections: StoryEvidenceSectionInput[];
   extractedRule: string;
 }
 
 export interface StorySynthesisInput {
+  key?: StorySynthesisKey;
   title: string;
   paragraphs: string[];
 }
 
 export interface StoryRegisteredTemplateStepInput {
+  id?: string;
   title: string;
   description: string;
+  mechanism?: string;
+  condition?: string;
+  expectedResult?: string;
+  evidenceStoryOrders?: number[];
 }
 
 export interface StoryRegisteredTemplateInput {
   name: string;
+  formula?: string;
+  useWhen?: string;
+  primaryFunction?: string;
+  requiredElements?: string[];
+  optionalElements?: string[];
+  executionRisks?: string[];
+  capturesOrInputs?: string[];
+  brunoAdaptation?: string;
   steps: StoryRegisteredTemplateStepInput[];
 }
 
 export interface StorySequenceMapItemInput {
+  kind?: StorySequenceMapKind;
+  storyOrder?: number;
   label: string;
   value: string;
 }
@@ -204,6 +250,9 @@ export interface StorySourceLibraryInput {
 }
 
 export interface StoryReferenceAnalysisInput {
+  dossierContractVersion?: StoryDossierContractVersion;
+  sequenceConfirmed?: boolean;
+  sequenceConfirmationSource?: string | null;
   summary?: string | null;
   narrativeArc?: string[];
   whyItWorks?: string[];
@@ -211,7 +260,9 @@ export interface StoryReferenceAnalysisInput {
   overview?: string[];
   sequenceMap?: StorySequenceMapItemInput[];
   visualGrammar?: string | null;
+  apparentProduct?: string | null;
   productRevealed?: string | null;
+  personaConstructed?: string | null;
   transferRules?: string[];
   synthesis?: StorySynthesisInput[];
   registeredTemplate?: StoryRegisteredTemplateInput;
@@ -227,6 +278,8 @@ export interface StoryReferenceItemInput extends StoryPublicationItemInput {
 export interface StoryReferenceInput {
   title: string;
   description: string;
+  sequenceConfirmed?: boolean;
+  sequenceConfirmationSource?: string | null;
   analysis?: StoryReferenceAnalysisInput;
   platform: 'instagram' | 'facebook' | 'tiktok' | 'youtube' | 'other';
   sourceAccount: string;
@@ -256,6 +309,7 @@ export type StoryAgentReferenceDetailsInput = Omit<StoryReferenceInput, 'templat
 };
 
 export interface StoryAgentReferenceInput {
+  dossierContractVersion: StoryDossierContractVersion;
   referenceKey: string;
   contentHash: string;
   template: StoryAgentTemplateInput;
@@ -280,6 +334,28 @@ const agentMimeTypes = new Set<StoryAgentAssetInput['mimeType']>([
   'video/mp4',
   'video/webm',
 ]);
+const dossierContractVersion: StoryDossierContractVersion = '1.0';
+const coreDimensions = new Set<StoryCoreDimension>([
+  'evidence',
+  'attention',
+  'narrative',
+  'continuity',
+  'funnel',
+  'subtext',
+  'template-consequence',
+]);
+const contextualDimensionStatuses = new Set<StoryContextualDimensionStatus>([
+  'present',
+  'not-applicable',
+  'unknown',
+]);
+const synthesisKeys = new Set<StorySynthesisKey>([
+  'screen-roles',
+  'stimulus-change',
+  'aesthetics-production',
+  'strengths-limitations',
+]);
+const sequenceMapKinds = new Set<StorySequenceMapKind>(['story', 'product']);
 
 export const MAX_AGENT_BODY_BYTES = 1024 * 1024;
 export const MAX_AGENT_ASSET_BYTES = 20 * 1024 * 1024;
@@ -330,7 +406,13 @@ function parseSteps(rawSteps: unknown): StoryTemplateStepInput[] {
     if (typeof step.role !== 'string' || !roles.has(step.role as StoryNarrativeRole)) {
       throw new Error(`Função narrativa do passo ${index + 1} inválida.`);
     }
-    return { role: step.role as StoryNarrativeRole, instruction: text(step.instruction, `Instrução do passo ${index + 1}`, 500)! };
+    return {
+      role: step.role as StoryNarrativeRole,
+      instruction: text(step.instruction, `Instrução do passo ${index + 1}`, 500)!,
+      ...(step.templateStepIds != null
+        ? { templateStepIds: canonicalKeyArray(step.templateStepIds, `IDs conceituais do passo ${index + 1}`) }
+        : {}),
+    };
   });
 }
 
@@ -338,6 +420,53 @@ function textArray(value: unknown, label: string, maxItems = 30, maxText = 1000)
   if (value == null) return [];
   if (!Array.isArray(value) || value.length > maxItems) throw new Error(`${label} tem tamanho inválido.`);
   return value.map((entry, index) => text(entry, `${label} ${index + 1}`, maxText)!);
+}
+
+function canonicalKeyArray(value: unknown, label: string, maxItems = 20): string[] {
+  if (value == null) return [];
+  if (!Array.isArray(value) || value.length > maxItems) {
+    throw new Error(`${label} tem tamanho inválido.`);
+  }
+  const parsed = value.map((entry, index) => {
+    const key = text(entry, `${label} ${index + 1}`, 160)!;
+    if (!canonicalKeyPattern.test(key)) throw new Error(`${label} ${index + 1} inválido.`);
+    return key;
+  });
+  if (new Set(parsed).size !== parsed.length) {
+    throw new Error(`${label} não pode conter repetições.`);
+  }
+  return parsed;
+}
+
+function parseCovers(value: unknown, label: string): StoryCoreDimension[] {
+  if (value == null) return [];
+  if (!Array.isArray(value) || value.length > coreDimensions.size) {
+    throw new Error(`${label} tem tamanho inválido.`);
+  }
+  const covers = value.map((entry, index) => {
+    if (typeof entry !== 'string' || !coreDimensions.has(entry as StoryCoreDimension)) {
+      throw new Error(`${label} ${index + 1} inválida.`);
+    }
+    return entry as StoryCoreDimension;
+  });
+  if (new Set(covers).size !== covers.length) {
+    throw new Error(`${label} não pode conter repetições.`);
+  }
+  return covers;
+}
+
+function parseDimensionAssessment(value: unknown, label: string): StoryDimensionAssessmentInput {
+  const assessment = object(value, label);
+  if (
+    typeof assessment.status !== 'string'
+    || !contextualDimensionStatuses.has(assessment.status as StoryContextualDimensionStatus)
+  ) {
+    throw new Error(`${label} tem status inválido.`);
+  }
+  return {
+    status: assessment.status as StoryContextualDimensionStatus,
+    rationale: text(assessment.rationale, `Justificativa de ${label}`, 2000)!,
+  };
 }
 
 function parseTemplateDefinition(value: unknown, legacySteps: unknown): StoryTemplateDefinitionInput {
@@ -364,7 +493,19 @@ function parseTemplateDefinition(value: unknown, legacySteps: unknown): StoryTem
         label: text(placeholder.label, `Rótulo do placeholder ${placeholderIndex + 1} da etapa ${index + 1}`, 300)!,
       };
     });
+    const id = step.id == null ? null : text(step.id, `ID da etapa do molde ${index + 1}`, 160, false);
+    if (id && !canonicalKeyPattern.test(id)) {
+      throw new Error(`ID da etapa do molde ${index + 1} inválido.`);
+    }
+    const templateStepIds = step.templateStepIds == null
+      ? []
+      : canonicalKeyArray(
+          step.templateStepIds,
+          `IDs conceituais da etapa do molde ${index + 1}`,
+        );
     return {
+      ...(step.id != null ? { id } : {}),
+      ...(step.templateStepIds != null ? { templateStepIds } : {}),
       title: text(step.title, `Título da etapa do molde ${index + 1}`, 160)!,
       purpose: text(step.purpose, `Propósito da etapa do molde ${index + 1}`, 1000)!,
       ...(step.fixedFunction != null
@@ -456,6 +597,9 @@ function parseEvidenceMetadata(value: unknown, index: number): StoryEvidenceMeta
     const section = object(raw, `Seção ${sectionIndex + 1} da análise ${index}`);
     return {
       title: text(section.title, `Título da seção ${sectionIndex + 1} da análise ${index}`, 300)!,
+      ...(section.covers != null
+        ? { covers: parseCovers(section.covers, `Cobertura da seção ${sectionIndex + 1} da análise ${index}`) }
+        : {}),
       ...(section.paragraphs != null
         ? { paragraphs: textArray(section.paragraphs, `Parágrafo da seção ${sectionIndex + 1}`, 20, 4000) }
         : {}),
@@ -521,6 +665,9 @@ function parseEvidenceMetadata(value: unknown, index: number): StoryEvidenceMeta
       const section = object(raw, `Seção profunda ${sectionIndex + 1} do story ${index}`);
       return {
         title: text(section.title, `Título da seção profunda ${sectionIndex + 1}`, 300)!,
+        ...(section.covers != null
+          ? { covers: parseCovers(section.covers, `Cobertura da seção profunda ${sectionIndex + 1}`) }
+          : {}),
         ...(section.paragraphs != null
           ? { paragraphs: textArray(section.paragraphs, `Parágrafo da seção profunda ${sectionIndex + 1}`, 20, 4000) }
           : {}),
@@ -529,10 +676,27 @@ function parseEvidenceMetadata(value: unknown, index: number): StoryEvidenceMeta
           : {}),
       };
     });
+    const rawAssessments = deep.dimensionAssessments == null
+      ? null
+      : object(deep.dimensionAssessments, `Avaliações dimensionais do story ${index}`);
     parsedDeep = {
       roleLabel: text(deep.roleLabel, `Papel da análise profunda ${index}`, 2000)!,
       title: text(deep.title, `Título da análise profunda ${index}`, 2000)!,
       lead: text(deep.lead, `Abertura da análise profunda ${index}`, 4000)!,
+      ...(rawAssessments
+        ? {
+            dimensionAssessments: {
+              interaction: parseDimensionAssessment(
+                rawAssessments.interaction,
+                `Interação do story ${index}`,
+              ),
+              critique: parseDimensionAssessment(
+                rawAssessments.critique,
+                `Crítica do story ${index}`,
+              ),
+            },
+          }
+        : {}),
       sections,
       extractedRule: text(deep.extractedRule, `Regra da análise profunda ${index}`, 4000)!,
     };
@@ -542,7 +706,19 @@ function parseEvidenceMetadata(value: unknown, index: number): StoryEvidenceMeta
     ...(metadata.canonicalPageUrl != null ? { canonicalPageUrl: dossierUrl(metadata.canonicalPageUrl, `URL canônica ${index}`) } : {}),
     ...(metadata.canonicalPageAssetUrl != null ? { canonicalPageAssetUrl: dossierUrl(metadata.canonicalPageAssetUrl, `Asset canônico ${index}`, true) } : {}),
     ...optionalField('evidenceType', 'Tipo de evidência', 100),
-    ...optionalField('sourceExcerpt', 'Trecho original', 10_000),
+    ...(Object.prototype.hasOwnProperty.call(metadata, 'sourceExcerpt')
+      ? { sourceExcerpt: text(metadata.sourceExcerpt, `Trecho original ${index}`, 10_000, false) }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(metadata, 'noSourceTextReason')
+      ? {
+          noSourceTextReason: text(
+            metadata.noSourceTextReason,
+            `Justificativa de ausência do trecho original ${index}`,
+            2000,
+            false,
+          ),
+        }
+      : {}),
     ...optionalField('analysis', 'Análise da evidência', 10_000),
     ...optionalField('criticism', 'Crítica da evidência', 10_000),
     ...optionalField('brunoAdaptation', 'Adaptação Bruno', 10_000),
@@ -700,12 +876,25 @@ function parseReferenceAnalysis(value: unknown): StoryReferenceAnalysisInput {
   if (value == null) return {};
   const analysis = object(value, 'Análise estruturada');
   const rawSequenceMap = analysis.sequenceMap ?? [];
-  if (!Array.isArray(rawSequenceMap) || rawSequenceMap.length > 12) {
+  if (!Array.isArray(rawSequenceMap) || rawSequenceMap.length > 21) {
     throw new Error('Mapa da sequência tem tamanho inválido.');
   }
   const sequenceMap = rawSequenceMap.map((raw, index) => {
     const item = object(raw, `Item ${index + 1} do mapa da sequência`);
+    let kind: StorySequenceMapKind | undefined;
+    if (item.kind != null) {
+      if (typeof item.kind !== 'string' || !sequenceMapKinds.has(item.kind as StorySequenceMapKind)) {
+        throw new Error(`Tipo do item ${index + 1} do mapa da sequência inválido.`);
+      }
+      kind = item.kind as StorySequenceMapKind;
+    }
+    let storyOrder: number | undefined;
+    if (item.storyOrder != null) {
+      storyOrder = positiveInteger(item.storyOrder, `Ordem do item ${index + 1} do mapa da sequência`, 20);
+    }
     return {
+      ...(kind ? { kind } : {}),
+      ...(storyOrder ? { storyOrder } : {}),
       label: text(item.label, `Rótulo ${index + 1} do mapa da sequência`, 160)!,
       value: text(item.value, `Valor ${index + 1} do mapa da sequência`, 500)!,
     };
@@ -716,7 +905,15 @@ function parseReferenceAnalysis(value: unknown): StoryReferenceAnalysisInput {
   }
   const synthesis = rawSynthesis.map((raw, index) => {
     const block = object(raw, `Bloco ${index + 1} da síntese`);
+    let key: StorySynthesisKey | undefined;
+    if (block.key != null) {
+      if (typeof block.key !== 'string' || !synthesisKeys.has(block.key as StorySynthesisKey)) {
+        throw new Error(`Chave do bloco ${index + 1} da síntese inválida.`);
+      }
+      key = block.key as StorySynthesisKey;
+    }
     return {
+      ...(key ? { key } : {}),
       title: text(block.title, `Título do bloco ${index + 1} da síntese`, 300)!,
       paragraphs: textArray(block.paragraphs, `Parágrafo do bloco ${index + 1} da síntese`, 12, 4000),
     };
@@ -730,18 +927,87 @@ function parseReferenceAnalysis(value: unknown): StoryReferenceAnalysisInput {
     if (!Array.isArray(rawSteps) || rawSteps.length > 8) {
       throw new Error('Passos do template registrado têm tamanho inválido.');
     }
+    const parseRegisteredList = (key: keyof StoryRegisteredTemplateInput, label: string) => (
+      registeredTemplate[key] != null
+        ? { [key]: textArray(registeredTemplate[key], label, 30, 2000) }
+        : {}
+    );
     parsedRegisteredTemplate = {
       name: text(registeredTemplate.name, 'Nome do template registrado', 300)!,
+      ...(registeredTemplate.formula != null
+        ? { formula: text(registeredTemplate.formula, 'Fórmula do template registrado', 2000)! }
+        : {}),
+      ...(registeredTemplate.useWhen != null
+        ? { useWhen: text(registeredTemplate.useWhen, 'Quando usar o template registrado', 4000)! }
+        : {}),
+      ...(registeredTemplate.primaryFunction != null
+        ? { primaryFunction: text(registeredTemplate.primaryFunction, 'Função principal do template registrado', 4000)! }
+        : {}),
+      ...parseRegisteredList('requiredElements', 'Elemento obrigatório do template registrado'),
+      ...parseRegisteredList('optionalElements', 'Elemento opcional do template registrado'),
+      ...parseRegisteredList('executionRisks', 'Risco de execução do template registrado'),
+      ...parseRegisteredList('capturesOrInputs', 'Captura ou insumo do template registrado'),
+      ...(registeredTemplate.brunoAdaptation != null
+        ? { brunoAdaptation: text(registeredTemplate.brunoAdaptation, 'Adaptação do template para Bruno', 10_000)! }
+        : {}),
       steps: rawSteps.map((raw, index) => {
         const step = object(raw, `Passo ${index + 1} do template registrado`);
+        const id = step.id == null
+          ? null
+          : text(step.id, `ID do passo ${index + 1} do template registrado`, 160, false);
+        if (id && !canonicalKeyPattern.test(id)) {
+          throw new Error(`ID do passo ${index + 1} do template registrado inválido.`);
+        }
+        let evidenceStoryOrders: number[] | undefined;
+        if (step.evidenceStoryOrders != null) {
+          if (!Array.isArray(step.evidenceStoryOrders) || step.evidenceStoryOrders.length > 20) {
+            throw new Error(`Evidências do passo ${index + 1} do template registrado têm tamanho inválido.`);
+          }
+          evidenceStoryOrders = step.evidenceStoryOrders.map((order, orderIndex) => (
+            positiveInteger(order, `Story ${orderIndex + 1} das evidências do passo ${index + 1}`, 20)
+          ));
+          if (new Set(evidenceStoryOrders).size !== evidenceStoryOrders.length) {
+            throw new Error(`Evidências do passo ${index + 1} do template registrado não podem se repetir.`);
+          }
+        }
         return {
+          ...(id ? { id } : {}),
           title: text(step.title, `Título do passo ${index + 1} do template registrado`, 300)!,
           description: text(step.description, `Descrição do passo ${index + 1} do template registrado`, 2000)!,
+          ...(step.mechanism != null
+            ? { mechanism: text(step.mechanism, `Mecanismo do passo ${index + 1}`, 4000)! }
+            : {}),
+          ...(step.condition != null
+            ? { condition: text(step.condition, `Condição do passo ${index + 1}`, 4000)! }
+            : {}),
+          ...(step.expectedResult != null
+            ? { expectedResult: text(step.expectedResult, `Resultado do passo ${index + 1}`, 4000)! }
+            : {}),
+          ...(evidenceStoryOrders ? { evidenceStoryOrders } : {}),
         };
       }),
     };
   }
+  if (
+    analysis.dossierContractVersion != null
+    && analysis.dossierContractVersion !== dossierContractVersion
+  ) {
+    throw new Error(`Versão do contrato do dossiê inválida. Use ${dossierContractVersion}.`);
+  }
   return {
+    ...(analysis.dossierContractVersion != null
+      ? { dossierContractVersion }
+      : {}),
+    ...(analysis.sequenceConfirmed != null
+      ? {
+          sequenceConfirmed: analysis.sequenceConfirmed === true
+            ? true
+            : (() => { throw new Error('A confirmação persistida da sequência precisa ser verdadeira.'); })(),
+        }
+      : {}),
+    ...(analysis.sequenceConfirmationSource != null
+      ? { sequenceConfirmationSource: text(analysis.sequenceConfirmationSource, 'Fonte persistida da confirmação', 2000, false) }
+      : {}),
     ...(analysis.summary != null ? { summary: text(analysis.summary, 'Resumo da análise', 10_000, false) } : {}),
     ...(analysis.narrativeArc != null ? { narrativeArc: textArray(analysis.narrativeArc, 'Arco narrativo', 30, 500) } : {}),
     ...(analysis.whyItWorks != null ? { whyItWorks: textArray(analysis.whyItWorks, 'Por que funciona', 30, 2000) } : {}),
@@ -749,7 +1015,13 @@ function parseReferenceAnalysis(value: unknown): StoryReferenceAnalysisInput {
     ...(analysis.overview != null ? { overview: textArray(analysis.overview, 'Leitura geral', 20, 4000) } : {}),
     ...(analysis.sequenceMap != null ? { sequenceMap } : {}),
     ...(analysis.visualGrammar != null ? { visualGrammar: text(analysis.visualGrammar, 'Gramática visual', 10_000, false) } : {}),
+    ...(analysis.apparentProduct != null
+      ? { apparentProduct: text(analysis.apparentProduct, 'Produto aparente', 10_000, false) }
+      : {}),
     ...(analysis.productRevealed != null ? { productRevealed: text(analysis.productRevealed, 'Produto revelado', 10_000, false) } : {}),
+    ...(Object.prototype.hasOwnProperty.call(analysis, 'personaConstructed')
+      ? { personaConstructed: text(analysis.personaConstructed, 'Persona construída', 10_000, false) }
+      : {}),
     ...(analysis.transferRules != null ? { transferRules: textArray(analysis.transferRules, 'Regra de transferência', 30, 2000) } : {}),
     ...(analysis.synthesis != null ? { synthesis } : {}),
     ...(parsedRegisteredTemplate ? { registeredTemplate: parsedRegisteredTemplate } : {}),
@@ -802,6 +1074,16 @@ export function parseCreateReferenceInput(value: unknown): StoryReferenceInput {
   return {
     title: text(input.title, 'Título', 200)!,
     description: text(input.description, 'Análise', 4000)!,
+    ...(input.sequenceConfirmed != null
+      ? {
+          sequenceConfirmed: input.sequenceConfirmed === true
+            ? true
+            : (() => { throw new Error('A confirmação da sequência precisa ser verdadeira.'); })(),
+        }
+      : {}),
+    ...(input.sequenceConfirmationSource != null
+      ? { sequenceConfirmationSource: text(input.sequenceConfirmationSource, 'Fonte da confirmação da sequência', 2000, false) }
+      : {}),
     ...(input.analysis != null ? { analysis: parseReferenceAnalysis(input.analysis) } : {}),
     platform: input.platform as StoryReferenceInput['platform'],
     sourceAccount: text(input.sourceAccount, 'Conta de origem', 160)!,
@@ -817,8 +1099,16 @@ function requiredAgentList(value: unknown[] | undefined, label: string): void {
   if (!Array.isArray(value) || value.length === 0) throw new Error(`${label} é obrigatório no dossiê do Hermes.`);
 }
 
+function requiredAgentText(value: unknown, label: string, max = 10_000): string {
+  return text(value, label, max)!;
+}
+
 export function parseAgentReferenceInput(value: unknown): StoryAgentReferenceInput {
   const input = object(value, 'Referência do Hermes');
+  if (input.dossierContractVersion !== dossierContractVersion) {
+    throw new Error(`dossierContractVersion precisa ser ${dossierContractVersion}.`);
+  }
+
   const referenceKey = text(input.referenceKey, 'referenceKey', 160)!;
   if (!canonicalKeyPattern.test(referenceKey)) {
     throw new Error('referenceKey precisa usar apenas letras minúsculas, números e hífens.');
@@ -834,16 +1124,33 @@ export function parseAgentReferenceInput(value: unknown): StoryAgentReferenceInp
   const template = parseCreateTemplateInput(rawTemplate) as StoryAgentTemplateInput;
   template.canonicalKey = canonicalKey;
   const definition = template.definition!;
+  const rawDefinition = object(rawTemplate.definition, 'Definição canônica do template');
+  requiredAgentText(definition.editorialName, 'O nome editorial');
+  requiredAgentText(definition.editorialSummary, 'O resumo editorial');
+  requiredAgentText(definition.formula, 'A fórmula do template');
   requiredAgentList(definition.moldSteps, 'O molde 9:16');
   requiredAgentList(definition.preserveRules, 'A lista preservar');
   requiredAgentList(definition.adaptRules, 'A lista adaptar');
   requiredAgentList(definition.avoidRules, 'A lista evitar');
+  const rootLegacySteps = parseSteps(rawTemplate.steps);
+  const definitionLegacySteps = parseSteps(rawDefinition.steps);
+  if (JSON.stringify(rootLegacySteps) !== JSON.stringify(definitionLegacySteps)) {
+    throw new Error('template.steps e template.definition.steps precisam ser projeções idênticas.');
+  }
 
   const rawReference = object(input.reference, 'Dossiê da referência');
-  if (!Array.isArray(rawReference.items) || rawReference.items.length < 1 || rawReference.items.length > 20) {
+  const rawReferenceItems = rawReference.items;
+  if (!Array.isArray(rawReferenceItems) || rawReferenceItems.length < 1 || rawReferenceItems.length > 20) {
     throw new Error('O dossiê do Hermes precisa de 1 a 20 stories.');
   }
-  const provisionalItems = rawReference.items.map((raw, index) => {
+  const expectedOrders = Array.from({ length: rawReferenceItems.length }, (_, index) => index + 1);
+  const receivedOrders = rawReferenceItems.map((raw, index) => (
+    Number(object(raw, `Story ${index + 1} do Hermes`).narrativeOrder)
+  ));
+  if (JSON.stringify(receivedOrders) !== JSON.stringify(expectedOrders)) {
+    throw new Error('A ordem narrativa precisa ser contínua, começar em 1 e chegar já ordenada.');
+  }
+  const provisionalItems = rawReferenceItems.map((raw, index) => {
     const item = object(raw, `Story ${index + 1} do Hermes`);
     const narrativeOrder = Number(item.narrativeOrder);
     return {
@@ -857,11 +1164,27 @@ export function parseAgentReferenceInput(value: unknown): StoryAgentReferenceInp
     items: provisionalItems,
   });
   parsedReference.items.forEach((item, index) => {
+    const rawItem = object(rawReferenceItems[index], `Story ${index + 1} do Hermes`);
+    const rawMetadata = object(rawItem.metadata, `Metadata do story ${item.narrativeOrder}`);
+    if (
+      !Object.prototype.hasOwnProperty.call(rawMetadata, 'sourceExcerpt')
+      || !Object.prototype.hasOwnProperty.call(rawMetadata, 'noSourceTextReason')
+    ) {
+      throw new Error(`O story ${item.narrativeOrder} precisa declarar sourceExcerpt e noSourceTextReason.`);
+    }
     if (item.narrativeOrder !== index + 1) throw new Error('A ordem narrativa precisa ser contínua e começar em 1.');
     const metadata = item.metadata;
     if (!metadata?.quick) throw new Error(`A camada quick é obrigatória no story ${item.narrativeOrder}.`);
     if (!metadata.visual) throw new Error(`A camada visual é obrigatória no story ${item.narrativeOrder}.`);
     if (!metadata.deep) throw new Error(`A camada deep é obrigatória no story ${item.narrativeOrder}.`);
+    const sourceExcerpt = metadata.sourceExcerpt?.trim() || '';
+    const noSourceTextReason = metadata.noSourceTextReason?.trim() || '';
+    if (!sourceExcerpt && !noSourceTextReason) {
+      throw new Error(`O story ${item.narrativeOrder} precisa de sourceExcerpt ou noSourceTextReason.`);
+    }
+    if (sourceExcerpt && noSourceTextReason) {
+      throw new Error(`O story ${item.narrativeOrder} não pode usar sourceExcerpt e noSourceTextReason ao mesmo tempo.`);
+    }
     const visualRequired = [
       metadata.visual.roleLabel,
       metadata.visual.title,
@@ -874,6 +1197,35 @@ export function parseAgentReferenceInput(value: unknown): StoryAgentReferenceInp
       throw new Error(`O raio-X visual do story ${item.narrativeOrder} está incompleto.`);
     }
     requiredAgentList(metadata.visual.palette, `A paleta visual do story ${item.narrativeOrder}`);
+    requiredAgentList(metadata.deep.sections, `As seções aprofundadas do story ${item.narrativeOrder}`);
+    if (!metadata.deep.dimensionAssessments?.interaction || !metadata.deep.dimensionAssessments.critique) {
+      throw new Error(`As avaliações contextuais do story ${item.narrativeOrder} estão incompletas.`);
+    }
+    const covered = new Set<StoryCoreDimension>([
+      'evidence',
+      'funnel',
+      'subtext',
+      'template-consequence',
+    ]);
+    if (metadata.visual.composition?.trim() || metadata.visual.markers?.length) covered.add('attention');
+    const explicitDeep = new Set<StoryCoreDimension>();
+    metadata.deep.sections.forEach((section, sectionIndex) => {
+      requiredAgentList(section.covers, `A cobertura da seção ${sectionIndex + 1} do story ${item.narrativeOrder}`);
+      if (!(section.paragraphs?.length || section.bullets?.length)) {
+        throw new Error(`A seção ${sectionIndex + 1} do story ${item.narrativeOrder} precisa de conteúdo analítico.`);
+      }
+      section.covers!.forEach(dimension => {
+        covered.add(dimension);
+        explicitDeep.add(dimension);
+      });
+    });
+    const missingDimensions = [...coreDimensions].filter(dimension => !covered.has(dimension));
+    if (missingDimensions.length) {
+      throw new Error(`O story ${item.narrativeOrder} não cobre: ${missingDimensions.join(', ')}.`);
+    }
+    if (!explicitDeep.has('narrative') || !explicitDeep.has('continuity')) {
+      throw new Error(`O story ${item.narrativeOrder} precisa cobrir narrative e continuity explicitamente.`);
+    }
     const titles = [metadata.quick.title, metadata.visual.title!, metadata.deep.title]
       .map(title => title.trim().toLocaleLowerCase('pt-BR'));
     if (new Set(titles).size !== titles.length) {
@@ -882,15 +1234,111 @@ export function parseAgentReferenceInput(value: unknown): StoryAgentReferenceInp
   });
 
   const analysis = parsedReference.analysis;
+  const rawAnalysis = object(rawReference.analysis, 'Análise transversal canônica');
+  if (parsedReference.sequenceConfirmed !== true) {
+    throw new Error('A sequência precisa estar confirmada antes da publicação.');
+  }
+  requiredAgentText(parsedReference.sequenceConfirmationSource, 'A fonte da confirmação da sequência', 2000);
   if (!analysis?.summary) throw new Error('O summary transversal é obrigatório.');
   requiredAgentList(analysis.overview, 'O overview transversal');
+  requiredAgentList(analysis.narrativeArc, 'O arco narrativo transversal');
+  requiredAgentList(analysis.whyItWorks, 'A explicação de por que a sequência funciona');
+  requiredAgentText(analysis.templateFit, 'A aderência ao template', 4000);
   requiredAgentList(analysis.sequenceMap, 'O mapa da sequência');
   if (!analysis.visualGrammar) throw new Error('A gramática visual é obrigatória.');
+  if (!analysis.apparentProduct) throw new Error('O produto aparente é obrigatório.');
   if (!analysis.productRevealed) throw new Error('O produto revelado é obrigatório.');
+  if (!Object.prototype.hasOwnProperty.call(rawAnalysis, 'personaConstructed')) {
+    throw new Error('personaConstructed precisa ser declarado, mesmo quando for nulo.');
+  }
   requiredAgentList(analysis.transferRules, 'As regras de transferência');
   requiredAgentList(analysis.synthesis, 'A síntese transversal');
   if (!analysis.registeredTemplate?.name) throw new Error('O template registrado é obrigatório.');
   requiredAgentList(analysis.registeredTemplate.steps, 'Os passos do template registrado');
+  requiredAgentText(analysis.sourceNote, 'A nota de fonte', 2000);
+
+  const storyMap = analysis.sequenceMap!.filter(entry => entry.kind === 'story');
+  const productMap = analysis.sequenceMap!.filter(entry => entry.kind === 'product');
+  if (
+    JSON.stringify(storyMap.map(entry => entry.storyOrder)) !== JSON.stringify(expectedOrders)
+    || storyMap.length !== expectedOrders.length
+  ) {
+    throw new Error('O mapa da sequência precisa representar cada story uma vez e em ordem.');
+  }
+  if (productMap.length !== 1 || productMap[0]!.storyOrder != null) {
+    throw new Error('O mapa da sequência precisa de exatamente uma entrada product sem storyOrder.');
+  }
+
+  const actualSynthesisKeys = analysis.synthesis!.map(block => block.key);
+  if (
+    actualSynthesisKeys.length !== synthesisKeys.size
+    || new Set(actualSynthesisKeys).size !== synthesisKeys.size
+    || [...synthesisKeys].some(key => !actualSynthesisKeys.includes(key))
+  ) {
+    throw new Error('A síntese transversal precisa conter exatamente as quatro chaves canônicas.');
+  }
+  analysis.synthesis!.forEach((block, index) => {
+    requiredAgentList(block.paragraphs, `Os parágrafos da síntese ${index + 1}`);
+  });
+
+  const registeredTemplate = analysis.registeredTemplate!;
+  requiredAgentText(registeredTemplate.formula, 'A fórmula do template registrado', 2000);
+  requiredAgentText(registeredTemplate.useWhen, 'Quando usar o template registrado', 4000);
+  requiredAgentText(registeredTemplate.primaryFunction, 'A função principal do template registrado', 4000);
+  requiredAgentList(registeredTemplate.requiredElements, 'Os elementos obrigatórios do template registrado');
+  if (!Array.isArray(registeredTemplate.optionalElements)) {
+    throw new Error('Os elementos opcionais precisam ser declarados no template registrado.');
+  }
+  requiredAgentList(registeredTemplate.executionRisks, 'Os riscos do template registrado');
+  requiredAgentList(registeredTemplate.capturesOrInputs, 'As capturas ou insumos do template registrado');
+  requiredAgentText(registeredTemplate.brunoAdaptation, 'A adaptação do template para Bruno', 10_000);
+  if (registeredTemplate.steps.length < 3 || registeredTemplate.steps.length > 6) {
+    throw new Error('O template registrado precisa de 3 a 6 movimentos conceituais.');
+  }
+  const registeredIds = registeredTemplate.steps.map((step, index) => {
+    const id = requiredAgentText(step.id, `O ID do movimento ${index + 1}`, 160);
+    requiredAgentText(step.mechanism, `O mecanismo do movimento ${id}`, 4000);
+    requiredAgentText(step.condition, `A condição do movimento ${id}`, 4000);
+    requiredAgentText(step.expectedResult, `O resultado esperado do movimento ${id}`, 4000);
+    requiredAgentList(step.evidenceStoryOrders, `As evidências do movimento ${id}`);
+    if (step.evidenceStoryOrders!.some(order => !expectedOrders.includes(order))) {
+      throw new Error(`O movimento ${id} aponta para um story inexistente.`);
+    }
+    return id;
+  });
+  if (new Set(registeredIds).size !== registeredIds.length) {
+    throw new Error('Os IDs dos movimentos conceituais precisam ser únicos.');
+  }
+
+  const linkedIds = new Set<string>();
+  const moldIds = new Set<string>();
+  definition.moldSteps!.forEach((step, index) => {
+    const id = requiredAgentText(step.id, `O ID da tela ${index + 1} do molde`, 160);
+    if (moldIds.has(id)) throw new Error(`O ID ${id} está repetido no molde.`);
+    moldIds.add(id);
+    requiredAgentList(step.templateStepIds, `Os movimentos ligados à tela ${id}`);
+    requiredAgentText(step.fixedFunction, `A função fixa da tela ${id}`, 2000);
+    if (!Array.isArray(step.placeholders) || step.placeholders.length < 2) {
+      throw new Error(`A tela ${id} precisa de pelo menos dois placeholders funcionais.`);
+    }
+    const placeholderKinds = new Set(step.placeholders.map(placeholder => placeholder.kind));
+    if (!placeholderKinds.has('copy') && !placeholderKinds.has('principle')) {
+      throw new Error(`A tela ${id} precisa de um placeholder de mensagem.`);
+    }
+    if (![...placeholderKinds].some(kind => ['scene', 'person', 'proof', 'response'].includes(kind))) {
+      throw new Error(`A tela ${id} precisa de um placeholder de cena ou evidência.`);
+    }
+    step.templateStepIds!.forEach(templateStepId => {
+      if (!registeredIds.includes(templateStepId)) {
+        throw new Error(`A tela ${id} aponta para o movimento inexistente ${templateStepId}.`);
+      }
+      linkedIds.add(templateStepId);
+    });
+  });
+  const unlinkedIds = registeredIds.filter(id => !linkedIds.has(id));
+  if (unlinkedIds.length) {
+    throw new Error(`Movimentos sem tela no molde: ${unlinkedIds.join(', ')}.`);
+  }
 
   if (!Array.isArray(input.assets)) throw new Error('O manifesto de assets é obrigatório.');
   const assetOrders = new Set<number>();
@@ -942,6 +1390,7 @@ export function parseAgentReferenceInput(value: unknown): StoryAgentReferenceInp
   });
   const { templateId: _templateId, items: _items, ...reference } = parsedReference;
   return {
+    dossierContractVersion,
     referenceKey,
     contentHash: contentHash.toLowerCase(),
     template,

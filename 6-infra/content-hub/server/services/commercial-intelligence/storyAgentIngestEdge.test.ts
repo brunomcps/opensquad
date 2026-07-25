@@ -200,6 +200,14 @@ test('story agent ingest prepares deterministic uploads and publishes only after
   assert.match(published.link, /template=71000000-/);
   assert.match(published.link, /reference=70000000-/);
   assert.equal(published.reference.items.length, 4);
+  assert.equal(published.reference.analysis.dossierContractVersion, '1.0');
+  assert.equal(published.reference.analysis.sequenceConfirmed, true);
+  assert.equal(published.reference.analysis.sequenceConfirmationSource, payload.reference.sequenceConfirmationSource);
+  const publishCall = client.calls.find(([name]) => name === 'story_upsert_agent_reference');
+  assert.ok(publishCall);
+  assert.equal(publishCall[1].p_reference.analysis.dossierContractVersion, '1.0');
+  assert.equal(publishCall[1].p_reference.analysis.sequenceConfirmed, true);
+  assert.equal(publishCall[1].p_reference.analysis.sequenceConfirmationSource, payload.reference.sequenceConfirmationSource);
   assert.equal(client.calls.filter(([name]) => name === 'story_upsert_agent_reference').length, 1);
 });
 

@@ -166,6 +166,159 @@ function createSizedReference(count: number): StoryReferenceDto {
   return reference;
 }
 
+function createCanonicalDossier(): {
+  template: StoryTemplateDto;
+  reference: StoryReferenceDto;
+} {
+  const template = createTemplate();
+  const reference = createReference();
+  const conceptualSteps: StoryTemplateDto['steps'] = [
+    {
+      role: 'hook',
+      instruction: 'Abrir com uma cena real.',
+      templateStepIds: ['open-scene'],
+    },
+    {
+      role: 'development',
+      instruction: 'Aplicar a lente do especialista.',
+      templateStepIds: ['apply-lens'],
+    },
+    {
+      role: 'closing',
+      instruction: 'Fechar com um principio pessoal.',
+      templateStepIds: ['close-principle'],
+    },
+  ];
+
+  template.steps = structuredClone(conceptualSteps);
+  template.definition.steps = structuredClone(conceptualSteps);
+  template.definition.moldSteps = [
+    {
+      id: 'screen-scene',
+      templateStepIds: ['open-scene'],
+      title: 'Cena e gancho',
+      purpose: 'Abrir uma pergunta narrativa.',
+      fixedFunction: 'Mostrar uma cena real e especifica.',
+      placeholders: [
+        { kind: 'scene', label: 'Cena reconhecivel' },
+        { kind: 'copy', label: 'Gancho especifico' },
+      ],
+    },
+    {
+      id: 'screen-lens',
+      templateStepIds: ['apply-lens'],
+      title: 'Lente do especialista',
+      purpose: 'Mudar o significado da cena.',
+      fixedFunction: 'Reinterpretar a cena sem interromper a historia.',
+      placeholders: [
+        { kind: 'proof', label: 'Prova visual' },
+        { kind: 'copy', label: 'Leitura do especialista' },
+      ],
+    },
+    {
+      id: 'screen-principle',
+      templateStepIds: ['close-principle'],
+      title: 'Resposta e principio',
+      purpose: 'Revelar como o criador pensa.',
+      fixedFunction: 'Fechar com um principio transferivel.',
+      placeholders: [
+        { kind: 'response', label: 'Resposta do publico' },
+        { kind: 'principle', label: 'Principio pessoal' },
+      ],
+    },
+  ];
+
+  reference.analysis.dossierContractVersion = '1.0';
+  reference.analysis.sequenceConfirmed = true;
+  reference.analysis.sequenceConfirmationSource = 'Sequencia confirmada pelo Bruno.';
+  reference.analysis.apparentProduct = 'Uma historia cotidiana sobre uma decisao.';
+  reference.analysis.personaConstructed = 'Especialista acessivel e criterioso.';
+  reference.analysis.sequenceMap = [
+    { kind: 'story', storyOrder: 1, label: '1 · Gancho', value: 'Cena e curiosidade' },
+    { kind: 'story', storyOrder: 2, label: '2 · Lente', value: 'Interpretacao' },
+    { kind: 'story', storyOrder: 3, label: '3 · Fechamento', value: 'Principio' },
+    { kind: 'product', label: 'Produto real', value: 'Persona financeiramente racional' },
+  ];
+  reference.analysis.synthesis = [
+    {
+      key: 'screen-roles',
+      title: 'Papel de cada tela',
+      paragraphs: ['Cada story cumpre uma funcao narrativa especifica.'],
+    },
+    {
+      key: 'stimulus-change',
+      title: 'Mudanca de estimulo',
+      paragraphs: ['A sequencia muda o estimulo e preserva a continuidade.'],
+    },
+    {
+      key: 'aesthetics-production',
+      title: 'Estetica e producao',
+      paragraphs: ['A unidade visual sustenta a progressao.'],
+    },
+    {
+      key: 'strengths-limitations',
+      title: 'Forcas e limitacoes',
+      paragraphs: ['A forca esta na prova concreta e o limite depende do contexto.'],
+    },
+  ];
+  reference.analysis.registeredTemplate = {
+    name: 'Cena real -> lente do especialista -> principio',
+    formula: 'Cena concreta -> pergunta -> releitura -> principio',
+    useWhen: 'Quando uma situacao cotidiana permite revelar repertorio.',
+    primaryFunction: 'Transformar rotina em autoridade sem interromper a historia.',
+    requiredElements: ['Cena comprovavel', 'Leitura especializada', 'Principio transferivel'],
+    optionalElements: [],
+    executionRisks: ['Transformar a lente em aula desconectada da cena.'],
+    capturesOrInputs: ['Registro da cena', 'Prova visual ou reacao'],
+    brunoAdaptation: 'Usar situacoes reais sem expor dados sensiveis.',
+    steps: [
+      {
+        id: 'open-scene',
+        title: 'Abrir a pergunta',
+        description: 'Apresentar uma cena concreta.',
+        mechanism: 'O detalhe observavel antecipa uma decisao.',
+        condition: 'A cena precisa ser reconhecivel.',
+        expectedResult: 'Curiosidade sem promessa artificial.',
+        evidenceStoryOrders: [1],
+      },
+      {
+        id: 'apply-lens',
+        title: 'Mudar o significado',
+        description: 'Aplicar a lente do especialista.',
+        mechanism: 'A interpretacao transforma o caso em repertorio.',
+        condition: 'A leitura precisa nascer da cena.',
+        expectedResult: 'Autoridade percebida sem tom de aula.',
+        evidenceStoryOrders: [2],
+      },
+      {
+        id: 'close-principle',
+        title: 'Fechar com principio',
+        description: 'Converter a resposta em uma regra pessoal.',
+        mechanism: 'O desfecho revela como o criador decide.',
+        condition: 'O principio precisa resolver a tensao inicial.',
+        expectedResult: 'Posicionamento e confianca.',
+        evidenceStoryOrders: [3],
+      },
+    ],
+  };
+
+  reference.items.forEach(item => {
+    item.metadata.sourceExcerpt = item.narrativeOrder === 2
+      ? null
+      : `Trecho original ${item.narrativeOrder}.`;
+    item.metadata.noSourceTextReason = item.narrativeOrder === 2
+      ? 'O story usa apenas imagem, sem texto-fonte legivel.'
+      : null;
+    item.metadata.deep!.dimensionAssessments = {
+      interaction: { status: 'present', rationale: 'A tela convoca uma resposta observavel.' },
+      critique: { status: 'present', rationale: 'Ha evidencia suficiente para avaliar a escolha.' },
+    };
+    item.metadata.deep!.sections[0]!.covers = ['narrative', 'continuity'];
+  });
+
+  return { template, reference };
+}
+
 test('monta o dossie Raul em ordem narrativa sem misturar os tres titulos editoriais', () => {
   const template = createTemplate();
   const reference = createReference();
@@ -279,4 +432,50 @@ test('preserva a biblioteca documental como camada separada do dossie de stories
   assert.equal(dossier.stories.length, 3);
   assert.equal(dossier.sourceLibrary?.modules.length, 1);
   assert.equal(dossier.sourceLibrary?.modules[0]?.key, 'clareza-visual');
+});
+
+test('preserva os campos canônicos no modelo visual sem alterar o caminho legado', () => {
+  const { template, reference } = createCanonicalDossier();
+
+  assert.equal(hasCompleteVisualDossier(reference), true);
+  const dossier = buildVisualDossierViewModel(template, reference);
+
+  assert.equal(dossier.dossierContractVersion, '1.0');
+  assert.equal(dossier.apparentProduct, 'Uma historia cotidiana sobre uma decisao.');
+  assert.equal(dossier.personaConstructed, 'Especialista acessivel e criterioso.');
+  assert.deepEqual(dossier.synthesis.map(entry => entry.key), [
+    'screen-roles',
+    'stimulus-change',
+    'aesthetics-production',
+    'strengths-limitations',
+  ]);
+  assert.equal(dossier.stories[0]?.sourceExcerpt, 'Trecho original 1.');
+  assert.equal(
+    dossier.stories[1]?.noSourceTextReason,
+    'O story usa apenas imagem, sem texto-fonte legivel.',
+  );
+  assert.deepEqual(
+    dossier.stories[2]?.deep.sections[0]?.covers,
+    ['narrative', 'continuity'],
+  );
+  assert.deepEqual(
+    dossier.registeredTemplate.steps.map(step => step.id),
+    ['open-scene', 'apply-lens', 'close-principle'],
+  );
+});
+
+test('barra um dossie canônico sem síntese obrigatória ou sem vínculo entre molde e template', () => {
+  const missingSynthesis = createCanonicalDossier();
+  missingSynthesis.reference.analysis.synthesis = missingSynthesis.reference.analysis.synthesis
+    ?.filter(entry => entry.key !== 'strengths-limitations');
+
+  assert.equal(hasCompleteVisualDossier(missingSynthesis.reference), false);
+
+  const brokenMoldLink = createCanonicalDossier();
+  brokenMoldLink.template.definition.moldSteps![0]!.templateStepIds = ['missing-step'];
+
+  assert.throws(
+    () => buildVisualDossierViewModel(brokenMoldLink.template, brokenMoldLink.reference),
+    { message: 'Dossiê visual incompleto.' },
+  );
 });

@@ -22,6 +22,35 @@ KEY_ID = "hermes-local"
 def make_payload(root: Path, stories: int = 2) -> tuple[dict, Path]:
     assets = []
     items = []
+    conceptual_steps = [
+        {
+            "id": "step-identification",
+            "title": "Cena específica",
+            "description": "Instala uma situação reconhecível e uma pergunta.",
+            "mechanism": "Usa evidência concreta antes de explicar.",
+            "condition": "A cena precisa ser comprovável na captura.",
+            "expectedResult": "Produz identificação e curiosidade.",
+            "evidenceStoryOrders": [1],
+        },
+        {
+            "id": "step-interpretation",
+            "title": "Lente do especialista",
+            "description": "Muda o significado da cena sem abandonar a história.",
+            "mechanism": "Aplica repertório de nicho ao acontecimento.",
+            "condition": "A interpretação deve pagar a pergunta inicial.",
+            "expectedResult": "Produz recompensa e autoridade.",
+            "evidenceStoryOrders": [min(2, stories)],
+        },
+        {
+            "id": "step-principle",
+            "title": "Princípio transferível",
+            "description": "Converte a reação em posição pessoal.",
+            "mechanism": "Fecha com uma regra de decisão coerente.",
+            "condition": "O princípio precisa nascer da sequência.",
+            "expectedResult": "Produz confiança sem autopromoção.",
+            "evidenceStoryOrders": [stories],
+        },
+    ]
     for order in range(1, stories + 1):
         asset_path = root / f"story-{order}.jpg"
         asset_path.write_bytes((f"asset-{order}-" * 20).encode())
@@ -37,6 +66,8 @@ def make_payload(root: Path, stories: int = 2) -> tuple[dict, Path]:
             "narrativeOrder": order,
             "narrativeRole": "hook" if order == 1 else "closing",
             "metadata": {
+                "sourceExcerpt": f"Trecho original do story {order}.",
+                "noSourceTextReason": None,
                 "quick": {
                     "roleLabel": f"Rapido {order}",
                     "title": f"Resumo {order}",
@@ -56,21 +87,40 @@ def make_payload(root: Path, stories: int = 2) -> tuple[dict, Path]:
                     "graphic": f"Grafico {order}",
                     "palette": ["#102f26", "#f6f1e7"],
                     "impression": f"Impressao {order}",
+                    "markers": [{"label": str(order), "description": f"Marcador {order}"}],
                 },
                 "deep": {
                     "roleLabel": f"Detalhado {order}",
                     "title": f"Analise profunda {order}",
                     "lead": f"Leitura completa {order}",
-                    "sections": [{
-                        "title": "Mecanismo",
-                        "paragraphs": [f"Paragrafo {order}"],
-                        "bullets": [f"Evidencia aprofundada {order}"],
-                    }],
+                    "dimensionAssessments": {
+                        "interaction": {
+                            "status": "present",
+                            "rationale": f"A tela {order} convida resposta.",
+                        },
+                        "critique": {
+                            "status": "not-applicable",
+                            "rationale": f"Nenhuma limitação adicional na tela {order}.",
+                        },
+                    },
+                    "sections": [
+                        {
+                            "title": "Função narrativa",
+                            "covers": ["narrative", "template-consequence"],
+                            "paragraphs": [f"A tela {order} move a história e muda o molde."],
+                        },
+                        {
+                            "title": "Continuidade",
+                            "covers": ["continuity", "attention"],
+                            "bullets": [f"A tela {order} paga a anterior e prepara a seguinte."],
+                        },
+                    ],
                     "extractedRule": f"Regra detalhada {order}",
                 },
             },
         })
     payload = {
+        "dossierContractVersion": "1.0",
         "template": {
             "canonicalKey": "cena-lente-principio",
             "name": "Cena -> lente -> principio",
@@ -84,32 +134,118 @@ def make_payload(root: Path, stories: int = 2) -> tuple[dict, Path]:
                 "preserveRules": ["Preservar funcao."],
                 "adaptRules": ["Adaptar superficie."],
                 "avoidRules": ["Evitar copia."],
-                "moldSteps": [{
-                    "title": "Cena",
-                    "purpose": "Abrir pergunta.",
-                    "placeholders": [{"kind": "scene", "label": "Cena real"}],
-                }],
-                "steps": [{"role": "hook", "instruction": "Abrir pergunta."}],
+                "moldSteps": [
+                    {
+                        "id": "mold-opening",
+                        "templateStepIds": ["step-identification"],
+                        "title": "Cena",
+                        "purpose": "Abrir pergunta.",
+                        "fixedFunction": "Comprovar a cena e abrir curiosidade.",
+                        "placeholders": [
+                            {"kind": "scene", "label": "Cena real"},
+                            {"kind": "copy", "label": "Pergunta específica"},
+                        ],
+                    },
+                    {
+                        "id": "mold-lens",
+                        "templateStepIds": ["step-interpretation"],
+                        "title": "Lente",
+                        "purpose": "Reinterpretar a cena.",
+                        "fixedFunction": "Pagar o gancho com repertório.",
+                        "placeholders": [
+                            {"kind": "proof", "label": "Prova visual"},
+                            {"kind": "copy", "label": "Interpretação"},
+                        ],
+                    },
+                    {
+                        "id": "mold-closing",
+                        "templateStepIds": ["step-principle"],
+                        "title": "Princípio",
+                        "purpose": "Revelar uma regra pessoal.",
+                        "fixedFunction": "Fechar com posicionamento.",
+                        "placeholders": [
+                            {"kind": "response", "label": "Reação do público"},
+                            {"kind": "principle", "label": "Princípio"},
+                        ],
+                    },
+                ],
+                "steps": [
+                    {"role": "hook", "instruction": "Abrir pergunta."},
+                    {"role": "development", "instruction": "Aplicar a lente."},
+                    {"role": "closing", "instruction": "Fechar com princípio."},
+                ],
             },
-            "steps": [{"role": "hook", "instruction": "Abrir pergunta."}],
+            "steps": [
+                {"role": "hook", "instruction": "Abrir pergunta."},
+                {"role": "development", "instruction": "Aplicar a lente."},
+                {"role": "closing", "instruction": "Fechar com princípio."},
+            ],
         },
         "reference": {
             "title": "Referencia de teste",
             "description": "Dossie completo.",
+            "sequenceConfirmed": True,
+            "sequenceConfirmationSource": "Confirmada explicitamente pelo usuário.",
             "analysis": {
                 "summary": "Resumo transversal.",
                 "overview": ["Leitura geral."],
                 "narrativeArc": ["cena", "principio"],
                 "whyItWorks": ["Continuidade."],
                 "templateFit": "Aderente.",
-                "sequenceMap": [{"label": "1", "value": "Gancho"}],
+                "sequenceMap": [
+                    *[
+                        {
+                            "kind": "story",
+                            "storyOrder": order,
+                            "label": f"{order} - Story",
+                            "value": f"Função da tela {order}",
+                        }
+                        for order in range(1, stories + 1)
+                    ],
+                    {
+                        "kind": "product",
+                        "label": "Produto real",
+                        "value": "Persona coerente.",
+                    },
+                ],
                 "visualGrammar": "Gramatica visual.",
+                "apparentProduct": "Uma história cotidiana.",
                 "productRevealed": "Persona coerente.",
+                "personaConstructed": "Especialista próximo e criterioso.",
                 "transferRules": ["Transferir funcao."],
-                "synthesis": [{"title": "Sintese", "paragraphs": ["Leitura completa."]}],
+                "synthesis": [
+                    {
+                        "key": "screen-roles",
+                        "title": "Papel de cada tela",
+                        "paragraphs": ["A sequência distribui funções claras."],
+                    },
+                    {
+                        "key": "stimulus-change",
+                        "title": "Mudança de estímulo",
+                        "paragraphs": ["O enquadramento muda sem perder continuidade."],
+                    },
+                    {
+                        "key": "aesthetics-production",
+                        "title": "Estética e produção",
+                        "paragraphs": ["A captura preserva aparência nativa."],
+                    },
+                    {
+                        "key": "strengths-limitations",
+                        "title": "Forças e limitações",
+                        "paragraphs": ["A força está na continuidade; depende de prova real."],
+                    },
+                ],
                 "registeredTemplate": {
                     "name": "Cena -> lente -> principio",
-                    "steps": [{"title": "Cena", "description": "Abrir."}],
+                    "formula": "Cena -> lente -> princípio",
+                    "useWhen": "Quando existe uma situação cotidiana comprovável.",
+                    "primaryFunction": "Transformar rotina em posicionamento.",
+                    "requiredElements": ["Cena real", "Interpretação", "Princípio"],
+                    "optionalElements": ["Resposta do público"],
+                    "executionRisks": ["Virar aula antes de pagar o gancho"],
+                    "capturesOrInputs": ["Captura da cena", "Prova visual"],
+                    "brunoAdaptation": "Aplicar a lente de psicologia e neurociência.",
+                    "steps": conceptual_steps,
                 },
                 "sourceNote": "Sequencia completa.",
             },
@@ -241,12 +377,106 @@ class PublishStoryReferenceTests(unittest.TestCase):
     def test_validate_rejects_a_missing_dossier_layer(self):
         payload, path = make_payload(self.root)
         del payload["reference"]["items"][0]["metadata"]["deep"]
-        with self.assertRaisesRegex(client.PublishError, "layer deep"):
+        with self.assertRaisesRegex(client.PublishError, "metadata.deep is required"):
             self.prepared(payload, path)
+
+    def test_valid_dossier_reports_complete_coverage_without_network(self):
+        payload, _ = make_payload(self.root)
+        report = client.validate_dossier(payload)
+        expected_dimensions = client.load_contract_schema()["$defs"]["coreDimension"]["enum"]
+        self.assertTrue(report["ok"])
+        self.assertFalse(report["networkAccessed"])
+        self.assertEqual(report["contractVersion"], "1.0")
+        self.assertEqual(
+            report["storyCoverage"][0]["covered"],
+            expected_dimensions,
+        )
+        self.assertEqual(FakeIngestHandler.actions, [])
+
+    def test_effect_mirror_current_fixture_documents_the_legacy_gaps(self):
+        fixture = (
+            Path(__file__).resolve().parent.parent
+            / "tests"
+            / "fixtures"
+            / "effect-mirror-current.json"
+        )
+        report = client.validate_dossier(
+            json.loads(fixture.read_text(encoding="utf-8")),
+            raise_on_error=False,
+        )
+        errors = "\n".join(report["errors"])
+
+        self.assertFalse(report["ok"])
+        self.assertFalse(report["networkAccessed"])
+        self.assertIn("sequenceConfirmed is required", errors)
+        self.assertIn("dimensionAssessments is required", errors)
+        self.assertIn("templateStepIds is required", errors)
+        self.assertIn("synthesis must contain at least 4", errors)
+
+    def test_schema_version_is_read_from_the_canonical_schema(self):
+        schema = client.load_contract_schema()
+        self.assertEqual(schema["properties"]["dossierContractVersion"]["const"], "1.0")
+        self.assertEqual(
+            schema["$defs"]["synthesisKey"]["enum"],
+            [
+                "screen-roles",
+                "stimulus-change",
+                "aesthetics-production",
+                "strengths-limitations",
+            ],
+        )
+
+    def test_missing_continuity_is_blocking(self):
+        payload, path = make_payload(self.root)
+        payload["reference"]["items"][0]["metadata"]["deep"]["sections"][1]["covers"] = ["attention"]
+        with self.assertRaisesRegex(client.PublishError, "continuity"):
+            self.prepared(payload, path)
+
+    def test_missing_product_map_entry_is_blocking(self):
+        payload, path = make_payload(self.root)
+        payload["reference"]["analysis"]["sequenceMap"] = [
+            entry
+            for entry in payload["reference"]["analysis"]["sequenceMap"]
+            if entry["kind"] != "product"
+        ]
+        with self.assertRaisesRegex(client.PublishError, "product entry"):
+            self.prepared(payload, path)
+
+    def test_missing_synthesis_key_is_blocking(self):
+        payload, path = make_payload(self.root)
+        payload["reference"]["analysis"]["synthesis"].pop()
+        with self.assertRaisesRegex(client.PublishError, "at least 4 item"):
+            self.prepared(payload, path)
+
+    def test_template_labels_without_mechanism_are_blocking(self):
+        payload, path = make_payload(self.root)
+        step = payload["reference"]["analysis"]["registeredTemplate"]["steps"][0]
+        for field in ("title", "description", "mechanism", "condition", "expectedResult"):
+            step[field] = "CTA"
+        with self.assertRaisesRegex(client.PublishError, "not an operational movement"):
+            self.prepared(payload, path)
+
+    def test_unlinked_conceptual_step_is_blocking(self):
+        payload, path = make_payload(self.root)
+        payload["template"]["definition"]["moldSteps"][2]["templateStepIds"] = [
+            "step-identification"
+        ]
+        with self.assertRaisesRegex(client.PublishError, "without a mold screen"):
+            self.prepared(payload, path)
+
+    def test_invalid_dossier_never_reaches_network(self):
+        payload, path = make_payload(self.root)
+        payload["dossierContractVersion"] = "0.9"
+        with patch.object(client, "_request_bytes") as request:
+            with self.assertRaises(client.PublishError):
+                self.prepared(payload, path)
+            request.assert_not_called()
+        self.assertEqual(FakeIngestHandler.actions, [])
 
     def test_asset_hash_reference_key_and_content_hash_are_deterministic(self):
         payload, path = make_payload(self.root)
         first, files = self.prepared(payload, path)
+        self.assertEqual(first["dossierContractVersion"], "1.0")
         second, _ = self.prepared(copy.deepcopy(payload), path)
         self.assertEqual(first, second)
         self.assertEqual(

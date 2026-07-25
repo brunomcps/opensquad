@@ -1,0 +1,979 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opensquad.local/schemas/canonical-story-dossier-1.0.json",
+  "title": "Canonical Story Dossier",
+  "type": "object",
+  "required": [
+    "dossierContractVersion",
+    "template",
+    "reference",
+    "assets"
+  ],
+  "properties": {
+    "dossierContractVersion": {
+      "const": "1.0"
+    },
+    "referenceKey": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "contentHash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "template": {
+      "$ref": "#/$defs/template"
+    },
+    "reference": {
+      "$ref": "#/$defs/reference"
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "$ref": "#/$defs/asset"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "canonicalKey": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "narrativeRole": {
+      "enum": [
+        "hook",
+        "context",
+        "development",
+        "proof",
+        "cta",
+        "closing",
+        "other"
+      ]
+    },
+    "placeholderKind": {
+      "enum": [
+        "scene",
+        "copy",
+        "person",
+        "proof",
+        "response",
+        "principle",
+        "reaction"
+      ]
+    },
+    "coreDimension": {
+      "enum": [
+        "evidence",
+        "attention",
+        "narrative",
+        "continuity",
+        "funnel",
+        "subtext",
+        "template-consequence"
+      ]
+    },
+    "contextualStatus": {
+      "enum": [
+        "present",
+        "not-applicable",
+        "unknown"
+      ]
+    },
+    "synthesisKey": {
+      "enum": [
+        "screen-roles",
+        "stimulus-change",
+        "aesthetics-production",
+        "strengths-limitations"
+      ]
+    },
+    "legacyStep": {
+      "type": "object",
+      "required": [
+        "role",
+        "instruction"
+      ],
+      "properties": {
+        "role": {
+          "$ref": "#/$defs/narrativeRole"
+        },
+        "instruction": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": true
+    },
+    "placeholder": {
+      "type": "object",
+      "required": [
+        "kind",
+        "label"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/placeholderKind"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "moldStep": {
+      "type": "object",
+      "required": [
+        "id",
+        "templateStepIds",
+        "title",
+        "purpose",
+        "fixedFunction",
+        "placeholders"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/canonicalKey"
+        },
+        "templateStepIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/canonicalKey"
+          }
+        },
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "purpose": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "fixedFunction": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "placeholders": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/placeholder"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "templateDefinition": {
+      "type": "object",
+      "required": [
+        "editorialName",
+        "editorialSummary",
+        "formula",
+        "preserveRules",
+        "adaptRules",
+        "avoidRules",
+        "moldSteps",
+        "steps"
+      ],
+      "properties": {
+        "editorialName": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "editorialSummary": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "formula": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "risks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "preserveRules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "adaptRules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "avoidRules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "moldSteps": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/moldStep"
+          }
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/legacyStep"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "template": {
+      "type": "object",
+      "required": [
+        "canonicalKey",
+        "name",
+        "objective",
+        "definition",
+        "steps"
+      ],
+      "properties": {
+        "canonicalKey": {
+          "$ref": "#/$defs/canonicalKey"
+        },
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "objective": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "definition": {
+          "$ref": "#/$defs/templateDefinition"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/legacyStep"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "quick": {
+      "type": "object",
+      "required": [
+        "roleLabel",
+        "title",
+        "summary",
+        "evidence",
+        "audienceEffect",
+        "subtext",
+        "funnelFunction",
+        "extractedRule"
+      ],
+      "properties": {
+        "roleLabel": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "summary": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "evidence": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "audienceEffect": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "subtext": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "funnelFunction": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "extractedRule": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": true
+    },
+    "visual": {
+      "type": "object",
+      "required": [
+        "roleLabel",
+        "title",
+        "scene",
+        "typography",
+        "composition",
+        "palette",
+        "impression"
+      ],
+      "properties": {
+        "roleLabel": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "scene": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "typography": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "composition": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "graphic": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "palette": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$"
+          }
+        },
+        "impression": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "markers": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "required": [
+              "label",
+              "description"
+            ],
+            "properties": {
+              "label": {
+                "$ref": "#/$defs/nonEmptyString"
+              },
+              "description": {
+                "$ref": "#/$defs/nonEmptyString"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "dimensionAssessment": {
+      "type": "object",
+      "required": [
+        "status",
+        "rationale"
+      ],
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/contextualStatus"
+        },
+        "rationale": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "deepSection": {
+      "type": "object",
+      "required": [
+        "title",
+        "covers"
+      ],
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "covers": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/coreDimension"
+          }
+        },
+        "paragraphs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "bullets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "paragraphs"
+          ]
+        },
+        {
+          "required": [
+            "bullets"
+          ]
+        }
+      ],
+      "additionalProperties": true
+    },
+    "deep": {
+      "type": "object",
+      "required": [
+        "roleLabel",
+        "title",
+        "lead",
+        "dimensionAssessments",
+        "sections",
+        "extractedRule"
+      ],
+      "properties": {
+        "roleLabel": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "lead": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "dimensionAssessments": {
+          "type": "object",
+          "required": [
+            "interaction",
+            "critique"
+          ],
+          "properties": {
+            "interaction": {
+              "$ref": "#/$defs/dimensionAssessment"
+            },
+            "critique": {
+              "$ref": "#/$defs/dimensionAssessment"
+            }
+          },
+          "additionalProperties": false
+        },
+        "sections": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/deepSection"
+          }
+        },
+        "extractedRule": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": true
+    },
+    "storyMetadata": {
+      "type": "object",
+      "required": [
+        "sourceExcerpt",
+        "noSourceTextReason",
+        "quick",
+        "visual",
+        "deep"
+      ],
+      "properties": {
+        "sourceExcerpt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "noSourceTextReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quick": {
+          "$ref": "#/$defs/quick"
+        },
+        "visual": {
+          "$ref": "#/$defs/visual"
+        },
+        "deep": {
+          "$ref": "#/$defs/deep"
+        }
+      },
+      "additionalProperties": true
+    },
+    "storyItem": {
+      "type": "object",
+      "required": [
+        "mediaType",
+        "textContent",
+        "sourceOccurredAt",
+        "narrativeOrder",
+        "narrativeRole",
+        "metadata"
+      ],
+      "properties": {
+        "mediaType": {
+          "enum": [
+            "image",
+            "video",
+            "text"
+          ]
+        },
+        "textContent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sourceOccurredAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "narrativeOrder": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "narrativeRole": {
+          "$ref": "#/$defs/narrativeRole"
+        },
+        "metadata": {
+          "$ref": "#/$defs/storyMetadata"
+        }
+      },
+      "additionalProperties": true
+    },
+    "sequenceMapItem": {
+      "type": "object",
+      "required": [
+        "kind",
+        "label",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "story",
+            "product"
+          ]
+        },
+        "storyOrder": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "value": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      },
+      "additionalProperties": false
+    },
+    "synthesisBlock": {
+      "type": "object",
+      "required": [
+        "key",
+        "title",
+        "paragraphs"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/synthesisKey"
+        },
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "paragraphs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "registeredTemplateStep": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "description",
+        "mechanism",
+        "condition",
+        "expectedResult",
+        "evidenceStoryOrders"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/canonicalKey"
+        },
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "description": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "mechanism": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "condition": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "expectedResult": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "evidenceStoryOrders": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "registeredTemplate": {
+      "type": "object",
+      "required": [
+        "name",
+        "formula",
+        "useWhen",
+        "primaryFunction",
+        "requiredElements",
+        "optionalElements",
+        "executionRisks",
+        "capturesOrInputs",
+        "brunoAdaptation",
+        "steps"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "formula": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "useWhen": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "primaryFunction": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "requiredElements": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "optionalElements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "executionRisks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "capturesOrInputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "brunoAdaptation": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/$defs/registeredTemplateStep"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "analysis": {
+      "type": "object",
+      "required": [
+        "summary",
+        "overview",
+        "narrativeArc",
+        "whyItWorks",
+        "templateFit",
+        "sequenceMap",
+        "visualGrammar",
+        "apparentProduct",
+        "productRevealed",
+        "personaConstructed",
+        "transferRules",
+        "synthesis",
+        "registeredTemplate",
+        "sourceNote"
+      ],
+      "properties": {
+        "summary": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "overview": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "narrativeArc": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "whyItWorks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "templateFit": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "sequenceMap": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 21,
+          "items": {
+            "$ref": "#/$defs/sequenceMapItem"
+          }
+        },
+        "visualGrammar": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "apparentProduct": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "productRevealed": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "personaConstructed": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "transferRules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        },
+        "synthesis": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/synthesisBlock"
+          }
+        },
+        "registeredTemplate": {
+          "$ref": "#/$defs/registeredTemplate"
+        },
+        "sourceNote": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "sourceLibrary": {
+          "type": [
+            "object",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "reference": {
+      "type": "object",
+      "required": [
+        "title",
+        "description",
+        "sequenceConfirmed",
+        "sequenceConfirmationSource",
+        "analysis",
+        "platform",
+        "sourceAccount",
+        "sourceUrl",
+        "sourceStartedAt",
+        "sourceEndedAt",
+        "items"
+      ],
+      "properties": {
+        "title": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "description": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "sequenceConfirmed": {
+          "const": true
+        },
+        "sequenceConfirmationSource": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "analysis": {
+          "$ref": "#/$defs/analysis"
+        },
+        "platform": {
+          "enum": [
+            "instagram",
+            "facebook",
+            "tiktok",
+            "youtube",
+            "other"
+          ]
+        },
+        "sourceAccount": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "sourceUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sourceStartedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sourceEndedAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/storyItem"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "asset": {
+      "type": "object",
+      "required": [
+        "narrativeOrder"
+      ],
+      "properties": {
+        "narrativeOrder": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "localPath": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "fileName": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "mimeType": {
+          "enum": [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "video/mp4",
+            "video/webm"
+          ]
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "storagePath": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "publicUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "localPath"
+          ]
+        },
+        {
+          "required": [
+            "fileName",
+            "sha256",
+            "mimeType",
+            "sizeBytes"
+          ]
+        }
+      ],
+      "additionalProperties": true
+    }
+  }
+}

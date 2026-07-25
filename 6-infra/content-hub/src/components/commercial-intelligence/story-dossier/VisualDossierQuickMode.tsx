@@ -80,12 +80,21 @@ function FocusedStory({
         <h3>{story.quick.title}</h3>
         <p className="ci-dossier-focus-lead">{story.quick.summary}</p>
 
-        {story.sourceExcerpt && (
-          <blockquote className="ci-dossier-quote">
-            <b>Trecho original</b>
-            <p>{story.sourceExcerpt}</p>
-          </blockquote>
-        )}
+        {story.sourceExcerpt
+          ? (
+            <blockquote className="ci-dossier-quote">
+              <b>Trecho original</b>
+              <p>{story.sourceExcerpt}</p>
+            </blockquote>
+          )
+          : story.noSourceTextReason
+            ? (
+              <div className="ci-dossier-source-gap">
+                <b>Texto-fonte indisponível</b>
+                <p>{story.noSourceTextReason}</p>
+              </div>
+            )
+            : null}
 
         <div className="ci-dossier-quick-grid">
           <div>
@@ -131,7 +140,7 @@ function SequenceMap({ model }: { model: VisualDossierViewModel }) {
   return (
     <section className="ci-dossier-sequence-map" aria-label="Mapa da sequência">
       {model.sequenceMap.map(entry => (
-        <div key={`${entry.label}-${entry.value}`}>
+        <div key={`${entry.kind || 'legacy'}-${entry.storyOrder || 'product'}-${entry.label}`}>
           <b>{entry.label}</b>
           <span>{entry.value}</span>
         </div>

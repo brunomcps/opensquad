@@ -1,64 +1,106 @@
-# Payload Contract
+# Payload Contract 1.0
 
-The payload is a single JSON object. The client computes `referenceKey` when absent, computes every asset hash and size, and always recomputes `contentHash`.
+Read `../../_shared/canonical-story-dossier-contract.md` before authoring and
+validate against `../../_shared/canonical-story-dossier.schema.json`.
 
-## Required top-level objects
+The JSON Schema governs required fields, types, enums, and cardinality. The
+shared Markdown contract governs editorial meaning. The Python publisher adds
+cross-field, coverage, anti-impoverishment, asset, and read-back checks.
 
-- `template`: exact reusable template identity and definition.
-- `reference`: source identity, complete analysis, and ordered stories.
-- `assets`: one local file descriptor for every non-text story.
-- `referenceKey`: optional on first publication, mandatory to preserve from the receipt for later corrections.
+## Top level
+
+- `dossierContractVersion` must be `"1.0"`.
+- `template`, `reference`, and `assets` are required.
+- `referenceKey` is optional on first publication and stable on corrections.
+- The client computes asset metadata and always recomputes `contentHash`.
 
 ## Template
 
-`template.canonicalKey` is a stable lowercase slug with hyphens. `definition` must include:
+Use an exact, stable `canonicalKey`; never match an existing template by
+substring.
 
-- `formula`, `editorialName`, and `editorialSummary`;
-- non-empty `preserveRules`, `adaptRules`, and `avoidRules`;
-- non-empty `steps`;
-- non-empty `moldSteps`, each with functional 9:16 placeholders.
+`template.definition` requires:
 
-Exact canonical identity is required. Never match an existing template by substring.
+- editorial name, summary, and formula;
+- specific preserve, adapt, and avoid rules;
+- legacy `steps` identical to root `template.steps`;
+- complete `moldSteps`.
 
-## Reference
+Every mold screen has a stable `id`, one or more `templateStepIds`, a purpose, a
+fixed function, and at least two functional placeholders. It needs one message
+placeholder (`copy` or `principle`) and one scene/evidence placeholder
+(`scene`, `person`, `proof`, or `response`).
 
-Keep `title`, `description`, `platform`, `sourceAccount`, source dates/URL when known, `analysis`, and `items`.
+## Reference and provenance
 
-Cross-sequence `analysis` requires:
+`reference.sequenceConfirmed` must be `true` and
+`sequenceConfirmationSource` must say who or what confirmed completeness.
 
-- `summary` and `overview`;
-- `sequenceMap`;
-- `visualGrammar`;
-- `productRevealed`;
-- `transferRules`;
-- `synthesis`;
-- `registeredTemplate.name` and `registeredTemplate.steps`.
+Every story:
+
+- uses continuous `narrativeOrder`, already sorted from 1;
+- contains `sourceExcerpt` or `noSourceTextReason`, never both;
+- preserves distinct `quick`, `visual`, and `deep` layers;
+- includes `deep.dimensionAssessments.interaction` and `.critique`;
+- declares `deep.sections[].covers`;
+- explicitly covers `narrative` and `continuity` in deep sections.
+
+The complete item must cover:
+
+- `evidence`;
+- `attention`;
+- `narrative`;
+- `continuity`;
+- `funnel`;
+- `subtext`;
+- `template-consequence`.
+
+## Sequence analysis
+
+`reference.analysis.sequenceMap` contains one ordered `story` entry per item and
+exactly one `product` entry without `storyOrder`.
+
+Keep:
+
+- summary, overview, narrative arc, why it works, and template fit;
+- visual grammar;
+- apparent product, strategic product, and constructed persona;
+- transfer rules and source limitations;
+- exactly four synthesis keys:
+  - `screen-roles`;
+  - `stimulus-change`;
+  - `aesthetics-production`;
+  - `strengths-limitations`.
+
+## Operational template
+
+`registeredTemplate` includes formula, use case, primary function, required and
+optional elements, execution risks, captures or inputs, Bruno adaptation, and
+3 to 6 conceptual movements.
+
+Each movement needs:
+
+- stable `id`;
+- title and description;
+- mechanism;
+- condition;
+- expected result;
+- one or more `evidenceStoryOrders`.
+
+Every conceptual movement must be linked from at least one mold screen.
 
 ## Long source documents
 
-When a course, PDF, or other long document contains a real story sequence plus
-broader methodology, keep those layers separate:
+For a course, PDF, or long document:
 
-- `reference.items` contains only the actual ordered story screens;
-- `reference.analysis.sourceLibrary` contains the document-wide catalog;
-- lesson pages are provenance, not invented narrative steps.
-
-`sourceLibrary` includes document metadata, categories, and continuous ordered
-modules. Every module must include its page range, quick summary, principles,
-techniques, cautions, Bruno applications, and a reusable mold. Do not republish
-the full source document or long verbatim passages.
-
-Every item uses continuous `narrativeOrder` starting at 1 and contains distinct layers:
-
-- `metadata.quick`: compact navigation layer;
-- `metadata.visual`: scene, typography, composition, palette, graphic evidence, and visual impression;
-- `metadata.deep`: complete story analysis, sections, and extracted rule.
-
-The quick layer never replaces the detailed layer.
+- keep only real story screens in `reference.items`;
+- put the broader catalog in `reference.analysis.sourceLibrary`;
+- use pages as provenance, never as invented story steps;
+- do not reproduce long source passages.
 
 ## Assets
 
-Each visual item has exactly one descriptor:
+Each non-text story has exactly one local descriptor:
 
 ```json
 {
@@ -68,10 +110,26 @@ Each visual item has exactly one descriptor:
 }
 ```
 
-Allowed MIME types: JPEG, PNG, WebP, MP4, and WebM. Maximum size is 20 MiB per asset and 200 MiB total. The client strips `localPath` before transmission.
+Allowed types: JPEG, PNG, WebP, MP4, and WebM. Maximum size is 20 MiB per asset
+and 200 MiB total. The client verifies bytes, computes hash and size, uploads,
+and removes `localPath` from the transmitted payload.
 
-## Identity and revisions
+## Validation and publication
 
-Keep the receipt's `referenceKey` for corrections. Identical `referenceKey` and `contentHash` reuse the receipt. The same `referenceKey` with changed editorial content or asset hashes creates a new revision of the same reference.
+Run:
 
-The receipt contains no credential. It is written only after the endpoint returns and the canonical read-back matches.
+```bash
+python3 scripts/publish_story_reference.py validate /absolute/path/reference.json
+```
+
+A failed validation must report `networkAccessed: false`.
+
+Publish only after validation:
+
+```bash
+python3 scripts/publish_story_reference.py publish /absolute/path/reference.json
+```
+
+Success requires canonical read-back with `referenceKey`, `referenceId`,
+`templateId`, `contentHash`, `revision`, `operation`, and `link`. The receipt
+contains no credential.

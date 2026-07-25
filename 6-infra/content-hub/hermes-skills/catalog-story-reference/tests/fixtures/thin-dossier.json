@@ -1,0 +1,748 @@
+{
+  "dossierContractVersion": "1.0",
+  "referenceKey": "fixture-thin-dossier",
+  "template": {
+    "canonicalKey": "cena-real-lente-especialista-principio",
+    "name": "Cena -> lente -> princípio",
+    "objective": "Transformar rotina em posicionamento sem abrir com uma aula.",
+    "description": "Parte de uma cena cotidiana, muda seu significado pela lente do especialista e termina revelando um princípio pessoal.",
+    "tags": [
+      "cena real",
+      "lente do especialista",
+      "posicionamento",
+      "story"
+    ],
+    "definition": {
+      "formula": "Cena real → lente do especialista → reação do público → princípio pessoal",
+      "risks": [
+        "Virar uma aula e interromper a história antes de pagar o gancho",
+        "Usar status ou prova visual como autopromoção direta"
+      ],
+      "preserveRules": [
+        "Função de cada tela, continuidade espacial, troca de estímulo e hierarquia entre cena, prova e texto."
+      ],
+      "adaptRules": [
+        "Cenário, roupa, paleta, fonte, tipo de dado e forma de interação para a linguagem do Bruno."
+      ],
+      "avoidRules": [
+        "Copiar avião, piada financeira ou caixa preta apenas porque aparecem na referência."
+      ],
+      "moldSteps": [
+        {
+          "title": "Cena e gancho",
+          "purpose": "Abrir uma situação banal, específica e visualmente comprovável que pare antes da decisão.",
+          "fixedFunction": "Comprovar a cena e abrir uma pergunta.",
+          "placeholders": [
+            {
+              "kind": "copy",
+              "label": "Gancho específico que para antes da decisão"
+            },
+            {
+              "kind": "scene",
+              "label": "Cena real reconhecível"
+            },
+            {
+              "kind": "person",
+              "label": "Rosto ou pessoa; gesto aponta para a prova"
+            },
+            {
+              "kind": "reaction",
+              "label": "Resposta espontânea, se houver"
+            }
+          ],
+          "id": "mold-1",
+          "templateStepIds": [
+            "step-scene"
+          ]
+        },
+        {
+          "title": "Lente do especialista",
+          "purpose": "Reinterpretar a mesma cena com humor, dado ou repertório de nicho.",
+          "fixedFunction": "Reinterpretar a cena sem interromper a história.",
+          "placeholders": [
+            {
+              "kind": "copy",
+              "label": "Payoff + interpretação de nicho"
+            },
+            {
+              "kind": "scene",
+              "label": "Segundo ângulo do mesmo ambiente"
+            },
+            {
+              "kind": "proof",
+              "label": "Dado, gráfico, artigo ou outra prova visual"
+            },
+            {
+              "kind": "reaction",
+              "label": "Reações do público"
+            }
+          ],
+          "id": "mold-2",
+          "templateStepIds": [
+            "step-lens"
+          ]
+        },
+        {
+          "title": "Resposta e princípio",
+          "purpose": "Usar a reação do público para revelar como o criador pensa e toma decisões.",
+          "fixedFunction": "Usar o público para revelar como o criador pensa.",
+          "placeholders": [
+            {
+              "kind": "scene",
+              "label": "Continuidade do ambiente"
+            },
+            {
+              "kind": "response",
+              "label": "Print de comentário ou mensagem"
+            },
+            {
+              "kind": "principle",
+              "label": "Resposta que revela um princípio"
+            },
+            {
+              "kind": "reaction",
+              "label": "Reações ou próxima conversa"
+            }
+          ],
+          "id": "mold-3",
+          "templateStepIds": [
+            "step-audience-response",
+            "step-principle"
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "role": "hook",
+          "instruction": "Mostrar uma cena real, específica e reconhecível que já abra uma pergunta."
+        },
+        {
+          "role": "development",
+          "instruction": "Aplicar humor, dado ou interpretação que somente aquele especialista faria."
+        },
+        {
+          "role": "closing",
+          "instruction": "Usar a resposta do público para revelar um princípio pessoal ou editorial."
+        }
+      ],
+      "editorialName": "Cena comum → lente do especialista → valor pessoal",
+      "editorialSummary": "Raul Sena · 3 telas · dossiê completo"
+    },
+    "steps": [
+      {
+        "role": "hook",
+        "instruction": "Mostrar uma cena real, específica e reconhecível que já abra uma pergunta."
+      },
+      {
+        "role": "development",
+        "instruction": "Aplicar humor, dado ou interpretação que somente aquele especialista faria."
+      },
+      {
+        "role": "closing",
+        "instruction": "Usar a resposta do público para revelar um princípio pessoal ou editorial."
+      }
+    ]
+  },
+  "reference": {
+    "title": "Payload raso de controle",
+    "description": "A estrutura combina cena cotidiana, piada ligada ao nicho, resposta do público e declaração de valores. Raul começa como uma pessoa comum viajando, encaixa finanças e previdência sem dar aula e usa a reação de um seguidor para reforçar quem ele é e como pensa sobre dinheiro.",
+    "sequenceConfirmed": true,
+    "sequenceConfirmationSource": "Sequência fundadora preservada nas migrations aprovadas.",
+    "analysis": {
+      "summary": "O assunto aparente é uma troca de assento. O produto real é a forma como Raul pensa sobre dinheiro.",
+      "overview": [
+        "A estrutura combina cena cotidiana, piada ligada ao nicho, resposta do público e declaração de valores. Raul começa como uma pessoa comum viajando, encaixa finanças e previdência sem dar aula e usa a reação de um seguidor para reforçar quem ele é e como pensa sobre dinheiro.",
+        "Não há venda direta. A sequência vende uma persona bem-sucedida, acessível, espirituosa e financeiramente racional. A autoridade aparece dentro da maneira como ele interpreta a situação."
+      ],
+      "narrativeArc": [
+        "Identificação e curiosidade",
+        "Humor e autoridade",
+        "Prova social, posicionamento e confiança"
+      ],
+      "whyItWorks": [
+        "Cada tela contém uma evidência concreta e paga a promessa da anterior.",
+        "A emoção progride de curiosidade para humor e termina em admiração.",
+        "A autoridade aparece pela interpretação da cena, não por uma aula declarada.",
+        "O público atribui status antes de Raul responder com sobriedade."
+      ],
+      "templateFit": "Cena cotidiana → piada de nicho → resposta do público → declaração de valores.",
+      "sequenceMap": [
+        {
+          "kind": "story",
+          "storyOrder": 1,
+          "label": "1 · Gancho",
+          "value": "Identificação + curiosidade"
+        },
+        {
+          "kind": "story",
+          "storyOrder": 2,
+          "label": "2 · Recompensa",
+          "value": "Humor + autoridade"
+        },
+        {
+          "kind": "story",
+          "storyOrder": 3,
+          "label": "3 · Fechamento",
+          "value": "Prova social + confiança"
+        }
+      ],
+      "visualGrammar": "Fundo sempre capturado no mesmo ambiente. A cada tela muda o elemento dominante: rosto → gráfico → print. O texto mantém assinatura consistente, branco serifado em caixa preta. A produção parece nativa, barata e espontânea, mas a hierarquia é controlada.",
+      "productRevealed": "O assunto aparente é troca de assento. O produto real é um Raul bem-sucedido, acessível, espirituoso, financeiramente racional e conectado com o público.",
+      "transferRules": [
+        "Começar pela vida real, sem anunciar uma aula.",
+        "Interpretar a cena pela psicologia e neurociência.",
+        "Usar respostas do público como continuação da história.",
+        "Deixar a autoridade aparecer pela leitura da situação.",
+        "Transformar interação em matéria-prima do próximo story.",
+        "Comunicar valores clínicos e pessoais sem autopropaganda.",
+        "Usar um registro cotidiano como impulso para o conteúdo.",
+        "Preservar o sintoma em terceira pessoa ao falar de TDAH."
+      ],
+      "synthesis": [
+        {
+          "title": "Papel de cada tela",
+          "paragraphs": [
+            "Story 1: identificação e curiosidade.",
+            "Story 2: recompensa, humor e autoridade.",
+            "Story 3: prova social, posicionamento e confiança."
+          ],
+          "key": "screen-roles"
+        },
+        {
+          "title": "Mudança de estímulo",
+          "paragraphs": [
+            "Rosto → ambiente com gráfico → ambiente com print de seguidor."
+          ],
+          "key": "screen-roles"
+        },
+        {
+          "title": "Estética e produção",
+          "paragraphs": [
+            "Selfie, câmera no chão, print de mensagem e texto nativo do Instagram."
+          ],
+          "key": "screen-roles"
+        },
+        {
+          "title": "Forças e limitações",
+          "paragraphs": [
+            "A sequência combina prova visual, humor, autoridade indireta e status atribuído por terceiro.",
+            "O gráfico é pouco legível e a piada depende de contexto."
+          ],
+          "key": "screen-roles"
+        }
+      ],
+      "registeredTemplate": {
+        "name": "Cena comum → lente do especialista → valor pessoal",
+        "steps": [
+          {
+            "title": "CTA",
+            "description": "CTA",
+            "id": "step-scene",
+            "mechanism": "CTA",
+            "condition": "CTA",
+            "expectedResult": "CTA",
+            "evidenceStoryOrders": [
+              1
+            ]
+          },
+          {
+            "title": "Virada de nicho",
+            "description": "Piada, dado ou interpretação que somente aquele especialista faria.",
+            "id": "step-lens",
+            "mechanism": "Reinterpreta o acontecimento com repertório que pertence ao nicho.",
+            "condition": "A virada precisa pagar a curiosidade sem abandonar a cena.",
+            "expectedResult": "Entrega humor e autoridade sem virar aula.",
+            "evidenceStoryOrders": [
+              2
+            ]
+          },
+          {
+            "title": "Resposta do público",
+            "description": "Comentário ou mensagem vira continuação narrativa.",
+            "id": "step-audience-response",
+            "mechanism": "Transforma uma mensagem do público em continuação da narrativa.",
+            "condition": "A reação precisa acrescentar tensão, prova ou status.",
+            "expectedResult": "Traz prova social sem parecer depoimento fabricado.",
+            "evidenceStoryOrders": [
+              3
+            ]
+          },
+          {
+            "title": "Declaração de princípio",
+            "description": "A resposta revela como o criador pensa e toma decisões.",
+            "id": "step-principle",
+            "mechanism": "Responde à audiência com uma regra que organiza a decisão do creator.",
+            "condition": "O princípio precisa nascer da situação mostrada.",
+            "expectedResult": "Revela posicionamento sem autopromoção direta.",
+            "evidenceStoryOrders": [
+              3
+            ]
+          }
+        ],
+        "formula": "Cena real -> lente do especialista -> resposta do público -> princípio pessoal",
+        "useWhen": "Quando uma situação cotidiana pode revelar como o especialista pensa.",
+        "primaryFunction": "Transformar rotina em posicionamento sem abrir com uma aula.",
+        "requiredElements": [
+          "Cena real comprovável",
+          "Interpretação própria do nicho",
+          "Fechamento coerente com a cena"
+        ],
+        "optionalElements": [
+          "Resposta espontânea do público",
+          "Dado ou gráfico"
+        ],
+        "executionRisks": [
+          "Virar uma aula e interromper a história antes de pagar o gancho",
+          "Usar status ou prova visual como autopromoção direta"
+        ],
+        "capturesOrInputs": [
+          "Registro da cena cotidiana",
+          "Prova visual da interpretação",
+          "Resposta do público quando houver"
+        ],
+        "brunoAdaptation": "Trocar finanças por psicologia e neurociência, preservando cena, continuidade e princípio."
+      },
+      "sourceNote": "Referência fundadora: sequência de 3 stories de Raul Sena. Análise vinculada ao template, sem separar referência e abstração.",
+      "apparentProduct": "Uma troca de assento durante um voo.",
+      "personaConstructed": "Pessoa bem-sucedida, acessível, espirituosa e financeiramente racional."
+    },
+    "platform": "instagram",
+    "sourceAccount": "@_raulsena",
+    "sourceUrl": "https://www.instagram.com/_raulsena/",
+    "sourceStartedAt": null,
+    "sourceEndedAt": null,
+    "items": [
+      {
+        "mediaType": "image",
+        "textContent": "“Eu quase sempre viajo sozinho, e uma vez a cada aproximadamente 10 voos aparece uma família querendo trocar de assento.”",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 1,
+        "narrativeRole": "hook",
+        "metadata": {
+          "evidenceType": "reference_story",
+          "sourceExcerpt": "“Eu quase sempre viajo sozinho, e uma vez a cada aproximadamente 10 voos aparece uma família querendo trocar de assento.”",
+          "analysis": "O número “uma vez a cada 10 voos” dá aparência de observação real.",
+          "audienceEffect": "A frase para antes da decisão e produz: “ele troca ou se recusa?”",
+          "subtext": "A viagem comunica status, mas o assunto permanece cotidiano e acessível.",
+          "funnelFunction": "Relacionamento. A situação discutível convida respostas espontâneas.",
+          "extractedRule": "Comece por uma cena banal, específica e visualmente comprovável que já abra uma pergunta.",
+          "editorialStatus": "approved",
+          "moldConsequence": "A cena inicial precisa ser específica, discutível e visualmente comprovável.",
+          "analysisSections": [
+            {
+              "title": "O que ele faz aqui",
+              "bullets": [
+                "Usa uma situação reconhecível e levemente incômoda.",
+                "Coloca um número específico, “uma vez a cada 10 voos”, que parece uma observação real.",
+                "A família ao fundo comprova visualmente a história.",
+                "O dedo chama atenção para o fundo e orienta o olhar.",
+                "A frase termina antes da opinião dele e cria a pergunta: ele troca ou se recusa?",
+                "A viagem comunica status sem virar o assunto principal."
+              ]
+            },
+            {
+              "title": "Função narrativa",
+              "paragraphs": [
+                "É a abertura da novela. A pessoa avança para descobrir a decisão dele e para comparar com a própria: “Eu trocaria?” ou “A família deveria ter comprado os lugares juntos?”"
+              ]
+            },
+            {
+              "title": "Interação",
+              "paragraphs": [
+                "Não depende de enquete ou caixinha. A situação discutível oferece uma conversa fácil de entrar e provoca respostas espontâneas."
+              ]
+            }
+          ],
+          "visual": {
+            "roleLabel": "Story 1 · Rosto e contexto",
+            "title": "Cena cotidiana com prova visual",
+            "scene": "Texto genérico repetido em todas as camadas.",
+            "typography": "Texto branco, serifado, centralizado, sobre uma caixa preta retangular. O bloco ocupa o terço superior e preserva rosto e contexto.",
+            "composition": "Texto no alto, rosto como massa principal, gesto criando uma diagonal e resposta de seguidor na base.",
+            "palette": [
+              "#111315",
+              "#e9e5da",
+              "#6e7275",
+              "#1c2d45",
+              "#d8b29a"
+            ],
+            "impression": "Proximidade, espontaneidade e uma situação real acontecendo agora.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "O dedo orienta o olhar para o fundo."
+              },
+              {
+                "label": "2",
+                "description": "A família funciona como prova visual da história."
+              }
+            ]
+          },
+          "quick": {
+            "roleLabel": "Story 1 · Identificação e curiosidade",
+            "title": "A cena já contém a pergunta narrativa",
+            "summary": "Texto genérico repetido em todas as camadas.",
+            "evidence": "O número “uma vez a cada 10 voos” dá aparência de observação real.",
+            "audienceEffect": "A frase para antes da decisão e produz: “ele troca ou se recusa?”",
+            "subtext": "A viagem comunica status, mas o assunto permanece cotidiano e acessível.",
+            "funnelFunction": "Relacionamento. A situação discutível convida respostas espontâneas.",
+            "extractedRule": "Comece por uma cena banal, específica e visualmente comprovável que já abra uma pergunta."
+          },
+          "deep": {
+            "roleLabel": "Story 1 · Identificação e curiosidade",
+            "title": "A cena e o gancho",
+            "lead": "Texto genérico repetido em todas as camadas.",
+            "sections": [
+              {
+                "title": "O que ele faz aqui",
+                "bullets": [
+                  "Usa uma situação reconhecível e levemente incômoda.",
+                  "Coloca um número específico, “uma vez a cada 10 voos”, que parece uma observação real.",
+                  "A família ao fundo comprova visualmente a história.",
+                  "O dedo chama atenção para o fundo e orienta o olhar.",
+                  "A frase termina antes da opinião dele e cria a pergunta: ele troca ou se recusa?",
+                  "A viagem comunica status sem virar o assunto principal."
+                ],
+                "covers": [
+                  "evidence"
+                ]
+              },
+              {
+                "title": "Função narrativa",
+                "paragraphs": [
+                  "É a abertura da novela. A pessoa avança para descobrir a decisão dele e para comparar com a própria: “Eu trocaria?” ou “A família deveria ter comprado os lugares juntos?”"
+                ],
+                "covers": [
+                  "evidence"
+                ]
+              },
+              {
+                "title": "Interação",
+                "paragraphs": [
+                  "Não depende de enquete ou caixinha. A situação discutível oferece uma conversa fácil de entrar e provoca respostas espontâneas."
+                ],
+                "covers": [
+                  "evidence"
+                ]
+              }
+            ],
+            "extractedRule": "A cena inicial precisa ser específica, discutível e visualmente comprovável.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "O conflito discutível convida respostas espontâneas."
+              },
+              "critique": {
+                "status": "not-applicable",
+                "rationale": "A leitura está ancorada na cena e não exige ressalva adicional."
+              }
+            }
+          },
+          "noSourceTextReason": null
+        }
+      },
+      {
+        "mediaType": "image",
+        "textContent": "“Eu troco e fico feliz da vida… É uma criança a mais para colaborar com o INSS.”",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 2,
+        "narrativeRole": "development",
+        "metadata": {
+          "evidenceType": "reference_story",
+          "sourceExcerpt": "“Eu troco e fico feliz da vida… É uma criança a mais para colaborar com o INSS.”",
+          "analysis": "O gráfico funciona como selo de que existe um dado por trás da piada.",
+          "audienceEffect": "O público recebe a resposta do loop e uma virada inesperada para o nicho.",
+          "subtext": "Raul parece pensar como investidor até em situações cotidianas.",
+          "funnelFunction": "Autoridade leve. O conteúdo de nicho entra sem interromper o entretenimento.",
+          "extractedRule": "A lente do especialista deve reinterpretar a cena e continuar a história.",
+          "editorialStatus": "approved",
+          "moldConsequence": "A virada de nicho precisa pagar o gancho sem abandonar o acontecimento.",
+          "analysisSections": [
+            {
+              "title": "O pulo do gato",
+              "paragraphs": [
+                "O primeiro story parecia uma conversa sobre educação no avião. A segunda tela transforma a mesma cena em humor financeiro. Na superfície, ele é gentil e troca o assento. Por baixo, aparece a visão do investidor preocupado com previdência, demografia e dinheiro público.",
+                "O seguidor percebe que Raul pensa como investidor até numa troca de assento. O conhecimento entra como repertório espontâneo, sem formato de aula."
+              ]
+            },
+            {
+              "title": "Por que o gráfico está ali",
+              "bullets": [
+                "Selo de que existe um dado por trás da piada.",
+                "Reconhecimento imediato do assunto.",
+                "Justificativa visual do humor.",
+                "Reforço de autoridade, mesmo com números pequenos demais para estudo."
+              ]
+            },
+            {
+              "title": "Funil e interação",
+              "paragraphs": [
+                "A sequência entra em autoridade leve sem abandonar o entretenimento. As reações com emojis acrescentam prova social: outras pessoas entenderam e estão curtindo a conversa."
+              ]
+            }
+          ],
+          "visual": {
+            "roleLabel": "Story 2 · POV e dado",
+            "title": "Virada de nicho com prova gráfica",
+            "scene": "Texto genérico repetido em todas as camadas.",
+            "typography": "Duas caixas pretas separadas, com texto branco serifado e centralizado. A primeira entrega a decisão e a segunda contém a piada sobre o INSS.",
+            "composition": "O POV renova o estímulo visual sem quebrar a continuidade espacial.",
+            "graphic": "Gráfico branco grande no centro, com barras vermelhas descendentes. Os números são pequenos, mas o padrão visual comunica déficit crescente.",
+            "palette": [
+              "#1d1d1b",
+              "#8c8579",
+              "#f7f7f2",
+              "#df2327",
+              "#5e191c"
+            ],
+            "impression": "Humor casual sustentado por uma camada de dado e autoridade.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "O POV renova o estímulo visual."
+              },
+              {
+                "label": "2",
+                "description": "O gráfico reforça contexto e autoridade."
+              }
+            ]
+          },
+          "quick": {
+            "roleLabel": "Story 2 · Recompensa, humor e autoridade",
+            "title": "A cena muda de significado pela lente financeira",
+            "summary": "Texto genérico repetido em todas as camadas.",
+            "evidence": "O gráfico funciona como selo de que existe um dado por trás da piada.",
+            "audienceEffect": "O público recebe a resposta do loop e uma virada inesperada para o nicho.",
+            "subtext": "Raul parece pensar como investidor até em situações cotidianas.",
+            "funnelFunction": "Autoridade leve. O conteúdo de nicho entra sem interromper o entretenimento.",
+            "extractedRule": "A lente do especialista deve reinterpretar a cena e continuar a história."
+          },
+          "deep": {
+            "roleLabel": "Story 2 · Recompensa, humor e autoridade",
+            "title": "A virada para o nicho",
+            "lead": "Texto genérico repetido em todas as camadas.",
+            "sections": [
+              {
+                "title": "O pulo do gato",
+                "paragraphs": [
+                  "O primeiro story parecia uma conversa sobre educação no avião. A segunda tela transforma a mesma cena em humor financeiro. Na superfície, ele é gentil e troca o assento. Por baixo, aparece a visão do investidor preocupado com previdência, demografia e dinheiro público.",
+                  "O seguidor percebe que Raul pensa como investidor até numa troca de assento. O conhecimento entra como repertório espontâneo, sem formato de aula."
+                ],
+                "covers": [
+                  "evidence"
+                ]
+              },
+              {
+                "title": "Por que o gráfico está ali",
+                "bullets": [
+                  "Selo de que existe um dado por trás da piada.",
+                  "Reconhecimento imediato do assunto.",
+                  "Justificativa visual do humor.",
+                  "Reforço de autoridade, mesmo com números pequenos demais para estudo."
+                ],
+                "covers": [
+                  "evidence"
+                ]
+              },
+              {
+                "title": "Funil e interação",
+                "paragraphs": [
+                  "A sequência entra em autoridade leve sem abandonar o entretenimento. As reações com emojis acrescentam prova social: outras pessoas entenderam e estão curtindo a conversa."
+                ],
+                "covers": [
+                  "evidence"
+                ]
+              }
+            ],
+            "extractedRule": "A lente do especialista precisa reinterpretar a cena e continuar a história.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "As reações com emojis prolongam a conversa."
+              },
+              "critique": {
+                "status": "present",
+                "rationale": "O gráfico funciona como selo visual, mas seus números são pouco legíveis."
+              }
+            }
+          },
+          "noSourceTextReason": null
+        }
+      },
+      {
+        "mediaType": "image",
+        "textContent": "“Mesmo voando toda semana, eu não acho que um jato seria necessário hoje. Vejo formas mais úteis de gastar esse dinheiro.”",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 3,
+        "narrativeRole": "closing",
+        "metadata": {
+          "evidenceType": "reference_story",
+          "sourceExcerpt": "“Mesmo voando toda semana, eu não acho que um jato seria necessário hoje. Vejo formas mais úteis de gastar esse dinheiro.”",
+          "analysis": "A palavra “hoje” mantém aberta a possibilidade de crescimento futuro.",
+          "audienceEffect": "O seguidor introduz o jatinho, evitando autopromoção direta.",
+          "subtext": "A resposta comunica riqueza com racionalidade e critério.",
+          "funnelFunction": "Consideração. A coerência prepara o público para aprender e comprar dele.",
+          "extractedRule": "Use a reação da audiência para revelar um valor que organize suas escolhas.",
+          "editorialStatus": "approved",
+          "moldConsequence": "O fechamento deve revelar um princípio sem transformar status em autopropaganda.",
+          "analysisSections": [
+            {
+              "title": "O que está sendo comunicado",
+              "bullets": [
+                "Ele voa toda semana.",
+                "Um seguidor o associa a alguém capaz de cogitar um jatinho.",
+                "Ele recusa o gasto por considerá-lo pouco útil “hoje”, não por falta de dinheiro.",
+                "Transmite riqueza com racionalidade, em vez de ostentação.",
+                "A resposta combina com a promessa implícita de um educador financeiro: dinheiro deve ser usado com critério."
+              ]
+            },
+            {
+              "title": "A palavra “hoje”",
+              "paragraphs": [
+                "Ela deixa a porta aberta para o crescimento futuro sem prometer nada. É um detalhe pequeno que impede a resposta de soar definitiva ou defensiva."
+              ]
+            },
+            {
+              "title": "Prova social indireta",
+              "paragraphs": [
+                "O seguidor introduz o jatinho. Isso permite que Raul fale de patrimônio e estilo de vida sem parecer que acordou querendo anunciar que é rico. O público atribui status e ele responde com sobriedade."
+              ]
+            },
+            {
+              "title": "Função no funil",
+              "paragraphs": [
+                "Fortalece confiança, demonstra coerência entre discurso e comportamento, cria aspiração sem extravagância e prepara o público para aprender com ele."
+              ]
+            },
+            {
+              "title": "Raciocínio silencioso provocado",
+              "paragraphs": [
+                "“Ele chegou num nível alto e continua tomando decisões racionais. Talvez valha a pena aprender com ele.”"
+              ]
+            }
+          ],
+          "visual": {
+            "roleLabel": "Story 3 · Resposta e princípio",
+            "title": "Status atribuído pelo público",
+            "scene": "Texto genérico repetido em todas as camadas.",
+            "typography": "Duas caixas pretas no terço inferior, com texto branco serifado. A palavra “hoje” fecha o primeiro bloco e recebe destaque pelo próprio sentido.",
+            "composition": "Print branco de uma resposta ocupa o centro superior. A declaração de princípio aparece logo abaixo. Reações ficam próximas da base.",
+            "palette": [
+              "#171817",
+              "#45433d",
+              "#f7f6f2",
+              "#8f1821",
+              "#d8d6cf"
+            ],
+            "impression": "Sobriedade, continuidade e uma conversa íntima que revela valores.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "O print terceiriza a atribuição de status."
+              },
+              {
+                "label": "2",
+                "description": "“Hoje” evita uma rejeição definitiva."
+              }
+            ]
+          },
+          "quick": {
+            "roleLabel": "Story 3 · Prova social, posicionamento e confiança",
+            "title": "O público introduz o status e Raul revela o princípio",
+            "summary": "Texto genérico repetido em todas as camadas.",
+            "evidence": "A palavra “hoje” mantém aberta a possibilidade de crescimento futuro.",
+            "audienceEffect": "O seguidor introduz o jatinho, evitando autopromoção direta.",
+            "subtext": "A resposta comunica riqueza com racionalidade e critério.",
+            "funnelFunction": "Consideração. A coerência prepara o público para aprender e comprar dele.",
+            "extractedRule": "Use a reação da audiência para revelar um valor que organize suas escolhas."
+          },
+          "deep": {
+            "roleLabel": "Story 3 · Prova social, posicionamento e confiança",
+            "title": "Dinheiro, status e valores",
+            "lead": "Texto genérico repetido em todas as camadas.",
+            "sections": [
+              {
+                "title": "O que está sendo comunicado",
+                "bullets": [
+                  "Ele voa toda semana.",
+                  "Um seguidor o associa a alguém capaz de cogitar um jatinho.",
+                  "Ele recusa o gasto por considerá-lo pouco útil “hoje”, não por falta de dinheiro.",
+                  "Transmite riqueza com racionalidade, em vez de ostentação.",
+                  "A resposta combina com a promessa implícita de um educador financeiro: dinheiro deve ser usado com critério."
+                ],
+                "covers": [
+                  "evidence"
+                ]
+              },
+              {
+                "title": "A palavra “hoje”",
+                "paragraphs": [
+                  "Ela deixa a porta aberta para o crescimento futuro sem prometer nada. É um detalhe pequeno que impede a resposta de soar definitiva ou defensiva."
+                ],
+                "covers": [
+                  "evidence"
+                ]
+              },
+              {
+                "title": "Prova social indireta",
+                "paragraphs": [
+                  "O seguidor introduz o jatinho. Isso permite que Raul fale de patrimônio e estilo de vida sem parecer que acordou querendo anunciar que é rico. O público atribui status e ele responde com sobriedade."
+                ],
+                "covers": [
+                  "evidence"
+                ]
+              },
+              {
+                "title": "Função no funil",
+                "paragraphs": [
+                  "Fortalece confiança, demonstra coerência entre discurso e comportamento, cria aspiração sem extravagância e prepara o público para aprender com ele."
+                ],
+                "covers": [
+                  "evidence"
+                ]
+              },
+              {
+                "title": "Raciocínio silencioso provocado",
+                "paragraphs": [
+                  "“Ele chegou num nível alto e continua tomando decisões racionais. Talvez valha a pena aprender com ele.”"
+                ],
+                "covers": [
+                  "evidence"
+                ]
+              }
+            ],
+            "extractedRule": "O fechamento deve revelar um princípio sem transformar status em autopropaganda.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "A resposta de um seguidor vira o motor explícito da tela."
+              },
+              "critique": {
+                "status": "not-applicable",
+                "rationale": "A atribuição de status vem do público e a resposta permanece sóbria."
+              }
+            }
+          },
+          "noSourceTextReason": null
+        }
+      }
+    ]
+  },
+  "assets": [
+    {
+      "narrativeOrder": 1,
+      "localPath": "../../../../ci-app/public/story-references/raul-sena/01-conflito-no-aviao.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "narrativeOrder": 2,
+      "localPath": "../../../../ci-app/public/story-references/raul-sena/02-humor-e-inss.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "narrativeOrder": 3,
+      "localPath": "../../../../ci-app/public/story-references/raul-sena/03-principio-do-jato.jpg",
+      "mimeType": "image/jpeg"
+    }
+  ]
+}
