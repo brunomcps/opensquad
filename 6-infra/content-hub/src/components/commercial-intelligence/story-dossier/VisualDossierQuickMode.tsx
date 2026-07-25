@@ -11,6 +11,8 @@ interface VisualDossierQuickModeProps {
   onOpenDeep: () => void;
 }
 
+const storyRailLabels = ['Cena e gancho', 'Virada pro nicho', 'Status e valores'];
+
 function SequenceOverview({ model }: { model: VisualDossierViewModel }) {
   return (
     <div className="ci-dossier-sequence-overview">
@@ -79,6 +81,13 @@ function FocusedStory({
         <span className="ci-dossier-kicker">{story.quick.roleLabel}</span>
         <h3>{story.quick.title}</h3>
         <p className="ci-dossier-focus-lead">{story.quick.summary}</p>
+
+        {story.sourceExcerpt && (
+          <blockquote className="ci-dossier-quote">
+            <b>Trecho original</b>
+            <p>{story.sourceExcerpt}</p>
+          </blockquote>
+        )}
 
         <div className="ci-dossier-quick-grid">
           <div>
@@ -149,7 +158,7 @@ export function VisualDossierQuickMode({
         <header className="ci-dossier-quick-head">
           <span className="ci-dossier-kicker">Modo rápido · Referência e template juntos</span>
           <h2>{model.editorialName}</h2>
-          <p>{model.editorialSummary}</p>
+          <p>{model.apparentSubject}</p>
         </header>
 
         <nav className="ci-dossier-story-rail" aria-label="Stories da referência">
@@ -164,7 +173,7 @@ export function VisualDossierQuickMode({
               <img src={story.assetUrl} alt="" />
               <span>
                 <b>Story {story.narrativeOrder}</b>
-                <small>{story.quick.roleLabel}</small>
+                <small>{storyRailLabels[index] || story.quick.roleLabel}</small>
               </span>
             </button>
           ))}

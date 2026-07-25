@@ -589,7 +589,8 @@ try {
     await desktop.locator('.ci-dossier-quick').getByText(layer.title, { exact: true }).waitFor();
   }
   await desktop.getByRole('button', { name: 'Sequência completa' }).click();
-  await assertImagesLoaded(desktop, '.ci-dossier-quick img', 3);
+  await assertImagesLoaded(desktop, '.ci-dossier-quick img', 6);
+  await desktop.getByRole('button', { name: /Story 1/ }).click();
 
   await desktop.getByRole('button', { name: 'Ver raio-X visual' }).click();
   await assertActiveAnchor(desktop, visualId);
@@ -602,7 +603,7 @@ try {
   await captureViewport(desktop, '.ci-dossier-xray-grid', 'desktop-xray.png');
 
   await desktop.getByText('Um storyboard funcional para modelar a estrutura', { exact: true }).waitFor();
-  await assertSelectorCount(desktop, '.ci-dossier-mold-grid .ci-dossier-phone', 3);
+  await assertSelectorCount(desktop, '.ci-dossier-mold-grid .ci-dossier-mold-phone', 3);
   await captureViewport(desktop, '.ci-dossier-mold-grid', 'desktop-mold.png');
 
   await desktop.getByRole('button', { name: 'Abrir análise completa' }).click();

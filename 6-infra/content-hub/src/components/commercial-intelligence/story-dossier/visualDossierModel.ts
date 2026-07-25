@@ -21,6 +21,7 @@ export interface VisualDossierStory {
   itemId: string;
   narrativeOrder: number;
   assetUrl: string;
+  sourceExcerpt?: string;
   quick: StoryQuickAnalysisInput;
   visual: StoryVisualAnalysisInput;
   deep: StoryDeepAnalysisInput;
@@ -233,6 +234,7 @@ export function buildVisualDossierViewModel(
       itemId: item.itemId,
       narrativeOrder: item.narrativeOrder,
       assetUrl: item.assetUrl,
+      sourceExcerpt: item.metadata.sourceExcerpt || undefined,
       quick: item.metadata.quick,
       visual: item.metadata.visual,
       deep: item.metadata.deep,

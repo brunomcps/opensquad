@@ -101,7 +101,7 @@ export function VisualDossierDeepAnalysis({
         <h3>{model.registeredTemplate.name}</h3>
         <div>
           {model.registeredTemplate.steps.map((step, index) => (
-            <article key={`${step.title}-${index}`}>
+            <article className="ci-dossier-template-step" key={`${step.title}-${index}`}>
               <span>{index + 1}</span>
               <div>
                 <h4>{step.title}</h4>

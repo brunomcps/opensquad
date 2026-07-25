@@ -17,6 +17,8 @@ import {
   type StoryReferenceDto,
   type StoryTemplateDto,
 } from '../../../ci-app/src/api';
+import { VisualReferenceDossier } from './story-dossier/VisualReferenceDossier';
+import { hasCompleteVisualDossier } from './story-dossier/visualDossierModel';
 
 type StoryContentSection = 'templates' | 'references' | 'publications' | 'approvals';
 
@@ -181,11 +183,7 @@ function TemplateForm({ onSaved, onCancel }: { onSaved: (template: StoryTemplate
   );
 }
 
-function hasVisualDossier(reference: StoryReferenceDto): boolean {
-  return reference.items.some(item => Boolean(item.metadata?.visual));
-}
-
-function VisualReferenceDossier({ template, reference }: {
+function LegacyVisualReferenceDossier({ template, reference }: {
   template: StoryTemplateDto;
   reference: StoryReferenceDto;
 }) {
@@ -418,31 +416,36 @@ function TemplatesSection({ role, onUseTemplate }: { role: MemberRole; onUseTemp
   const linkedReferences = selected ? references.filter(reference => reference.template?.templateId === selected.templateId) : [];
   const linkedPublications = selected ? publications.filter(publication => publication.template?.templateId === selected.templateId) : [];
   const definition = selected?.definition || ({ steps: selected?.steps || [] } as StoryTemplateDto['definition']);
-  const visualReference = linkedReferences.find(hasVisualDossier);
+  const visualReference = linkedReferences.find(hasCompleteVisualDossier);
 
   if (loading) return <div className="ci-loading">Carregando biblioteca de templates...</div>;
   if (error) return <div className="ci-content-error-panel"><p>{error}</p><button onClick={() => void load()}>Tentar de novo</button></div>;
 
   return <div className="ci-content-area">
-    <div className="ci-content-section-head">
+    {!visualReference && <div className="ci-content-section-head">
       <div><h2>Templates de stories</h2><p>Template, método, evidências e aplicações em um único dossiê editorial.</p></div>
       {role === 'admin' && <button className="ci-content-primary" onClick={() => setCreating(true)}>Novo template</button>}
-    </div>
+    </div>}
     {creating && <TemplateForm onCancel={() => setCreating(false)} onSaved={template => { setTemplates(current => [template, ...current]); setSelectedId(template.templateId); setCreating(false); }} />}
-    {!templates.length ? <EmptyState title="A biblioteca começa aqui" copy="Crie o primeiro template estrutural para ligar referências e publicações." /> : <div className="ci-content-library-grid">
+    {!templates.length ? <EmptyState title="A biblioteca começa aqui" copy="Crie o primeiro template estrutural para ligar referências e publicações." /> : <div className={`ci-content-library-grid${visualReference ? ' is-visual-dossier' : ''}`}>
       <aside className="ci-content-list-panel">
         <input className="ci-content-search" placeholder="Buscar template" value={query} onChange={event => setQuery(event.target.value)} />
         <div className="ci-content-template-list">{filtered.map(template => <button className={template.templateId === selected?.templateId ? 'active' : ''} key={template.templateId} onClick={() => setSelectedId(template.templateId)}><strong>{template.name}</strong><span>{template.tags.slice(0, 3).join(' · ') || 'Sem tags'}</span></button>)}</div>
       </aside>
-      {selected && <article className="ci-story-dossier">
-        <header className="ci-story-dossier-head">
+      {selected && <article className={visualReference ? 'ci-story-dossier-visual' : 'ci-story-dossier'}>
+        {!visualReference && <header className="ci-story-dossier-head">
           <div className="ci-content-kicker">Dossiê vivo · versão {selected.schemaVersion}</div>
           <h3>{selected.name}</h3><p className="ci-content-objective">{selected.objective}</p>
           {definition.formula && <div className="ci-story-formula"><small>Fórmula rápida</small><strong>{definition.formula}</strong></div>}
           <div className="ci-content-metrics"><span><strong>{linkedReferences.length}</strong> referências</span><span><strong>{linkedPublications.length}</strong> aplicações</span></div>
-        </header>
+        </header>}
 
-        {visualReference ? <VisualReferenceDossier template={selected} reference={visualReference} /> : <>
+        {visualReference ? <VisualReferenceDossier
+          template={selected}
+          reference={visualReference}
+          linkedPublications={linkedPublications}
+          onUseTemplate={templateId => onUseTemplate?.(templateId)}
+        /> : <>
           <section className="ci-story-method"><h4>Regras do método</h4><div className="ci-story-rule-grid">
             <div><b>Preservar</b>{(definition.preserveRules || []).map(rule => <p key={rule}>✓ {rule}</p>)}</div>
             <div><b>Adaptar</b>{(definition.adaptRules || []).map(rule => <p key={rule}>↗ {rule}</p>)}</div>
@@ -466,8 +469,10 @@ function TemplatesSection({ role, onUseTemplate }: { role: MemberRole; onUseTemp
 
           <section className="ci-story-mold"><h4>Molde aprovado · 9:16</h4><div className="ci-story-mold-grid">{(definition.moldSteps?.length ? definition.moldSteps : selected.steps.map(step => ({ title: roleLabels[step.role], purpose: step.instruction }))).map((step, index) => <div key={`${step.title}-${index}`}><span>{index + 1}</span><b>{step.title}</b><p>{step.purpose}</p></div>)}</div></section>
         </>}
-        <section className="ci-story-publications"><h4>Publicações vinculadas</h4>{linkedPublications.length ? linkedPublications.map(publication => <div className="ci-story-publication" key={publication.sequenceId}><span className={`ci-content-status s-${publication.publicationState}`}>{stateLabels[publication.publicationState]}</span><strong>{publication.title}</strong><small>{publication.items.length} stories · {dateLabel(publication.scheduledFor || publication.updatedAt)}</small></div>) : <EmptyState title="Molde ainda não aplicado" copy="A primeira publicação vinculada aparecerá aqui junto de seu estado editorial." />}</section>
-        <section className="ci-story-learnings"><h4>Aprendizados</h4>{linkedPublications.some(item => item.reviewNote) ? linkedPublications.filter(item => item.reviewNote).map(item => <p key={item.sequenceId}>{item.reviewNote}</p>) : <p>Sem aprendizados de revisão registrados ainda. O dossiê será atualizado conforme o molde for aplicado.</p>}</section>
+        {!visualReference && <>
+          <section className="ci-story-publications"><h4>Publicações vinculadas</h4>{linkedPublications.length ? linkedPublications.map(publication => <div className="ci-story-publication" key={publication.sequenceId}><span className={`ci-content-status s-${publication.publicationState}`}>{stateLabels[publication.publicationState]}</span><strong>{publication.title}</strong><small>{publication.items.length} stories · {dateLabel(publication.scheduledFor || publication.updatedAt)}</small></div>) : <EmptyState title="Molde ainda não aplicado" copy="A primeira publicação vinculada aparecerá aqui junto de seu estado editorial." />}</section>
+          <section className="ci-story-learnings"><h4>Aprendizados</h4>{linkedPublications.some(item => item.reviewNote) ? linkedPublications.filter(item => item.reviewNote).map(item => <p key={item.sequenceId}>{item.reviewNote}</p>) : <p>Sem aprendizados de revisão registrados ainda. O dossiê será atualizado conforme o molde for aplicado.</p>}</section>
+        </>}
       </article>}
     </div>}
   </div>;

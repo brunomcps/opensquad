@@ -11,6 +11,8 @@ const viewPath = path.resolve(directory, '../../../src/components/commercial-int
 const viewSource = () => fs.readFileSync(viewPath, 'utf8');
 const standalonePath = path.resolve(directory, '../../../ci-app/src/StandaloneCommercialIntelligenceView.tsx');
 const standaloneSource = () => fs.readFileSync(standalonePath, 'utf8');
+const quickDossierPath = path.resolve(directory, '../../../src/components/commercial-intelligence/story-dossier/VisualDossierQuickMode.tsx');
+const quickDossierSource = () => fs.readFileSync(quickDossierPath, 'utf8');
 
 test('ci-content exige viewer para leitura e admin para mutação', () => {
   const code = source();
@@ -29,6 +31,27 @@ test('usar molde abre o compositor de publicação com o template selecionado', 
   assert.match(view, /initialTemplateId\?: string \| null/);
   assert.match(view, /onUseTemplate\?: \(templateId: string\) => void/);
   assert.match(view, /publication\?\.template\?\.templateId \|\| initialTemplateId \|\| templates\[0\]\?\.templateId \|\| ''/);
+});
+
+test('biblioteca monta o dossiê Raul cumulativo sem as quatro abas antigas', () => {
+  const standalone = standaloneSource();
+  const view = viewSource();
+  const quick = quickDossierSource();
+  assert.match(standalone, /rotulo:\s*'Biblioteca de stories'/);
+  assert.match(view, /from '\.\/story-dossier\/VisualReferenceDossier'/);
+  assert.doesNotMatch(view, /function VisualReferenceDossier/);
+  assert.match(view, /!visualReference && <div className="ci-content-section-head">/);
+  for (const copy of [
+    'Modo rápido · Referência e template juntos',
+    'Sequência completa',
+    'Ver raio-X visual',
+    'Abrir análise completa',
+  ]) {
+    assert.match(quick, new RegExp(copy));
+  }
+  for (const tab of ['Leitura', 'Arquitetura', 'Template', 'Aplicação']) {
+    assert.doesNotMatch(quick, new RegExp(`>${tab}<`));
+  }
 });
 
 test('ci-content usa operações atômicas para publicação e revisão', () => {
