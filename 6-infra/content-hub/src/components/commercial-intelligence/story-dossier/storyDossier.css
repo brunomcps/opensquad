@@ -817,6 +817,7 @@
 .ci-dossier-deep-stories {
   margin-top: 0;
   background: var(--dossier-paper);
+  font-size: 16px;
 }
 
 .ci-dossier-deep-story {
@@ -849,8 +850,8 @@
   max-width: 300px;
   margin: 12px auto 0;
   color: var(--dossier-muted);
-  font-size: 11px;
-  line-height: 1.4;
+  font-size: 13px;
+  line-height: 1.5;
   text-align: center;
 }
 
@@ -875,7 +876,7 @@
 
 .ci-dossier-deep-role {
   color: var(--dossier-red);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -897,7 +898,7 @@
 .ci-dossier-deep-copy h4 {
   margin: 0 0 7px;
   color: var(--dossier-red);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -905,8 +906,8 @@
 .ci-dossier-deep-copy p,
 .ci-dossier-deep-copy li {
   color: #41423b;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 .ci-dossier-deep-copy ul {
@@ -1046,7 +1047,7 @@
   padding-top: 16px;
   color: #bfc9c2;
   border-top: 1px solid rgba(255, 255, 255, .15);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .ci-dossier-applications {
