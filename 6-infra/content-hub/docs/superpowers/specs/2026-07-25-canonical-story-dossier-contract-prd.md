@@ -1,8 +1,8 @@
 ---
 artifact: prd
-version: "1.0"
+version: "1.1"
 created: 2026-07-25
-status: review
+status: reviewed
 ---
 
 # PRD: Contrato canônico de dossiês de stories
@@ -205,18 +205,20 @@ O dossiê deve distinguir:
 
 ### 5.2 Camada rápida por story
 
-Cada item deve oferecer:
+A camada `metadata.quick` de cada item deve oferecer:
 
 - `roleLabel`;
 - `title`;
 - `summary`;
-- `sourceExcerpt`, quando houver texto relevante;
-- `noSourceTextReason`, quando não houver texto relevante;
 - `evidence`;
 - `audienceEffect`;
 - `subtext`;
 - `funnelFunction`;
 - `extractedRule`.
+
+O trecho-fonte continua armazenado em `metadata.sourceExcerpt`, e a justificativa
+de ausência em `metadata.noSourceTextReason`. Eles são exibidos na camada
+rápida, mas não serão duplicados dentro de `metadata.quick`.
 
 Regras:
 
@@ -254,7 +256,11 @@ Cada seção aprofundada terá:
 - `paragraphs` e/ou `bullets`;
 - `covers`, uma lista das dimensões que a seção responde.
 
-Dimensões obrigatórias no conjunto de seções de cada story:
+A cobertura é calculada sobre o item canônico inteiro, combinando `quick`,
+`visual` e `deep`. Ela não exige que a análise aprofundada repita campos já
+explicados adequadamente no modo rápido ou no raio-X.
+
+Dimensões centrais obrigatórias por story:
 
 | Chave | Pergunta respondida |
 | --- | --- |
@@ -262,15 +268,49 @@ Dimensões obrigatórias no conjunto de seções de cada story:
 | `attention` | O que captura ou preserva a atenção? |
 | `narrative` | Qual é a função desta tela na história? |
 | `continuity` | Como ela paga a anterior e prepara a seguinte? |
-| `interaction` | Que participação explícita ou implícita é solicitada? |
 | `funnel` | Que papel cumpre na relação, autoridade, consideração ou conversão? |
 | `subtext` | O que comunica sem declarar diretamente? |
-| `critique` | Quais limitações, riscos ou inferências frágeis existem? |
 | `template-consequence` | O que essa evidência muda ou exige no template e no molde? |
 
-Se uma dimensão não estiver presente na peça, a análise deve registrar
-explicitamente `não há` e explicar a consequência. Ausência na referência não
-autoriza ausência na análise.
+Duas dimensões são contextuais e precisam ser avaliadas, mas podem ser marcadas
+como não aplicáveis:
+
+| Chave | Pergunta respondida |
+| --- | --- |
+| `interaction` | Que participação explícita ou implícita é solicitada? |
+| `critique` | Quais limitações, riscos ou inferências frágeis existem nesta tela? |
+
+Cada dimensão contextual terá `status` igual a `present`, `not-applicable` ou
+`unknown`, acompanhado de justificativa. A crítica transversal da sequência
+continua obrigatória mesmo quando uma tela isolada não apresenta limitação
+relevante.
+
+A camada `quick` normalmente cobre evidência, efeito, funil e subtexto. A
+camada `visual` cobre evidência visual e atenção. A camada `deep` deve expandir
+principalmente função narrativa, continuidade, mecanismos específicos e
+consequência para o template. Uma seção pode cobrir mais de uma dimensão sem
+precisar repetir o mesmo texto.
+
+A contagem determinística de cobertura usa este mapeamento mínimo:
+
+- `quick.evidence` cobre `evidence`;
+- `visual.scene`, `visual.typography`, `visual.graphic` e `visual.markers` podem
+  reforçar `evidence`;
+- `visual.composition` ou `visual.markers` cobre `attention` estruturalmente
+  quando o campo está preenchido; a revisão visual confirma se o conteúdo
+  realmente explica a hierarquia do olhar;
+- `quick.funnelFunction` cobre `funnel`;
+- `quick.subtext` cobre `subtext`;
+- `quick.extractedRule` cobre `template-consequence`;
+- `deep.sections[].covers` cobre as dimensões declaradas somente quando a seção
+  possui conteúdo;
+- `deep.dimensionAssessments` registra `interaction` e `critique`.
+
+`narrative` e `continuity` precisam aparecer em `deep.sections[].covers`, pois
+não possuem substituto automático na camada rápida.
+
+O validador verifica presença, marcação e consistência estrutural. A revisão
+visual verifica se a alegação realmente corresponde ao print.
 
 Cada story também terá:
 
@@ -317,7 +357,7 @@ de um dos quatro módulos.
 O template extraído deve conter:
 
 - nome humano curto e memorável;
-- fórmula de 3 a 6 movimentos;
+- fórmula de 3 a 6 movimentos conceituais;
 - situação de uso;
 - função principal;
 - etapas operacionais;
@@ -328,14 +368,29 @@ O template extraído deve conter:
 - adaptação para Bruno;
 - vínculo entre cada etapa e a evidência que a originou.
 
+Cada etapa terá um `id` estável dentro do template.
+
 Uma etapa precisa descrever uma transformação ou função. Rótulos isolados como
 `identificação`, `conteúdo` ou `CTA` não são suficientes sem mecanismo,
 condição e resultado esperado.
+
+No contrato `1.0`, `reference.analysis.registeredTemplate.steps` é a fonte
+canônica dos movimentos conceituais. `template.definition.moldSteps` é a
+projeção visual desses movimentos e usa `templateStepIds` para declarar a
+relação.
+
+Os campos legados `template.steps` e `template.definition.steps` continuam
+existindo para compatibilidade, mas são projeções operacionais, não novas fontes
+editoriais. Eles podem ter cardinalidade diferente dos movimentos conceituais,
+desde que não contradigam sua ordem, função ou resultado. O validador deve
+detectar divergência entre essas representações.
 
 ### 5.8 Molde 9:16
 
 O molde deve conter uma tela funcional por etapa visual da sequência, com:
 
+- `id`;
+- `templateStepIds`, relacionando a tela a um ou mais movimentos conceituais;
 - título;
 - propósito;
 - função fixa;
@@ -343,6 +398,11 @@ O molde deve conter uma tela funcional por etapa visual da sequência, com:
 - pelo menos um placeholder de mensagem;
 - pelo menos um placeholder de evidência, cena ou prova;
 - interação ou continuação quando aplicável.
+
+Movimento conceitual e tela visual não têm cardinalidade obrigatoriamente igual.
+Uma sequência pode ter cinco movimentos distribuídos em três stories. Todo
+movimento conceitual deve aparecer em ao menos uma tela do molde, e uma tela
+pode realizar vários movimentos.
 
 O conjunto termina com:
 
@@ -355,11 +415,31 @@ copiar a superfície da referência.
 
 ### 5.9 Forma aditiva dos novos campos
 
-Os campos normalizados serão adicionados sem reinterpretar os campos legados:
+Os campos normalizados serão adicionados sem reinterpretar os campos legados.
+O trecho abaixo ilustra apenas os campos aditivos e suas relações; ele não é um
+payload publicável completo. O template integral de payload definido no FR-4
+continua sendo a fixture operacional:
 
 ```json
 {
   "dossierContractVersion": "1.0",
+  "template": {
+    "definition": {
+      "moldSteps": [
+        {
+          "id": "mold-opening",
+          "templateStepIds": ["step-identification"],
+          "title": "Abertura visual",
+          "purpose": "Instalar a situação e a pergunta narrativa",
+          "fixedFunction": "Abrir identificação antes da explicação",
+          "placeholders": [
+            {"kind": "scene", "label": "Cena reconhecível"},
+            {"kind": "copy", "label": "Pergunta específica"}
+          ]
+        }
+      ]
+    }
+  },
   "reference": {
     "sequenceConfirmed": true,
     "sequenceConfirmationSource": "Confirmada explicitamente por Bruno",
@@ -412,7 +492,9 @@ Os campos normalizados serão adicionados sem reinterpretar os campos legados:
         "executionRisks": ["Risco"],
         "steps": [
           {
+            "id": "step-identification",
             "title": "Nome da etapa",
+            "description": "Resumo editorial exibido na análise",
             "mechanism": "Como funciona",
             "condition": "O que precisa existir",
             "expectedResult": "O que produz"
@@ -426,6 +508,16 @@ Os campos normalizados serão adicionados sem reinterpretar os campos legados:
           "sourceExcerpt": "Trecho original ou transcrição fiel",
           "noSourceTextReason": null,
           "deep": {
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "A enquete solicita uma resposta explícita"
+              },
+              "critique": {
+                "status": "not-applicable",
+                "rationale": "Nenhuma limitação específica adicional nesta tela"
+              }
+            },
             "sections": [
               {
                 "title": "Título editorial",
@@ -451,6 +543,10 @@ Regras de compatibilidade:
 - `noSourceTextReason` só pode ser usado quando `sourceExcerpt` não se aplica;
 - `sequenceConfirmed` deve ser `true`, e `sequenceConfirmationSource` registra
   quem ou qual evidência confirmou a completude;
+- `registeredTemplate.steps[].id` identifica o movimento conceitual;
+- `moldSteps[].templateStepIds` referencia esses identificadores;
+- `template.steps` e `template.definition.steps` permanecem projeções legadas e
+  não podem introduzir uma interpretação concorrente;
 - o parser legado continua aceitando os formatos anteriores fora do publicador
   estrito do Hermes.
 
@@ -458,9 +554,22 @@ Regras de compatibilidade:
 
 ### FR-1: Fonte canônica versionada
 
-O repositório deve conter uma única especificação compartilhada do contrato e
-um schema legível por máquina. As skills instaladas no Hermes serão artefatos
-derivados dessa fonte, não cópias editadas apenas no WSL.
+O repositório deve conter o contrato editorial e um schema legível por máquina.
+As responsabilidades são:
+
+- JSON Schema: autoridade para forma, tipos, obrigatoriedade e enums;
+- contrato Markdown: autoridade para significado editorial, exemplos e regras
+  de interpretação;
+- validador Python: consumidor do schema e executor das regras cruzadas
+  identificadas pelo contrato.
+
+O Python não manterá uma segunda enumeração independente dos campos canônicos.
+Testes de paridade confirmarão que schema, versão declarada, regras documentadas
+e fixtures estão sincronizados.
+
+As skills instaladas no Hermes serão artefatos derivados dessa fonte, não
+cópias editadas apenas no WSL. A instalação registrará versão e hash, e um smoke
+local confirmará que a cópia ativa corresponde ao repositório.
 
 ### FR-2: Skill de análise
 
@@ -526,20 +635,25 @@ O validador deve rejeitar:
 - ausência simultânea de `sourceExcerpt` e `noSourceTextReason`;
 - seção aprofundada sem `covers`;
 - dimensão obrigatória ausente;
-- conteúdo idêntico copiado entre quick, visual e deep;
+- avaliação contextual ausente ou sem justificativa;
+- três camadas integralmente duplicadas;
 - síntese sem as quatro chaves canônicas;
 - mapa sem entrada de produto real;
 - template sem fórmula ou etapas operacionais;
 - etapa sem função e resultado;
+- movimento conceitual sem vínculo com uma tela do molde;
+- representações legadas que contradigam os movimentos conceituais;
 - molde sem placeholders funcionais;
 - placeholders editoriais não preenchidos;
-- títulos vazios ou iguais nas três camadas;
+- títulos vazios ou o mesmo título copiado em `quick.title`, `visual.title` e
+  `deep.title`;
 - asset ausente ou sem correspondência com o item.
 
 O validador pode avisar, sem bloquear automaticamente:
 
 - densidade de texto excepcionalmente baixa ou alta;
 - repetição lexical elevada;
+- reaproveitamento exato de uma frase entre campos de camadas diferentes;
 - seção muito longa;
 - falta de marcadores visuais;
 - discrepância entre quantidade de stories e etapas do molde.
@@ -582,7 +696,9 @@ horizontal.
 #### Raul dourado
 
 Representação completa do dossiê aprovado. Deve passar em todas as validações e
-renderizar sem alteração visual relevante.
+renderizar sem alteração visual relevante. A adequação ao contrato pode
+adicionar versão, chaves e marcações de cobertura, mas não pode reescrever a
+análise editorial aprovada.
 
 #### Payload raso
 
@@ -592,26 +708,39 @@ Payload tecnicamente preenchido, mas com:
 - síntese de um único bloco;
 - mapa sem produto real;
 - template formado por rótulos;
-- repetição entre camadas.
+- camadas integralmente duplicadas;
+- dimensões centrais ausentes.
 
 Deve falhar antes da rede.
 
 #### Efeito Espelho atual
 
-Snapshot local do estado atual. Deve falhar nos critérios que motivaram este
-PRD, sem qualquer alteração remota.
+Snapshot obtido por leitura canônica, sem mutação, e normalizado apenas com a
+versão e as chaves necessárias para exercer as regras editoriais. O texto atual
+permanece inalterado. A fixture deve falhar por lacunas substantivas, não apenas
+por ausência de `dossierContractVersion`.
 
 #### Efeito Espelho corrigido
 
 Só será criado após a implementação do contrato. Deve passar localmente antes
 de qualquer pedido de publicação.
 
+#### Variação de cardinalidade
+
+Fixtures estruturais com uma, três e cinco telas devem comprovar que trilho,
+raio-X, aprofundamento e molde não dependem de uma sequência de exatamente três
+stories.
+
 ### 7.2 Testes automatizados
 
 - schema aceita o Raul;
 - cada regra antiempobrecimento possui ao menos um teste negativo;
 - validador não chama rede em falha;
-- assets não são abertos ou enviados antes da aprovação estrutural;
+- versão, enums e regras do schema permanecem em paridade com o validador;
+- hash da skill instalada corresponde ao artefato versionado;
+- assets locais podem ser lidos durante análise, inspeção visual e validação de
+  integridade, mas nenhum asset é enviado e nenhuma chamada remota ocorre antes
+  da conclusão da validação estrutural e da revisão editorial;
 - parser preserva `covers` e as chaves canônicas;
 - referências legadas continuam renderizando;
 - snapshots protegidos de Raul e
@@ -635,19 +764,32 @@ Verificar:
 - primeiro viewport;
 - legibilidade do modo rápido;
 - prints sem crop destrutivo;
-- raio-X em três colunas quando houver espaço;
+- raio-X em grade responsiva adequada à quantidade de stories;
 - molde 9:16 estável;
 - aprofundamento usando toda a largura editorial;
-- alternância das três telas;
+- alternância das telas sucessivas;
 - síntese 2 × 2;
 - ausência de grande faixa vazia causada pela estrutura;
 - alcance do último conteúdo no mobile;
 - zero overflow horizontal.
 
+As asserções geométricas de desktop devem comprovar:
+
+- as bordas esquerda e direita do aprofundamento coincidem, dentro de tolerância
+  de 2 px, com a área editorial completa abaixo do modo rápido;
+- em stories ímpares, o print precede a análise;
+- em stories pares, a análise precede o print;
+- os quatro módulos de síntese ocupam duas colunas e duas linhas;
+- nenhum bloco de análise é limitado pela largura da antiga lista de templates.
+
 ### 7.4 Revisão humana
 
-Validação determinística não substitui julgamento editorial. Antes de publicar
-uma nova referência, o agente deverá apresentar:
+Validação determinística não substitui julgamento editorial. O agente deve
+inspecionar os prints e confirmar que trechos, evidências, gestos, objetos e
+inferências correspondem à fonte. O schema comprova estrutura; ele não comprova
+que uma transcrição lida da imagem está correta.
+
+O resultado da análise ou da validação apresentará:
 
 - nome e fórmula do template;
 - mapa da sequência;
@@ -655,8 +797,13 @@ uma nova referência, o agente deverá apresentar:
 - cobertura das dimensões;
 - avisos do validador.
 
-Uma solicitação explícita de Bruno para catalogar ou publicar continua sendo o
-gatilho da operação remota.
+Isso não cria fila de rascunho nem segunda aprovação. Se o pedido original de
+Bruno incluir explicitamente catalogar, colocar ou publicar na plataforma, a
+operação segue após validação bem-sucedida. Se o pedido for somente analisar ou
+pré-visualizar, o agente apresenta o resultado e não publica.
+
+Migration, deploy, alteração de secrets e reparos de dados existentes continuam
+exigindo autorizações específicas e separadas.
 
 ## 8. Fluxo operacional
 
@@ -735,7 +882,7 @@ Essas operações exigirão autorização específica depois dos testes locais.
 | Alteração acidental do Raul | Alto | Fixture dourada e snapshot protegido |
 | Regressão em templates antigos | Alto | Contrato estrito somente no publicador Hermes e testes legados |
 | Validação semântica insuficiente | Médio | Relatório determinístico mais revisão humana |
-| Correção remota prematura | Alto | Separar implementação, mutation e deploy por autorização |
+| Correção remota prematura | Alto | Separar implementação, mutação e deploy por autorização |
 | Duplicação da referência corrigida | Alto | Reutilizar `referenceKey` e testar revisão |
 
 ## 12. Fases e checkpoints
@@ -776,10 +923,12 @@ Essas operações exigirão autorização específica depois dos testes locais.
 
 ### Fase 5: Correção do Efeito Espelho
 
-- reconstruir o payload;
-- apresentar preview e relatório;
-- aguardar autorização editorial;
-- solicitar separadamente autorização para mutação remota;
+- iniciar somente a partir de um pedido explícito de correção;
+- reconstruir o payload e apresentar preview e relatório como evidência;
+- não criar uma segunda aprovação editorial quando o pedido inicial já incluir
+  a correção;
+- solicitar autorização para mutação remota apenas se ela não estiver incluída
+  explicitamente no pedido inicial;
 - publicar como nova revisão da mesma referência;
 - ler de volta e validar.
 
@@ -826,4 +975,5 @@ A implementação estará pronta quando:
 
 | Versão | Data | Mudança |
 | --- | --- | --- |
-| 1.0 | 2026-07-25 | Primeira versão para revisão de Bruno |
+| 1.0 | 2026-07-25 | Primeira versão do contrato |
+| 1.1 | 2026-07-25 | Revisão técnica: cobertura entre camadas, cardinalidade, fonte canônica, validação visual e fluxo sem segunda aprovação |
