@@ -1,6 +1,6 @@
 ---
 name: story-sequence-template-analysis
-description: Use when Bruno sends a completed story sequence and wants a deep analysis, visual X-ray, quick and detailed dossier, reusable template extraction, or a canonical payload for the OpenSquad story library.
+description: Use when Bruno sends a completed story sequence or identifies an active Instagram story by @profile and approximate subject, and wants source capture, deep analysis, visual X-ray, quick and detailed dossier, reusable template extraction, or a canonical payload for the OpenSquad story library.
 ---
 
 # Análise de Sequências e Templates de Stories
@@ -48,6 +48,14 @@ A análise deve capturar o raciocínio do criador, não apenas descrever o que a
 
 ### 1. Receber a sequência
 
+Quando Bruno indicar um story ativo por `@perfil + assunto aproximado`:
+
+1. Ler `references/live-instagram-story-video-handoff.md`.
+2. Usar `instagram-story-capture` quando essa skill e o Chrome real autenticado estiverem disponíveis.
+3. Tratar a descrição de Bruno apenas como pista de localização. A fonte da análise é a mídia recuperada, sua transcrição e seus frames.
+4. Inventariar todos os stories ativos observados e delimitar quais pertencem à sequência pedida.
+5. Se o agente atual não puder controlar o navegador ou recuperar os assets, declarar a limitação e pedir o handoff de captura. Nunca fingir que assistiu ao story.
+
 Quando Bruno começar a enviar prints:
 
 - registrar mentalmente a ordem de chegada;
@@ -55,6 +63,16 @@ Quando Bruno começar a enviar prints:
 - não entregar a análise até Bruno declarar que a sequência terminou;
 - após cada lote cuja conclusão não esteja explícita, perguntar exatamente sobre o objeto: **“Essa sequência de stories do [creator] está completa?”**
 - se Bruno já disser “a sequência termina aí”, considerar a sequência confirmada e começar a análise sem perguntar novamente.
+
+Para story em vídeo, considerar a fonte pronta somente quando houver:
+
+- arquivo completo com vídeo e áudio, quando o story tiver áudio;
+- duração e streams verificados;
+- transcrição local com timestamps, ou motivo explícito para ausência de fala utilizável;
+- frames suficientes para representar mudanças visuais importantes;
+- manifesto que preserve a ordem e relacione mídia, transcrição e frames ao mesmo story.
+
+Não usar o texto sobreposto como substituto da fala. Não atribuir ao creator uma transcrição dominada por música, ruído ou baixa confiança.
 
 ### 2. Resolver o contexto do creator
 
@@ -244,6 +262,8 @@ No Telegram, evitar tabelas. Usar títulos e listas curtas.
 - A ordem das telas está correta?
 - A sequência foi confirmada como completa?
 - O texto importante foi transcrito sem invenção?
+- Stories em vídeo têm mídia, áudio, transcrição, frames e manifesto ligados ao mesmo item?
+- A transcrição veio do áudio real e os trechos incertos foram preservados como incertos?
 - Observação e inferência estão diferenciadas?
 - Cada tela tem uma função narrativa clara?
 - O raio-X visual registra cena, pessoa/roupa, texto, tipografia, cores, elementos gráficos, composição, posição da legenda e mensagem visual sem inventar detalhes ilegíveis?
