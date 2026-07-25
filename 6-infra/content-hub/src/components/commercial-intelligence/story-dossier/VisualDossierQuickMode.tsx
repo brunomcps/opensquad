@@ -11,8 +11,6 @@ interface VisualDossierQuickModeProps {
   onOpenDeep: () => void;
 }
 
-const storyRailLabels = ['Cena e gancho', 'Virada pro nicho', 'Status e valores'];
-
 function SequenceOverview({ model }: { model: VisualDossierViewModel }) {
   return (
     <div className="ci-dossier-sequence-overview">
@@ -173,7 +171,7 @@ export function VisualDossierQuickMode({
               <img src={story.assetUrl} alt="" />
               <span>
                 <b>Story {story.narrativeOrder}</b>
-                <small>{storyRailLabels[index] || story.quick.roleLabel}</small>
+                <small>{story.quick.roleLabel}</small>
               </span>
             </button>
           ))}

@@ -147,6 +147,25 @@ function createReference(): StoryReferenceDto {
   };
 }
 
+function createSizedReference(count: number): StoryReferenceDto {
+  const reference = createReference();
+  const seed = reference.items[0]!;
+  reference.title = `Referência genérica com ${count} stories`;
+  reference.sourceAccount = '@criador_generico';
+  reference.sourceUrl = 'https://www.instagram.com/criador_generico/';
+  reference.items = Array.from({ length: count }, (_, index) => {
+    const narrativeOrder = index + 1;
+    const item = structuredClone(seed);
+    item.itemId = `50000000-0000-4000-8000-${String(narrativeOrder).padStart(12, '0')}`;
+    item.narrativeOrder = narrativeOrder;
+    item.metadata.quick!.title = `Rápido ${narrativeOrder}`;
+    item.metadata.visual!.title = `Visual ${narrativeOrder}`;
+    item.metadata.deep!.title = `Detalhado ${narrativeOrder}`;
+    return item;
+  });
+  return reference;
+}
+
 test('monta o dossie Raul em ordem narrativa sem misturar os tres titulos editoriais', () => {
   const template = createTemplate();
   const reference = createReference();
@@ -181,18 +200,18 @@ test('monta o dossie Raul em ordem narrativa sem misturar os tres titulos editor
   ]).size === 3));
 });
 
-test('falha fechado para outra referencia ou URL parecida e valida o vinculo no build', () => {
+test('reconhece qualquer criador e sequencias de 1, 3, 4 e 8 stories pelo conteúdo', () => {
+  for (const count of [1, 3, 4, 8]) {
+    const reference = createSizedReference(count);
+    assert.equal(hasCompleteVisualDossier(reference), true);
+    const dossier = buildVisualDossierViewModel(createTemplate(), reference);
+    assert.equal(dossier.stories.length, count);
+    assert.equal(dossier.sourceAccount, '@criador_generico');
+  }
+});
+
+test('valida o vínculo com o template apenas ao montar o dossiê', () => {
   const reference = createReference();
-
-  const storiesReference = structuredClone(reference);
-  storiesReference.title = 'Stories para Enriquecer';
-  storiesReference.sourceUrl = 'https://opensquad.com.br/stories-para-enriquecer.pdf';
-  assert.equal(hasCompleteVisualDossier(storiesReference), false);
-
-  const similarUrl = structuredClone(reference);
-  similarUrl.sourceUrl = `${canonicalRaulUrl}?utm_source=teste`;
-  assert.equal(hasCompleteVisualDossier(similarUrl), false);
-
   const wrongTemplate = structuredClone(reference);
   wrongTemplate.template = {
     templateId: '20000000-0000-4000-8000-000000000999',
@@ -215,7 +234,7 @@ test('dados incompletos nunca produzem um dossie parcial', () => {
     { message: 'Dossiê visual incompleto.' },
   );
 
-  const twoStories = createReference();
-  twoStories.items.pop();
-  assert.equal(hasCompleteVisualDossier(twoStories), false);
+  const discontinuous = createSizedReference(3);
+  discontinuous.items[2]!.narrativeOrder = 5;
+  assert.equal(hasCompleteVisualDossier(discontinuous), false);
 });

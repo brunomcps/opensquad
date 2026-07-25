@@ -355,7 +355,7 @@ function LegacyVisualReferenceDossier({ template, reference }: {
       <section className="ci-visual-full-analysis">
         <header>
           <div className="ci-content-kicker">Análise completa · Referência fundadora</div>
-          <h4>Como esta sequência vende a persona do Raul</h4>
+          <h4>Como esta sequência revela o posicionamento de {reference.sourceAccount}</h4>
           <p>A análise original permanece ligada aos próprios prints.</p>
         </header>
         {reference.items.map(story => (
@@ -635,7 +635,7 @@ function ReferencesSection({ role }: { role: MemberRole }) {
       </div>
       {creating && <ReferenceForm templates={templates} onCancel={() => setCreating(false)} onSaved={reference => { setReferences(current => [reference, ...current]); setSelectedId(reference.sequenceId); setCreating(false); }} />}
       {!templates.length && <div className="ci-content-notice">Crie um template antes da primeira referência.</div>}
-      {!references.length ? <EmptyState title="Nenhuma referência cadastrada" copy="O piloto do Raul Sena já está preparado no formulário de nova referência." /> : (
+      {!references.length ? <EmptyState title="Nenhuma referência cadastrada" copy="A primeira referência completa aparecerá aqui depois de ser catalogada." /> : (
         <div className="ci-content-publications-grid">
           <div className="ci-content-publication-list">
             {references.map(reference => (

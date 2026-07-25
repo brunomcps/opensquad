@@ -16,7 +16,7 @@ export function VisualDossierDeepAnalysis({
       <header className="ci-dossier-deep-head">
         <div>
           <span className="ci-dossier-kicker">Análise completa · Referência fundadora</span>
-          <h2>Como esta sequência vende a persona do Raul</h2>
+          <h2>Como esta sequência revela o posicionamento de {model.sourceAccount}</h2>
           <p>
             A análise original fica preservada, com evidências, trechos e abstrações
             ligadas aos próprios prints.

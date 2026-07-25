@@ -13,7 +13,7 @@ export function VisualDossierXray({ id, model }: VisualDossierXrayProps) {
         <h2>O que aparece, onde aparece e o que isso transmite</h2>
         <p>
           Esta camada separa conteúdo, composição e acabamento visual para modelar a lógica
-          da referência sem depender de copiar o assunto ou a estética de Raul.
+          da referência sem depender de copiar o assunto ou a estética do criador.
         </p>
       </header>
 

@@ -13,7 +13,6 @@ import type {
   StoryTemplateDto,
 } from '../../../../ci-app/src/api';
 
-const canonicalRaulSourceUrl = 'https://www.instagram.com/_raulsena/';
 const incompleteDossierMessage = 'Dossiê visual incompleto.';
 
 export interface VisualDossierStory {
@@ -31,6 +30,7 @@ export interface VisualDossierViewModel {
   editorialName: string;
   editorialSummary: string;
   apparentSubject: string;
+  sourceAccount: string;
   stories: VisualDossierStory[];
   sequenceMap: StorySequenceMapItemInput[];
   overview: string[];
@@ -64,7 +64,7 @@ interface CompleteVisualDossierItem extends StoryItemDto {
 }
 
 interface CompleteVisualDossierReference extends StoryReferenceDto {
-  sourceUrl: typeof canonicalRaulSourceUrl;
+  sourceAccount: string;
   template: NonNullable<StoryReferenceDto['template']>;
   analysis: CompleteVisualDossierAnalysis;
   items: CompleteVisualDossierItem[];
@@ -193,10 +193,11 @@ function isCompleteVisualDossier(
   reference: StoryReferenceDto | null | undefined,
 ): reference is CompleteVisualDossierReference {
   if (!reference
-    || reference.sourceUrl !== canonicalRaulSourceUrl
     || !reference.template
+    || !isText(reference.sourceAccount)
     || !hasCompleteAnalysis(reference.analysis)
-    || reference.items.length !== 3
+    || reference.items.length < 1
+    || reference.items.length > 20
     || !reference.items.every(hasCompleteItem)
   ) {
     return false;
@@ -244,6 +245,7 @@ export function buildVisualDossierViewModel(
     editorialName,
     editorialSummary,
     apparentSubject: reference.analysis.summary,
+    sourceAccount: reference.sourceAccount,
     stories,
     sequenceMap: reference.analysis.sequenceMap,
     overview: reference.analysis.overview,
