@@ -18,6 +18,23 @@
   grid-template-columns: 220px minmax(0, 1fr);
 }
 
+.ci-content-library-grid.is-visual-dossier > .ci-story-dossier-visual,
+.ci-content-library-grid.is-visual-dossier > .ci-story-dossier-visual > .ci-dossier-stage {
+  display: contents;
+}
+
+.ci-content-library-grid.is-visual-dossier .ci-dossier-quick {
+  grid-column: 2;
+}
+
+.ci-content-library-grid.is-visual-dossier .ci-dossier-sequence-map,
+.ci-content-library-grid.is-visual-dossier .ci-dossier-xray,
+.ci-content-library-grid.is-visual-dossier .ci-dossier-mold,
+.ci-content-library-grid.is-visual-dossier .ci-dossier-deep,
+.ci-content-library-grid.is-visual-dossier .ci-dossier-applications {
+  grid-column: 1 / -1;
+}
+
 .ci-dossier-stage *,
 .ci-dossier-stage *::before,
 .ci-dossier-stage *::after {
@@ -1126,6 +1143,10 @@
 @media (max-width: 760px) {
   .ci-content-library-grid.is-visual-dossier {
     grid-template-columns: 1fr;
+  }
+
+  .ci-content-library-grid.is-visual-dossier .ci-dossier-quick {
+    grid-column: 1;
   }
 
   .ci-dossier-stage {

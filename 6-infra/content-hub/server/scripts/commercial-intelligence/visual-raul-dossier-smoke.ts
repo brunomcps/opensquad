@@ -503,6 +503,19 @@ async function assertSelectorCount(page: Page, selector: string, expected: numbe
   }
 }
 
+async function assertExpandedSectionSpansLibrary(page: Page, selector: string) {
+  const geometry = await page.evaluate(targetSelector => {
+    const library = document.querySelector('.ci-content-library-grid.is-visual-dossier')?.getBoundingClientRect();
+    const section = document.querySelector(targetSelector)?.getBoundingClientRect();
+    return library && section
+      ? { leftDelta: Math.abs(section.left - library.left), widthDelta: Math.abs(section.width - library.width) }
+      : null;
+  }, selector);
+  if (!geometry || geometry.leftDelta > 2 || geometry.widthDelta > 2) {
+    throw new Error(`${selector} não cobre a largura da lista e do modo rápido.`);
+  }
+}
+
 async function assertActiveAnchor(page: Page, id: string) {
   await page.waitForFunction(
     targetId => document.activeElement?.id === targetId,
@@ -596,6 +609,7 @@ try {
   await assertActiveAnchor(desktop, visualId);
   await desktop.getByText('Raio-X visual da referência', { exact: true }).waitFor();
   await assertSelectorCount(desktop, '.ci-dossier-xray-grid > article', 3);
+  await assertExpandedSectionSpansLibrary(desktop, '.ci-dossier-xray');
   await assertImagesLoaded(desktop, '.ci-dossier-xray-grid img', 3);
   for (const title of visualTitles) {
     await desktop.locator('.ci-dossier-xray-grid').getByText(title, { exact: true }).waitFor();
@@ -609,6 +623,7 @@ try {
   await desktop.getByRole('button', { name: 'Abrir análise completa' }).click();
   await assertActiveAnchor(desktop, deepId);
   await desktop.getByText('Leitura geral', { exact: true }).waitFor();
+  await assertExpandedSectionSpansLibrary(desktop, '.ci-dossier-deep');
   await assertSelectorCount(desktop, '.ci-dossier-deep-story', 3);
   await assertImagesLoaded(desktop, '.ci-dossier-deep-story img', 3);
   for (const layer of deepLayers) {
