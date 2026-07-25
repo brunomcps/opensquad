@@ -178,6 +178,214 @@ function TemplateForm({ onSaved, onCancel }: { onSaved: (template: StoryTemplate
   );
 }
 
+function hasVisualDossier(reference: StoryReferenceDto): boolean {
+  return reference.items.some(item => Boolean(item.metadata?.visual));
+}
+
+function VisualReferenceDossier({ template, reference }: {
+  template: StoryTemplateDto;
+  reference: StoryReferenceDto;
+}) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [showSequence, setShowSequence] = useState(false);
+  useEffect(() => {
+    setActiveIndex(0);
+    setShowSequence(false);
+  }, [reference.sequenceId]);
+
+  const definition = template.definition;
+  const item = reference.items[activeIndex] || reference.items[0];
+  const metadata = item?.metadata || {};
+  const visual = metadata.visual;
+  const map = reference.analysis?.sequenceMap || [];
+  const moldSteps = definition.moldSteps || [];
+
+  return (
+    <>
+      <section className="ci-visual-dossier-quick">
+        <header className="ci-visual-dossier-intro">
+          <div className="ci-content-kicker">Modo rápido · Referência e template juntos</div>
+          <h4>{template.name}</h4>
+          <p>{reference.analysis?.summary || reference.description}</p>
+        </header>
+
+        <div className="ci-visual-story-rail" aria-label="Stories da referência">
+          {reference.items.map((story, index) => (
+            <button
+              className={!showSequence && index === activeIndex ? 'active' : ''}
+              key={story.itemId}
+              onClick={() => { setActiveIndex(index); setShowSequence(false); }}
+              type="button"
+            >
+              {story.assetUrl && <img src={story.assetUrl} alt="" />}
+              <span><b>Story {story.narrativeOrder}</b><small>{roleLabels[story.narrativeRole]}</small></span>
+            </button>
+          ))}
+          <button
+            className={`ci-visual-sequence-button${showSequence ? ' active' : ''}`}
+            onClick={() => setShowSequence(true)}
+            type="button"
+          >
+            <span aria-hidden="true">▦</span>
+            Sequência completa
+          </button>
+        </div>
+
+        {showSequence ? (
+          <div className="ci-visual-sequence-summary">
+            <div>
+              <div className="ci-content-kicker">Sequência completa · {reference.items.length} stories</div>
+              <h5>A história vende uma forma de pensar</h5>
+              {(reference.analysis?.overview || []).map(paragraph => <p key={paragraph}>{paragraph}</p>)}
+            </div>
+            <div className="ci-visual-sequence-strip">
+              {reference.items.map(story => (
+                <figure key={story.itemId}>
+                  {story.assetUrl && <img src={story.assetUrl} alt={`Story ${story.narrativeOrder}`} />}
+                  <figcaption>{roleLabels[story.narrativeRole]}</figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        ) : item ? (
+          <div className="ci-visual-focus">
+            <figure className="ci-visual-annotated">
+              <div className="ci-visual-phone">
+                {item.assetUrl && <img src={item.assetUrl} alt={`Story ${item.narrativeOrder} da referência`} />}
+                {(visual?.markers || []).map((marker, index) => (
+                  <span className={`ci-visual-marker marker-${index + 1}`} key={`${marker.label}-${marker.description}`}>
+                    {marker.label}
+                  </span>
+                ))}
+              </div>
+              <figcaption>
+                {(visual?.markers || []).map(marker => (
+                  <span key={`${marker.label}-${marker.description}`}><b>{marker.label}</b>{marker.description}</span>
+                ))}
+              </figcaption>
+            </figure>
+            <div className="ci-visual-focus-copy">
+              <div className="ci-content-kicker">{visual?.roleLabel || `Story ${item.narrativeOrder}`}</div>
+              <h5>{visual?.title || roleLabels[item.narrativeRole]}</h5>
+              {metadata.sourceExcerpt && <blockquote><b>Trecho original</b>{metadata.sourceExcerpt}</blockquote>}
+              <div className="ci-visual-quick-grid">
+                <div><b>Evidência concreta</b><p>{metadata.analysis || item.textContent}</p></div>
+                <div><b>Efeito no público</b><p>{metadata.audienceEffect}</p></div>
+                <div><b>Subtexto</b><p>{metadata.subtext}</p></div>
+                <div><b>Função no funil</b><p>{metadata.funnelFunction}</p></div>
+              </div>
+              {metadata.extractedRule && <div className="ci-visual-rule"><b>Regra extraída desta tela</b><p>{metadata.extractedRule}</p></div>}
+            </div>
+          </div>
+        ) : null}
+      </section>
+
+      {map.length > 0 && (
+        <section className="ci-visual-sequence-map" aria-label="Mapa da sequência">
+          {map.map(entry => <div key={`${entry.label}-${entry.value}`}><b>{entry.label}</b><span>{entry.value}</span></div>)}
+        </section>
+      )}
+
+      <section className="ci-visual-xray">
+        <header>
+          <div className="ci-content-kicker">Raio-X visual da referência</div>
+          <h4>O que aparece, onde aparece e o que isso transmite</h4>
+          <p>Conteúdo, composição e acabamento separados para modelar a lógica sem copiar a superfície.</p>
+        </header>
+        <div className="ci-visual-xray-grid">
+          {reference.items.map(story => {
+            const storyVisual = story.metadata?.visual;
+            if (!storyVisual) return null;
+            return (
+              <article key={story.itemId}>
+                <figure>{story.assetUrl && <img src={story.assetUrl} alt={`Raio-X do story ${story.narrativeOrder}`} loading="lazy" />}</figure>
+                <div className="ci-visual-xray-copy">
+                  <div className="ci-content-kicker">{storyVisual.roleLabel}</div>
+                  <h5>{storyVisual.title}</h5>
+                  <dl>
+                    {storyVisual.scene && <div><dt>Cena e pessoa</dt><dd>{storyVisual.scene}</dd></div>}
+                    {storyVisual.typography && <div><dt>Texto e tipografia</dt><dd>{storyVisual.typography}</dd></div>}
+                    {storyVisual.composition && <div><dt>Distribuição</dt><dd>{storyVisual.composition}</dd></div>}
+                    {storyVisual.graphic && <div><dt>Elemento gráfico</dt><dd>{storyVisual.graphic}</dd></div>}
+                    {storyVisual.palette?.length && <div><dt>Paleta dominante</dt><dd className="ci-visual-swatches">{storyVisual.palette.map(color => <span key={color} style={{ background: color }} title={color} />)}</dd></div>}
+                  </dl>
+                  {storyVisual.impression && <div className="ci-visual-impression"><b>O que transmite</b><p>{storyVisual.impression}</p></div>}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+        {reference.analysis?.visualGrammar && <div className="ci-visual-grammar"><h5>Gramática visual da sequência</h5><p>{reference.analysis.visualGrammar}</p></div>}
+      </section>
+
+      {moldSteps.length > 0 && (
+        <section className="ci-visual-mold">
+          <header>
+            <div className="ci-content-kicker">Molde visual com placeholders</div>
+            <h4>Um storyboard funcional para modelar a estrutura</h4>
+            <p>Os espaços indicam função e posição aproximada. Cenário, texto, prova e resposta entram pela realidade do Bruno.</p>
+          </header>
+          <div className="ci-visual-mold-grid">
+            {moldSteps.map((step, index) => (
+              <article key={`${step.title}-${index}`}>
+                <h5>{index + 1}. {step.title}</h5>
+                <div className="ci-visual-mold-phone">
+                  {(step.placeholders || []).map((placeholder, placeholderIndex) => (
+                    <div
+                      className={`ci-visual-placeholder placeholder-${placeholder.kind}`}
+                      key={`${placeholder.kind}-${placeholderIndex}`}
+                    >
+                      [{placeholder.label}]
+                    </div>
+                  ))}
+                </div>
+                <p><b>Função fixa:</b> {step.fixedFunction || step.purpose}</p>
+              </article>
+            ))}
+          </div>
+          <div className="ci-visual-model-rules">
+            <div><b>Preservar</b><p>{definition.preserveRules?.join(' ')}</p></div>
+            <div><b>Adaptar</b><p>{definition.adaptRules?.join(' ')}</p></div>
+            <div><b>Evitar</b><p>{definition.avoidRules?.join(' ')}</p></div>
+          </div>
+        </section>
+      )}
+
+      <section className="ci-visual-full-analysis">
+        <header>
+          <div className="ci-content-kicker">Análise completa · Referência fundadora</div>
+          <h4>Como esta sequência vende a persona do Raul</h4>
+          <p>A análise original permanece ligada aos próprios prints.</p>
+        </header>
+        {reference.items.map(story => (
+          <article className="ci-visual-analysis-story" key={story.itemId}>
+            <figure>
+              {story.assetUrl && <img src={story.assetUrl} alt={`Story ${story.narrativeOrder}`} loading="lazy" />}
+              <figcaption>{story.metadata?.visual?.title || roleLabels[story.narrativeRole]}</figcaption>
+            </figure>
+            <div>
+              <span className="ci-visual-analysis-index">{String(story.narrativeOrder).padStart(2, '0')}</span>
+              <h5>{story.metadata?.visual?.title || roleLabels[story.narrativeRole]}</h5>
+              <small>{story.metadata?.visual?.roleLabel}</small>
+              {story.metadata?.sourceExcerpt && <blockquote>{story.metadata.sourceExcerpt}</blockquote>}
+              {(story.metadata?.analysisSections || []).map(section => (
+                <section key={section.title}>
+                  <h6>{section.title}</h6>
+                  {(section.paragraphs || []).map(paragraph => <p key={paragraph}>{paragraph}</p>)}
+                  {section.bullets?.length && <ul>{section.bullets.map(bullet => <li key={bullet}>{bullet}</li>)}</ul>}
+                </section>
+              ))}
+              {story.metadata?.extractedRule && <div className="ci-visual-rule"><b>Regra que nasce deste story</b><p>{story.metadata.extractedRule}</p></div>}
+            </div>
+          </article>
+        ))}
+        {reference.analysis?.productRevealed && <div className="ci-visual-persona"><b>O verdadeiro produto da sequência</b><p>{reference.analysis.productRevealed}</p></div>}
+        {reference.analysis?.transferRules?.length && <div className="ci-visual-transfer"><h5>O que vale trazer para o Instagram do Bruno</h5><ul>{reference.analysis.transferRules.map(rule => <li key={rule}>{rule}</li>)}</ul></div>}
+      </section>
+    </>
+  );
+}
+
 function TemplatesSection({ role }: { role: MemberRole }) {
   const [templates, setTemplates] = useState<StoryTemplateDto[]>([]);
   const [references, setReferences] = useState<StoryReferenceDto[]>([]);
@@ -207,6 +415,7 @@ function TemplatesSection({ role }: { role: MemberRole }) {
   const linkedReferences = selected ? references.filter(reference => reference.template?.templateId === selected.templateId) : [];
   const linkedPublications = selected ? publications.filter(publication => publication.template?.templateId === selected.templateId) : [];
   const definition = selected?.definition || ({ steps: selected?.steps || [] } as StoryTemplateDto['definition']);
+  const visualReference = linkedReferences.find(hasVisualDossier);
 
   if (loading) return <div className="ci-loading">Carregando biblioteca de templates...</div>;
   if (error) return <div className="ci-content-error-panel"><p>{error}</p><button onClick={() => void load()}>Tentar de novo</button></div>;
@@ -230,28 +439,30 @@ function TemplatesSection({ role }: { role: MemberRole }) {
           <div className="ci-content-metrics"><span><strong>{linkedReferences.length}</strong> referências</span><span><strong>{linkedPublications.length}</strong> aplicações</span></div>
         </header>
 
-        <section className="ci-story-method"><h4>Regras do método</h4><div className="ci-story-rule-grid">
-          <div><b>Preservar</b>{(definition.preserveRules || []).map(rule => <p key={rule}>✓ {rule}</p>)}</div>
-          <div><b>Adaptar</b>{(definition.adaptRules || []).map(rule => <p key={rule}>↗ {rule}</p>)}</div>
-          <div><b>Evitar / riscos</b>{[...(definition.avoidRules || []), ...(definition.risks || [])].map(rule => <p key={rule}>! {rule}</p>)}</div>
-        </div></section>
+        {visualReference ? <VisualReferenceDossier template={selected} reference={visualReference} /> : <>
+          <section className="ci-story-method"><h4>Regras do método</h4><div className="ci-story-rule-grid">
+            <div><b>Preservar</b>{(definition.preserveRules || []).map(rule => <p key={rule}>✓ {rule}</p>)}</div>
+            <div><b>Adaptar</b>{(definition.adaptRules || []).map(rule => <p key={rule}>↗ {rule}</p>)}</div>
+            <div><b>Evitar / riscos</b>{[...(definition.avoidRules || []), ...(definition.risks || [])].map(rule => <p key={rule}>! {rule}</p>)}</div>
+          </div></section>
 
-        <section><h4>Referências metodológicas ligadas</h4>{!linkedReferences.length ? <EmptyState title="Sem referência ligada" copy="Vincule uma referência para documentar de onde o molde aprendeu." /> : linkedReferences.map(reference => <div className="ci-story-reference" key={reference.sequenceId}>
-          <div className="ci-story-reference-head"><div><strong>{reference.title}</strong><p>{reference.analysis?.summary || reference.description}</p></div>{reference.sourceUrl && <a href={reference.sourceUrl} target="_blank" rel="noreferrer">Abrir fonte</a>}</div>
-          {reference.items.map(item => { const metadata = item.metadata || {}; const media = metadata.canonicalPageAssetUrl || item.assetUrl; return <article className="ci-story-evidence" key={item.itemId}>
-            <div className="ci-story-evidence-media">{media && <img src={media} alt={`Evidência da página ${metadata.sourcePage || item.narrativeOrder}`} loading="lazy" />}<small>Página {metadata.sourcePage || '—'} · {metadata.evidenceType || reference.platform}</small></div>
-            <div className="ci-story-evidence-copy">
-              <span className="ci-story-editorial-status">{metadata.editorialStatus || 'em análise'}</span>
-              <div className="ci-story-source-excerpt"><b>Ensinamento original</b><p>{metadata.sourceExcerpt || item.textContent}</p></div>
-              <div className="ci-story-analysis"><b>Análise</b><p>{metadata.analysis || item.textContent}</p></div>
-              {metadata.criticism && <div className="ci-story-criticism"><b>Crítica editorial</b><p>{metadata.criticism}</p></div>}
-              {metadata.brunoAdaptation && <div className="ci-story-adaptation"><b>Adaptação Bruno / TDAH</b><p>{metadata.brunoAdaptation}</p></div>}
-              {metadata.moldConsequence && <div className="ci-story-consequence"><b>Consequência no molde</b><p>{metadata.moldConsequence}</p></div>}
-            </div>
-          </article>; })}
-        </div>)}</section>
+          <section><h4>Referências metodológicas ligadas</h4>{!linkedReferences.length ? <EmptyState title="Sem referência ligada" copy="Vincule uma referência para documentar de onde o molde aprendeu." /> : linkedReferences.map(reference => <div className="ci-story-reference" key={reference.sequenceId}>
+            <div className="ci-story-reference-head"><div><strong>{reference.title}</strong><p>{reference.analysis?.summary || reference.description}</p></div>{reference.sourceUrl && <a href={reference.sourceUrl} target="_blank" rel="noreferrer">Abrir fonte</a>}</div>
+            {reference.items.map(item => { const metadata = item.metadata || {}; const media = metadata.canonicalPageAssetUrl || item.assetUrl; return <article className="ci-story-evidence" key={item.itemId}>
+              <div className="ci-story-evidence-media">{media && <img src={media} alt={`Evidência da página ${metadata.sourcePage || item.narrativeOrder}`} loading="lazy" />}<small>Página {metadata.sourcePage || '—'} · {metadata.evidenceType || reference.platform}</small></div>
+              <div className="ci-story-evidence-copy">
+                <span className="ci-story-editorial-status">{metadata.editorialStatus || 'em análise'}</span>
+                <div className="ci-story-source-excerpt"><b>Ensinamento original</b><p>{metadata.sourceExcerpt || item.textContent}</p></div>
+                <div className="ci-story-analysis"><b>Análise</b><p>{metadata.analysis || item.textContent}</p></div>
+                {metadata.criticism && <div className="ci-story-criticism"><b>Crítica editorial</b><p>{metadata.criticism}</p></div>}
+                {metadata.brunoAdaptation && <div className="ci-story-adaptation"><b>Adaptação Bruno / TDAH</b><p>{metadata.brunoAdaptation}</p></div>}
+                {metadata.moldConsequence && <div className="ci-story-consequence"><b>Consequência no molde</b><p>{metadata.moldConsequence}</p></div>}
+              </div>
+            </article>; })}
+          </div>)}</section>
 
-        <section className="ci-story-mold"><h4>Molde aprovado · 9:16</h4><div className="ci-story-mold-grid">{(definition.moldSteps?.length ? definition.moldSteps : selected.steps.map(step => ({ title: roleLabels[step.role], purpose: step.instruction }))).map((step, index) => <div key={`${step.title}-${index}`}><span>{index + 1}</span><b>{step.title}</b><p>{step.purpose}</p></div>)}</div></section>
+          <section className="ci-story-mold"><h4>Molde aprovado · 9:16</h4><div className="ci-story-mold-grid">{(definition.moldSteps?.length ? definition.moldSteps : selected.steps.map(step => ({ title: roleLabels[step.role], purpose: step.instruction }))).map((step, index) => <div key={`${step.title}-${index}`}><span>{index + 1}</span><b>{step.title}</b><p>{step.purpose}</p></div>)}</div></section>
+        </>}
         <section className="ci-story-publications"><h4>Publicações vinculadas</h4>{linkedPublications.length ? linkedPublications.map(publication => <div className="ci-story-publication" key={publication.sequenceId}><span className={`ci-content-status s-${publication.publicationState}`}>{stateLabels[publication.publicationState]}</span><strong>{publication.title}</strong><small>{publication.items.length} stories · {dateLabel(publication.scheduledFor || publication.updatedAt)}</small></div>) : <EmptyState title="Molde ainda não aplicado" copy="A primeira publicação vinculada aparecerá aqui junto de seu estado editorial." />}</section>
         <section className="ci-story-learnings"><h4>Aprendizados</h4>{linkedPublications.some(item => item.reviewNote) ? linkedPublications.filter(item => item.reviewNote).map(item => <p key={item.sequenceId}>{item.reviewNote}</p>) : <p>Sem aprendizados de revisão registrados ainda. O dossiê será atualizado conforme o molde for aplicado.</p>}</section>
       </article>}

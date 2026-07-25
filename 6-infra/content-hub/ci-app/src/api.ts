@@ -1,4 +1,14 @@
-import type { StoryPublicationInput, StoryPublicationUpdateInput, StoryReferenceInput, StoryReviewInput, StoryTemplateInput } from '../../supabase/functions/_shared/storyContent';
+import type {
+  StoryEvidenceMetadataInput,
+  StoryEvidenceSectionInput,
+  StoryPublicationInput,
+  StoryPublicationUpdateInput,
+  StoryReferenceAnalysisInput,
+  StoryReferenceInput,
+  StoryReviewInput,
+  StoryTemplateInput,
+  StoryVisualAnalysisInput,
+} from '../../supabase/functions/_shared/storyContent';
 import type { DataQualityReport } from '../../src/types/commercialIntelligence';
 import type { TemporalAssociationReport } from '../../supabase/functions/_shared/association';
 import type { DirectAttributionReport } from '../../supabase/functions/_shared/attribution';
@@ -361,17 +371,23 @@ export interface StoryTemplateDto {
   updatedAt: string;
 }
 
-export interface StoryEvidenceMetadataDto {
-  sourcePage: number | null;
-  canonicalPageUrl: string | null;
-  canonicalPageAssetUrl: string | null;
-  evidenceType: string | null;
-  sourceExcerpt: string | null;
-  analysis: string | null;
-  criticism: string | null;
-  brunoAdaptation: string | null;
-  editorialStatus: string | null;
-  moldConsequence: string | null;
+export interface StoryEvidenceMetadataDto extends StoryEvidenceMetadataInput {
+  sourcePage: number | null | undefined;
+  canonicalPageUrl: string | null | undefined;
+  canonicalPageAssetUrl: string | null | undefined;
+  evidenceType: string | null | undefined;
+  sourceExcerpt: string | null | undefined;
+  analysis: string | null | undefined;
+  criticism: string | null | undefined;
+  brunoAdaptation: string | null | undefined;
+  editorialStatus: string | null | undefined;
+  moldConsequence: string | null | undefined;
+  audienceEffect?: string | null;
+  subtext?: string | null;
+  funnelFunction?: string | null;
+  extractedRule?: string | null;
+  analysisSections?: StoryEvidenceSectionInput[];
+  visual?: StoryVisualAnalysisInput;
 }
 
 export interface StoryItemDto {
@@ -391,12 +407,7 @@ export interface StoryPublicationDto {
   kind: 'publication';
   title: string;
   description: string | null;
-  analysis: {
-    summary?: string | null;
-    narrativeArc?: string[];
-    whyItWorks?: string[];
-    templateFit?: string | null;
-  };
+  analysis: StoryReferenceAnalysisInput;
   platform: string;
   sourceAccount: string | null;
   sourceUrl: string | null;

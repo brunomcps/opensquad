@@ -219,3 +219,111 @@ test('referência preserva análise estruturada da sequência e metadata de evid
   assert.deepEqual(parsed.analysis, analysis);
   assert.deepEqual(parsed.items[0]?.metadata, metadata);
 });
+
+test('dossiê do Raul preserva raio-X visual, análise completa e placeholders sem contaminar o contrato base', () => {
+  const definition = {
+    formula: 'Cena real → lente do especialista → princípio pessoal',
+    preserveRules: ['Preservar a função de cada tela.'],
+    adaptRules: ['Adaptar cenário, roupa e prova.'],
+    avoidRules: ['Evitar copiar a superfície da referência.'],
+    moldSteps: [{
+      title: 'Cena e gancho',
+      purpose: 'Abrir uma pergunta comprovada pela cena.',
+      fixedFunction: 'Comprovar a cena e abrir uma pergunta.',
+      placeholders: [
+        { kind: 'copy', label: 'Gancho específico' },
+        { kind: 'scene', label: 'Cena real reconhecível' },
+        { kind: 'person', label: 'Rosto ou pessoa' },
+        { kind: 'reaction', label: 'Resposta espontânea' },
+      ],
+    }],
+    steps: [{ role: 'hook', instruction: 'Abrir com uma cena real.' }],
+  } as const;
+  const visual = {
+    roleLabel: 'Story 1 · Rosto e contexto',
+    title: 'Cena cotidiana com prova visual',
+    scene: 'Selfie dentro do avião com uma família ao fundo.',
+    typography: 'Texto branco serifado sobre caixa preta.',
+    composition: 'Texto no alto, rosto como massa principal e gesto em diagonal.',
+    palette: ['#111315', '#e9e5da'],
+    impression: 'Proximidade e espontaneidade.',
+    markers: [
+      { label: '1', description: 'O dedo orienta o olhar para o fundo.' },
+      { label: '2', description: 'A família comprova visualmente a história.' },
+    ],
+  };
+  const analysis = {
+    summary: 'Uma cena cotidiana vira princípio de posicionamento.',
+    overview: ['A autoridade aparece dentro da maneira como Raul interpreta a situação.'],
+    sequenceMap: [{ label: '1 · Gancho', value: 'Identificação + curiosidade' }],
+    visualGrammar: 'Rosto → gráfico → print, sempre dentro do avião.',
+    productRevealed: 'Uma persona financeiramente racional.',
+    transferRules: ['Começar pela vida real, sem anunciar uma aula.'],
+  };
+  const analysisSections = [{
+    title: 'O que ele faz aqui',
+    paragraphs: ['A cena instala uma pergunta narrativa.'],
+    bullets: ['Usa uma situação reconhecível.', 'Comprova a história visualmente.'],
+  }];
+  const parsedTemplate = parseCreateTemplateInput({
+    name: 'Cena → lente → princípio',
+    objective: 'Transformar rotina em posicionamento.',
+    description: 'Dossiê visual do Raul.',
+    tags: ['raul'],
+    definition,
+  });
+  const parsedReference = parseCreateReferenceInput({
+    title: 'Raul Sena, cena → humor → princípio',
+    description: 'Referência visual completa.',
+    analysis,
+    platform: 'instagram',
+    sourceAccount: '@_raulsena',
+    sourceUrl: 'https://www.instagram.com/_raulsena/',
+    sourceStartedAt: null,
+    sourceEndedAt: null,
+    templateId: '784fef37-8cc4-4ea1-b79e-8b5094dddc1f',
+    items: [{
+      mediaType: 'image',
+      assetUrl: 'https://example.com/story-1.jpg',
+      textContent: 'Cena cotidiana com conflito leve.',
+      sourceOccurredAt: null,
+      narrativeOrder: 1,
+      narrativeRole: 'hook',
+      metadata: {
+        sourceExcerpt: 'Uma vez a cada aproximadamente 10 voos...',
+        analysis: 'O número específico dá aparência de observação real.',
+        audienceEffect: 'A frase para antes da decisão.',
+        subtext: 'A viagem comunica status sem virar o assunto.',
+        funnelFunction: 'Relacionamento.',
+        extractedRule: 'Comece por uma cena banal e comprovável.',
+        analysisSections,
+        visual,
+      },
+    }],
+  });
+
+  assert.deepEqual(parsedTemplate.definition, definition);
+  assert.deepEqual(parsedReference.analysis, analysis);
+  assert.deepEqual(parsedReference.items[0]?.metadata?.analysisSections, analysisSections);
+  assert.deepEqual(parsedReference.items[0]?.metadata?.visual, visual);
+  assert.throws(
+    () => parseCreateTemplateInput({
+      ...parsedTemplate,
+      definition: {
+        ...definition,
+        moldSteps: [{ ...definition.moldSteps[0], placeholders: [{ kind: 'invalid', label: 'x' }] }],
+      },
+    }),
+    /placeholder/i,
+  );
+  assert.throws(
+    () => parseCreateReferenceInput({
+      ...parsedReference,
+      items: [{
+        ...parsedReference.items[0],
+        metadata: { visual: { ...visual, palette: ['red'] } },
+      }],
+    }),
+    /cor|paleta/i,
+  );
+});

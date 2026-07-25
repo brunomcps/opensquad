@@ -22,6 +22,10 @@ const raulRecoveryMigrationPath = path.resolve(
   directory,
   '../../../supabase/migrations/20260724214000_ci_raul_sena_story_recovery.sql',
 );
+const raulVisualDossierMigrationPath = path.resolve(
+  directory,
+  '../../../supabase/migrations/20260724223000_ci_raul_sena_visual_dossier.sql',
+);
 
 function migrationSql(): string {
   return fs.readFileSync(migrationPath, 'utf8');
@@ -37,6 +41,10 @@ function reconciliationMigrationSql(): string {
 
 function raulRecoveryMigrationSql(): string {
   return fs.readFileSync(raulRecoveryMigrationPath, 'utf8');
+}
+
+function raulVisualDossierMigrationSql(): string {
+  return fs.readFileSync(raulVisualDossierMigrationPath, 'utf8');
 }
 
 test('enriquecimento vive em migração aditiva posterior sem recriar as entidades base', () => {
@@ -138,6 +146,35 @@ test('recuperação do Raul usa os assets publicados e não altera o template in
     await db.exec(raulRecoveryMigrationSql());
     await db.exec(raulRecoveryMigrationSql());
 
+    const independentBefore = await db.query<{
+      definition: string;
+      analysis: string;
+      items: string;
+    }>(`
+      select
+        template.definition::text as definition,
+        sequence.analysis::text as analysis,
+        jsonb_agg(
+          jsonb_build_object(
+            'order', item_link.narrative_order,
+            'text', item.text_content,
+            'metadata', item.metadata
+          )
+          order by item_link.narrative_order
+        )::text as items
+      from public.story_templates template
+      join public.template_sequence_links template_link on template_link.template_id = template.template_id
+      join public.story_sequences sequence on sequence.sequence_id = template_link.sequence_id
+      join public.sequence_item_links item_link on item_link.sequence_id = sequence.sequence_id
+      join public.story_items item on item.item_id = item_link.item_id
+      where lower(btrim(template.name)) = lower('História → pequena entrega → CTA')
+        and sequence.title = 'Stories para Enriquecer'
+      group by template.definition, sequence.analysis
+    `);
+
+    await db.exec(raulVisualDossierMigrationSql());
+    await db.exec(raulVisualDossierMigrationSql());
+
     const graph = await db.query<{
       templates: number;
       references: number;
@@ -175,6 +212,41 @@ test('recuperação do Raul usa os assets publicados e não altera o template in
       ],
     });
 
+    const richDossier = await db.query<{
+      schema_version: number;
+      has_visual_mold: boolean;
+      has_sequence_analysis: boolean;
+      rich_items: number;
+    }>(`
+      select
+        template.schema_version::int as schema_version,
+        (template.definition ? 'moldSteps'
+          and template.definition #> '{moldSteps,0,placeholders}' is not null) as has_visual_mold,
+        (sequence.analysis ?& array[
+          'overview', 'sequenceMap', 'visualGrammar', 'productRevealed', 'transferRules'
+        ]) as has_sequence_analysis,
+        count(*) filter (
+          where item.metadata ?& array[
+            'sourceExcerpt', 'analysis', 'audienceEffect', 'subtext',
+            'funnelFunction', 'extractedRule', 'analysisSections', 'visual'
+          ]
+        )::int as rich_items
+      from public.story_templates template
+      join public.template_sequence_links template_link on template_link.template_id = template.template_id
+      join public.story_sequences sequence on sequence.sequence_id = template_link.sequence_id
+      join public.sequence_item_links item_link on item_link.sequence_id = sequence.sequence_id
+      join public.story_items item on item.item_id = item_link.item_id
+      where lower(btrim(template.name)) = lower('Cena → lente → princípio')
+        and sequence.source_url = 'https://www.instagram.com/_raulsena/'
+      group by template.schema_version, template.definition, sequence.analysis
+    `);
+    assert.deepEqual(richDossier.rows[0], {
+      schema_version: 2,
+      has_visual_mold: true,
+      has_sequence_analysis: true,
+      rich_items: 3,
+    });
+
     const independentDossier = await db.query<{ templates: number; references: number; stories: number }>(`
       select
         count(distinct template.template_id)::int as templates,
@@ -193,6 +265,33 @@ test('recuperação do Raul usa os assets publicados e não altera o template in
       references: 1,
       stories: 5,
     });
+
+    const independentAfter = await db.query<{
+      definition: string;
+      analysis: string;
+      items: string;
+    }>(`
+      select
+        template.definition::text as definition,
+        sequence.analysis::text as analysis,
+        jsonb_agg(
+          jsonb_build_object(
+            'order', item_link.narrative_order,
+            'text', item.text_content,
+            'metadata', item.metadata
+          )
+          order by item_link.narrative_order
+        )::text as items
+      from public.story_templates template
+      join public.template_sequence_links template_link on template_link.template_id = template.template_id
+      join public.story_sequences sequence on sequence.sequence_id = template_link.sequence_id
+      join public.sequence_item_links item_link on item_link.sequence_id = sequence.sequence_id
+      join public.story_items item on item.item_id = item_link.item_id
+      where lower(btrim(template.name)) = lower('História → pequena entrega → CTA')
+        and sequence.title = 'Stories para Enriquecer'
+      group by template.definition, sequence.analysis
+    `);
+    assert.deepEqual(independentAfter.rows, independentBefore.rows);
   } finally {
     await db.close();
   }

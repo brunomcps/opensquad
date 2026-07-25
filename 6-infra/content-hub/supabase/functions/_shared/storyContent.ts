@@ -14,9 +14,25 @@ export interface StoryTemplateStepInput {
   instruction: string;
 }
 
+export type StoryTemplatePlaceholderKind =
+  | 'scene'
+  | 'copy'
+  | 'person'
+  | 'proof'
+  | 'response'
+  | 'principle'
+  | 'reaction';
+
+export interface StoryTemplatePlaceholderInput {
+  kind: StoryTemplatePlaceholderKind;
+  label: string;
+}
+
 export interface StoryTemplateMoldStepInput {
   title: string;
   purpose: string;
+  fixedFunction?: string | null;
+  placeholders?: StoryTemplatePlaceholderInput[];
 }
 
 export interface StoryTemplateDefinitionInput {
@@ -69,6 +85,40 @@ export interface StoryEvidenceMetadataInput {
   brunoAdaptation?: string | null;
   editorialStatus?: string | null;
   moldConsequence?: string | null;
+  audienceEffect?: string | null;
+  subtext?: string | null;
+  funnelFunction?: string | null;
+  extractedRule?: string | null;
+  analysisSections?: StoryEvidenceSectionInput[];
+  visual?: StoryVisualAnalysisInput;
+}
+
+export interface StoryEvidenceSectionInput {
+  title: string;
+  paragraphs?: string[];
+  bullets?: string[];
+}
+
+export interface StoryVisualMarkerInput {
+  label: string;
+  description: string;
+}
+
+export interface StoryVisualAnalysisInput {
+  roleLabel?: string | null;
+  title?: string | null;
+  scene?: string | null;
+  typography?: string | null;
+  composition?: string | null;
+  graphic?: string | null;
+  palette?: string[];
+  impression?: string | null;
+  markers?: StoryVisualMarkerInput[];
+}
+
+export interface StorySequenceMapItemInput {
+  label: string;
+  value: string;
 }
 
 export interface StoryReferenceAnalysisInput {
@@ -76,6 +126,11 @@ export interface StoryReferenceAnalysisInput {
   narrativeArc?: string[];
   whyItWorks?: string[];
   templateFit?: string | null;
+  overview?: string[];
+  sequenceMap?: StorySequenceMapItemInput[];
+  visualGrammar?: string | null;
+  productRevealed?: string | null;
+  transferRules?: string[];
 }
 
 export interface StoryReferenceItemInput extends StoryPublicationItemInput {
@@ -167,7 +222,31 @@ function parseTemplateDefinition(value: unknown, legacySteps: unknown): StoryTem
   if (!Array.isArray(rawMoldSteps) || rawMoldSteps.length > 20) throw new Error('Etapas do molde têm tamanho inválido.');
   const moldSteps = rawMoldSteps.map((raw, index) => {
     const step = object(raw, `Etapa do molde ${index + 1}`);
-    return { title: text(step.title, `Título da etapa do molde ${index + 1}`, 160)!, purpose: text(step.purpose, `Propósito da etapa do molde ${index + 1}`, 1000)! };
+    const rawPlaceholders = step.placeholders ?? [];
+    if (!Array.isArray(rawPlaceholders) || rawPlaceholders.length > 12) {
+      throw new Error(`Placeholders da etapa do molde ${index + 1} têm tamanho inválido.`);
+    }
+    const placeholderKinds = new Set<StoryTemplatePlaceholderKind>([
+      'scene', 'copy', 'person', 'proof', 'response', 'principle', 'reaction',
+    ]);
+    const placeholders = rawPlaceholders.map((rawPlaceholder, placeholderIndex) => {
+      const placeholder = object(rawPlaceholder, `Placeholder ${placeholderIndex + 1} da etapa ${index + 1}`);
+      if (typeof placeholder.kind !== 'string' || !placeholderKinds.has(placeholder.kind as StoryTemplatePlaceholderKind)) {
+        throw new Error(`Tipo do placeholder ${placeholderIndex + 1} da etapa ${index + 1} inválido.`);
+      }
+      return {
+        kind: placeholder.kind as StoryTemplatePlaceholderKind,
+        label: text(placeholder.label, `Rótulo do placeholder ${placeholderIndex + 1} da etapa ${index + 1}`, 300)!,
+      };
+    });
+    return {
+      title: text(step.title, `Título da etapa do molde ${index + 1}`, 160)!,
+      purpose: text(step.purpose, `Propósito da etapa do molde ${index + 1}`, 1000)!,
+      ...(step.fixedFunction != null
+        ? { fixedFunction: text(step.fixedFunction, `Função fixa da etapa ${index + 1}`, 1000, false) }
+        : {}),
+      ...(step.placeholders != null ? { placeholders } : {}),
+    };
   });
   return {
     ...(definition.formula != null ? { formula: text(definition.formula, 'Fórmula', 2000, false) } : {}),
@@ -242,6 +321,55 @@ function parseEvidenceMetadata(value: unknown, index: number): StoryEvidenceMeta
   if (page != null && (!Number.isInteger(page) || page < 1 || page > 100_000)) throw new Error(`Página da evidência ${index} inválida.`);
   const optionalField = (key: keyof StoryEvidenceMetadataInput, label: string, max = 4000) =>
     metadata[key] != null ? { [key]: text(metadata[key], `${label} ${index}`, max, false) } : {};
+  const rawSections = metadata.analysisSections ?? [];
+  if (!Array.isArray(rawSections) || rawSections.length > 20) {
+    throw new Error(`Seções da análise ${index} têm tamanho inválido.`);
+  }
+  const analysisSections = rawSections.map((raw, sectionIndex) => {
+    const section = object(raw, `Seção ${sectionIndex + 1} da análise ${index}`);
+    return {
+      title: text(section.title, `Título da seção ${sectionIndex + 1} da análise ${index}`, 300)!,
+      ...(section.paragraphs != null
+        ? { paragraphs: textArray(section.paragraphs, `Parágrafo da seção ${sectionIndex + 1}`, 20, 4000) }
+        : {}),
+      ...(section.bullets != null
+        ? { bullets: textArray(section.bullets, `Item da seção ${sectionIndex + 1}`, 30, 2000) }
+        : {}),
+    };
+  });
+  const visual = metadata.visual == null ? null : object(metadata.visual, `Raio-X visual ${index}`);
+  let parsedVisual: StoryVisualAnalysisInput | undefined;
+  if (visual) {
+    const rawPalette = visual.palette ?? [];
+    if (!Array.isArray(rawPalette) || rawPalette.length > 10) throw new Error(`Paleta visual ${index} inválida.`);
+    const palette = rawPalette.map((color, colorIndex) => {
+      const parsedColor = text(color, `Cor ${colorIndex + 1} da paleta ${index}`, 20)!;
+      if (!/^#[0-9a-f]{6}$/i.test(parsedColor)) throw new Error(`Cor ${colorIndex + 1} da paleta ${index} inválida.`);
+      return parsedColor.toLowerCase();
+    });
+    const rawMarkers = visual.markers ?? [];
+    if (!Array.isArray(rawMarkers) || rawMarkers.length > 8) throw new Error(`Marcadores visuais ${index} inválidos.`);
+    const markers = rawMarkers.map((raw, markerIndex) => {
+      const marker = object(raw, `Marcador visual ${markerIndex + 1} do story ${index}`);
+      return {
+        label: text(marker.label, `Rótulo do marcador ${markerIndex + 1}`, 20)!,
+        description: text(marker.description, `Descrição do marcador ${markerIndex + 1}`, 500)!,
+      };
+    });
+    const visualField = (key: keyof StoryVisualAnalysisInput, label: string, max = 4000) =>
+      visual[key] != null ? { [key]: text(visual[key], `${label} ${index}`, max, false) } : {};
+    parsedVisual = {
+      ...visualField('roleLabel', 'Papel visual', 200),
+      ...visualField('title', 'Título visual', 300),
+      ...visualField('scene', 'Cena visual'),
+      ...visualField('typography', 'Tipografia visual'),
+      ...visualField('composition', 'Composição visual'),
+      ...visualField('graphic', 'Elemento gráfico visual'),
+      ...(visual.palette != null ? { palette } : {}),
+      ...visualField('impression', 'Sensação visual'),
+      ...(visual.markers != null ? { markers } : {}),
+    };
+  }
   return {
     ...(metadata.sourcePage != null ? { sourcePage: page } : {}),
     ...(metadata.canonicalPageUrl != null ? { canonicalPageUrl: dossierUrl(metadata.canonicalPageUrl, `URL canônica ${index}`) } : {}),
@@ -253,17 +381,39 @@ function parseEvidenceMetadata(value: unknown, index: number): StoryEvidenceMeta
     ...optionalField('brunoAdaptation', 'Adaptação Bruno', 10_000),
     ...optionalField('editorialStatus', 'Status editorial', 100),
     ...optionalField('moldConsequence', 'Consequência no molde', 10_000),
+    ...optionalField('audienceEffect', 'Efeito no público', 10_000),
+    ...optionalField('subtext', 'Subtexto', 10_000),
+    ...optionalField('funnelFunction', 'Função no funil', 10_000),
+    ...optionalField('extractedRule', 'Regra extraída', 10_000),
+    ...(metadata.analysisSections != null ? { analysisSections } : {}),
+    ...(parsedVisual ? { visual: parsedVisual } : {}),
   };
 }
 
 function parseReferenceAnalysis(value: unknown): StoryReferenceAnalysisInput {
   if (value == null) return {};
   const analysis = object(value, 'Análise estruturada');
+  const rawSequenceMap = analysis.sequenceMap ?? [];
+  if (!Array.isArray(rawSequenceMap) || rawSequenceMap.length > 12) {
+    throw new Error('Mapa da sequência tem tamanho inválido.');
+  }
+  const sequenceMap = rawSequenceMap.map((raw, index) => {
+    const item = object(raw, `Item ${index + 1} do mapa da sequência`);
+    return {
+      label: text(item.label, `Rótulo ${index + 1} do mapa da sequência`, 160)!,
+      value: text(item.value, `Valor ${index + 1} do mapa da sequência`, 500)!,
+    };
+  });
   return {
     ...(analysis.summary != null ? { summary: text(analysis.summary, 'Resumo da análise', 10_000, false) } : {}),
     ...(analysis.narrativeArc != null ? { narrativeArc: textArray(analysis.narrativeArc, 'Arco narrativo', 30, 500) } : {}),
     ...(analysis.whyItWorks != null ? { whyItWorks: textArray(analysis.whyItWorks, 'Por que funciona', 30, 2000) } : {}),
     ...(analysis.templateFit != null ? { templateFit: text(analysis.templateFit, 'Aderência ao template', 4000, false) } : {}),
+    ...(analysis.overview != null ? { overview: textArray(analysis.overview, 'Leitura geral', 20, 4000) } : {}),
+    ...(analysis.sequenceMap != null ? { sequenceMap } : {}),
+    ...(analysis.visualGrammar != null ? { visualGrammar: text(analysis.visualGrammar, 'Gramática visual', 10_000, false) } : {}),
+    ...(analysis.productRevealed != null ? { productRevealed: text(analysis.productRevealed, 'Produto revelado', 10_000, false) } : {}),
+    ...(analysis.transferRules != null ? { transferRules: textArray(analysis.transferRules, 'Regra de transferência', 30, 2000) } : {}),
   };
 }
 
