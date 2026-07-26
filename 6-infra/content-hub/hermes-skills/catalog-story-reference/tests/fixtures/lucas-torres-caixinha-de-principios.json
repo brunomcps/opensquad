@@ -1,0 +1,619 @@
+{
+  "dossierContractVersion": "1.0",
+  "template": {
+    "canonicalKey": "caixinha-de-principios",
+    "name": "Caixinha de Princípios: pergunta -> tese -> mecanismo -> contraste -> princípio",
+    "objective": "Transformar perguntas reais do público em demonstrações curtas e consistentes do sistema de julgamento do especialista.",
+    "description": "Cada resposta é uma cápsula independente. A pergunta comprova demanda, a tese responde cedo, o mecanismo corrige a leitura comum e o fechamento comprime a resposta em um princípio memorável.",
+    "tags": [
+      "stories",
+      "perguntas",
+      "autoridade",
+      "posicionamento",
+      "relacionamento"
+    ],
+    "definition": {
+      "editorialName": "Caixinha de Princípios",
+      "editorialSummary": "Perguntas espontâneas deixam de ser apenas dúvidas respondidas e viram demonstrações públicas de como o especialista interpreta decisões.",
+      "formula": "pergunta real -> tese imediata -> mecanismo ou inversão -> contraste de nível -> princípio memorável",
+      "preserveRules": [
+        "Preservar a pergunta real e específica como origem visível da resposta.",
+        "Responder com uma tese clara antes de desenvolver o raciocínio.",
+        "Explicar a variável, causa ou inversão que torna a resposta mais profunda que uma opinião.",
+        "Fechar com um princípio que possa circular fora da pergunta original.",
+        "Tratar cada resposta como módulo autônomo e reorganizável."
+      ],
+      "adaptRules": [
+        "Adaptar roupa, cenário, linguagem e prova ambiental à identidade de Bruno.",
+        "Adicionar legendas para consumo sem áudio e dividir respostas quando a leitura ou retenção pedir.",
+        "Usar evidência proporcional quando o tema envolver psicologia, saúde ou neurociência.",
+        "Alternar posição do sticker, distância da câmera e apoio visual sem romper a unidade da sessão.",
+        "Converter perguntas clínicas em educação geral, nunca em diagnóstico individual pelo story."
+      ],
+      "avoidRules": [
+        "Não copiar terno, placas, paleta ou pose do creator.",
+        "Não usar jargão cognitivo ou neurocientífico apenas para parecer profundo.",
+        "Não prolongar monólogos sem legenda ou mudança de estímulo.",
+        "Não forçar contraste de superioridade que humilhe o público.",
+        "Não transformar uma opinião pessoal em fato científico."
+      ],
+      "moldSteps": [
+        {
+          "id": "screen-principle-answer",
+          "templateStepIds": [
+            "surface-real-question",
+            "state-immediate-thesis",
+            "reveal-governing-mechanism",
+            "contrast-common-and-better",
+            "compress-into-principle"
+          ],
+          "title": "Pergunta que vira princípio",
+          "purpose": "Transformar uma dúvida real em uma cápsula autônoma de julgamento, autoridade e aplicação.",
+          "fixedFunction": "Exibir a demanda, entregar uma tese, explicar a variável decisiva e fechar com um princípio memorável.",
+          "placeholders": [
+            {
+              "kind": "response",
+              "label": "Pergunta real e específica",
+              "slot": "top"
+            },
+            {
+              "kind": "person",
+              "label": "Rosto, contato visual e gesto contido",
+              "slot": "middle"
+            },
+            {
+              "kind": "copy",
+              "label": "Tese imediata e mecanismo essencial",
+              "slot": "upper"
+            },
+            {
+              "kind": "principle",
+              "label": "Contraste e frase-princípio final",
+              "slot": "lower"
+            },
+            {
+              "kind": "reaction",
+              "label": "Legenda ou reação opcional",
+              "slot": "bottom"
+            }
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "role": "development",
+          "instruction": "Repetir uma cápsula autônoma por pergunta: demanda real, tese imediata, mecanismo, contraste e princípio.",
+          "templateStepIds": [
+            "surface-real-question",
+            "state-immediate-thesis",
+            "reveal-governing-mechanism",
+            "contrast-common-and-better",
+            "compress-into-principle"
+          ]
+        }
+      ]
+    },
+    "steps": [
+      {
+        "role": "development",
+        "instruction": "Repetir uma cápsula autônoma por pergunta: demanda real, tese imediata, mecanismo, contraste e princípio.",
+        "templateStepIds": [
+          "surface-real-question",
+          "state-immediate-thesis",
+          "reveal-governing-mechanism",
+          "contrast-common-and-better",
+          "compress-into-principle"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "title": "Lucas Torres, Caixinha de Princípios",
+    "description": "Três respostas em vídeo sobre autoridade, negociação e vendas. Cada módulo parte de uma pergunta real, corrige uma leitura intuitiva e termina em uma regra de decisão.",
+    "sequenceConfirmed": true,
+    "sequenceConfirmationSource": "A sequência foi delimitada a partir dos stories ativos recuperados do perfil @lucastorres em 25 de julho de 2026. Os três vídeos falados compartilhavam cenário, roupa, linguagem e formato de pergunta e resposta; os demais stories ativos observados eram conteúdos não relacionados.",
+    "analysis": {
+      "summary": "Lucas transforma três perguntas independentes em cápsulas de autoridade. Em vez de responder com dicas isoladas, ele corrige a premissa, explica um mecanismo e fecha com uma frase-princípio.",
+      "overview": [
+        "Os três stories não formam uma trama causal. A unidade nasce da repetição editorial: pergunta visível, resposta frontal, tese rápida, distinção conceitual e fechamento memorável.",
+        "As respostas percorrem três aplicações da mesma visão de mundo. Autoridade depende de critério, negociação ensina o mercado a interpretar o preço e venda madura conduz o cliente até uma conclusão própria.",
+        "O produto aparente são respostas sobre vendas. O produto estratégico é a consistência de julgamento demonstrada diante de perguntas diferentes."
+      ],
+      "narrativeArc": [
+        "Pergunta real instala demanda",
+        "Tese imediata responde e abre o raciocínio",
+        "Mecanismo ou inversão corrige a leitura comum",
+        "Contraste transforma explicação em decisão",
+        "Princípio memorável encerra o módulo"
+      ],
+      "whyItWorks": [
+        "A pergunta do seguidor fornece relevância e reduz a sensação de pauta fabricada.",
+        "A tese aparece cedo, evitando que a pessoa espere até o final para descobrir a posição do creator.",
+        "Cada resposta apresenta uma causa, distinção ou consequência, e não apenas uma opinião.",
+        "Os contrastes traduzem o mecanismo em comportamento reconhecível.",
+        "As frases finais acumulam uma percepção de método consistente entre assuntos diferentes."
+      ],
+      "templateFit": "A referência executa o mesmo movimento em três módulos autônomos: pergunta real, tese, mecanismo, contraste e princípio. A ordem observada é preservada como fonte, mas as respostas podem ser reorganizadas sem perda de sentido.",
+      "sequenceMap": [
+        {
+          "kind": "story",
+          "storyOrder": 1,
+          "label": "1 · Autoridade",
+          "value": "Disponibilidade não enfraquece autoridade; disponibilidade sem critério enfraquece."
+        },
+        {
+          "kind": "story",
+          "storyOrder": 2,
+          "label": "2 · Negociação",
+          "value": "Desconto e exceção podem ensinar que o preço nunca foi verdadeiro."
+        },
+        {
+          "kind": "story",
+          "storyOrder": 3,
+          "label": "3 · Persuasão",
+          "value": "A venda amadurece quando a conclusão parece pertencer ao cliente."
+        },
+        {
+          "kind": "product",
+          "label": "Produto estratégico",
+          "value": "Um sistema de julgamento comercial baseado em percepção, coerência e condução."
+        }
+      ],
+      "visualGrammar": "Os três vídeos mantêm Lucas em plano médio fechado, com terno xadrez cinza, camisa e gravata claras, óculos e placas vermelhas e douradas sobre uma parede escura. O sticker de pergunta permanece visível; nos dois primeiros módulos ocupa o alto e no terceiro migra para a parte inferior. Gesto, expressão, distância e posição do sticker renovam discretamente o estímulo. Não foram identificadas legendas sincronizadas nos frames inspecionados, de modo que a fala concentra quase toda a entrega.",
+      "apparentProduct": "Respostas diretas sobre autoridade, negociação e vendas.",
+      "productRevealed": "A capacidade de Lucas de converter dúvidas particulares em princípios de decisão; pela bio verificada do perfil, isso também funciona como demonstração indireta de seu método e de sua mentoria.",
+      "personaConstructed": "Especialista formal, seletivo e intelectualmente fundamentado, que organiza vendas por princípios em vez de receitas soltas.",
+      "transferRules": [
+        "Usar perguntas reais que contenham uma tensão, premissa equivocada ou consequência pouco percebida.",
+        "Entregar a tese na primeira parte da resposta.",
+        "Explicar uma variável decisiva com linguagem proporcional à evidência.",
+        "Contrastar uma decisão comum com uma alternativa melhor sem caricaturar o público.",
+        "Fechar com uma frase curta derivada do raciocínio.",
+        "Preservar a modularidade: uma resposta não deve depender da anterior.",
+        "Adicionar legendas e pequenas mudanças visuais quando houver várias respostas seguidas."
+      ],
+      "synthesis": [
+        {
+          "key": "screen-roles",
+          "title": "Três módulos, uma mesma lente",
+          "paragraphs": [
+            "O primeiro módulo redefine autoridade como critério. O segundo mostra o custo econômico de violar esse critério. O terceiro eleva a lógica à condução da decisão do cliente.",
+            "Cada resposta permanece completa sozinha. A coesão vem da lente aplicada, não de uma dependência cronológica entre as perguntas."
+          ]
+        },
+        {
+          "key": "stimulus-change",
+          "title": "A tese muda mais que a imagem",
+          "paragraphs": [
+            "Pergunta sobre posicionamento -> pergunta sobre negociação -> pergunta sobre filosofia de vendas.",
+            "Visualmente, a mudança é contida: expressão, gesto, distância da câmera e deslocamento do sticker. O cenário e a roupa funcionam como assinatura de sessão."
+          ]
+        },
+        {
+          "key": "aesthetics-production",
+          "title": "Formalidade estável e prova ambiental",
+          "paragraphs": [
+            "Terno, placas, parede escura e enquadramento frontal criam um código de formalidade e reconhecimento. A produção depende mais da presença e do raciocínio que de edição complexa.",
+            "A ausência de legendas reduz acessibilidade e faz a resposta depender integralmente do áudio, especialmente em vídeos entre 33 e 50 segundos."
+          ]
+        },
+        {
+          "key": "strengths-limitations",
+          "title": "Forças e limites do formato",
+          "paragraphs": [
+            "As forças são demanda autêntica, tese rápida, explicação causal, fechamentos fortes e modularidade de produção.",
+            "Os limites são repetição visual, duração alta sem legenda, risco de autoridade excessivamente encenada e necessidade de verificar afirmações cognitivas ou citações antes de usos formais."
+          ]
+        }
+      ],
+      "registeredTemplate": {
+        "name": "Caixinha de Princípios",
+        "formula": "pergunta real -> tese imediata -> mecanismo -> contraste -> princípio memorável",
+        "useWhen": "Quando o especialista recebe perguntas que permitem demonstrar julgamento, corrigir uma premissa ou revelar uma consequência pouco percebida.",
+        "primaryFunction": "Autoridade e relacionamento, com consideração indireta pelo método ou serviço do especialista.",
+        "requiredElements": [
+          "Pergunta verdadeira e específica da audiência.",
+          "Tese respondida logo no começo.",
+          "Mecanismo, causa ou inversão que sustente a tese.",
+          "Contraste entre erro comum e decisão melhor.",
+          "Princípio final memorável."
+        ],
+        "optionalElements": [
+          "Legenda sincronizada ou destaques da tese e do fechamento.",
+          "Gráfico, print, objeto ou exemplo que comprove o mecanismo.",
+          "Reação de seguidor que prolongue a conversa.",
+          "Variação de enquadramento e posição do sticker."
+        ],
+        "executionRisks": [
+          "Usar linguagem abstrata sem explicar o mecanismo.",
+          "Transformar opinião em fato científico.",
+          "Estender a resposta além da retenção disponível.",
+          "Depender do áudio sem legenda.",
+          "Copiar sinais superficiais de status em vez da estrutura.",
+          "Forçar uma frase final que não decorra do raciocínio."
+        ],
+        "capturesOrInputs": [
+          "Perguntas reais recebidas por caixinha ou direct.",
+          "Um cenário consistente e visualmente legível.",
+          "Teses já suficientemente amadurecidas para resposta curta.",
+          "Evidência visual opcional quando ela acrescentar prova."
+        ],
+        "brunoAdaptation": "Bruno pode usar perguntas sobre TDAH adulto, limites clínicos, rotina, estudo e produção de conteúdo. A resposta deve oferecer educação geral, distinguir evidência de interpretação, evitar diagnóstico individual e fechar com um princípio aplicável sem prometer resultado clínico.",
+        "steps": [
+          {
+            "id": "surface-real-question",
+            "title": "Expor uma pergunta real",
+            "description": "Manter a pergunta do público visível para provar demanda e estabelecer o problema.",
+            "mechanism": "A dúvida externa reduz a sensação de pauta fabricada e oferece um ponto de entrada reconhecível.",
+            "condition": "A pergunta precisa ser específica o bastante para admitir uma resposta com consequência.",
+            "expectedResult": "Relevância imediata e autorização para o especialista desenvolver o tema.",
+            "evidenceStoryOrders": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "id": "state-immediate-thesis",
+            "title": "Responder com uma tese imediata",
+            "description": "Entregar a posição principal nas primeiras frases, antes de desenvolver a explicação.",
+            "mechanism": "A tese reduz incerteza e cria uma promessa clara sobre o raciocínio que virá.",
+            "condition": "A primeira formulação precisa responder à pergunta, não apenas repetir o assunto.",
+            "expectedResult": "Compreensão rápida e retenção suficiente para acompanhar o mecanismo.",
+            "evidenceStoryOrders": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "id": "reveal-governing-mechanism",
+            "title": "Revelar o mecanismo real",
+            "description": "Corrigir a premissa, mostrar uma causa ou deslocar a análise para a variável que governa o problema.",
+            "mechanism": "A resposta ganha valor quando explica por que a intuição comum é incompleta.",
+            "condition": "O mecanismo precisa ser inteligível, pertinente e proporcional à evidência disponível.",
+            "expectedResult": "Percepção de profundidade e capacidade de diagnóstico.",
+            "evidenceStoryOrders": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "id": "contrast-common-and-better",
+            "title": "Contrastar erro e decisão melhor",
+            "description": "Opor uma conduta comum à forma mais criteriosa de interpretar ou agir.",
+            "mechanism": "O contraste transforma explicação abstrata em regra de decisão e identidade aspiracional.",
+            "condition": "A comparação precisa esclarecer uma escolha, sem humilhar o público nem fingir superioridade.",
+            "expectedResult": "Aplicabilidade prática e posicionamento do especialista.",
+            "evidenceStoryOrders": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "id": "compress-into-principle",
+            "title": "Comprimir em um princípio",
+            "description": "Encerrar com uma frase curta que sobreviva fora da pergunta original.",
+            "mechanism": "A compressão aumenta memorização, compartilhamento e coerência entre respostas diferentes.",
+            "condition": "O princípio precisa decorrer da explicação, em vez de funcionar como frase de efeito solta.",
+            "expectedResult": "Uma ideia memorável que reforça o sistema de julgamento do creator.",
+            "evidenceStoryOrders": [
+              1,
+              2,
+              3
+            ]
+          }
+        ]
+      },
+      "sourceNote": "Análise baseada em três vídeos completos recuperados diretamente dos stories ativos de @lucastorres em 25 de julho de 2026, com streams verificadas, transcrição local com timestamps e cinco frames extraídos de cada vídeo. As durações aproximadas são 49,5 s, 32,6 s e 37,3 s. A interface usa frames representativos como documentos visuais; os MP4, áudios, manifests e transcrições completos permanecem preservados em C:/tmp/instagram-story-capture/lucastorres-2026-07-25. Os stories expiraram depois da captura. A redação exata da citação atribuída a Blaise Pascal não foi verificada externamente."
+    },
+    "platform": "instagram",
+    "sourceAccount": "@lucastorres",
+    "sourceUrl": "https://www.instagram.com/lucastorres/",
+    "sourceStartedAt": null,
+    "sourceEndedAt": null,
+    "items": [
+      {
+        "mediaType": "image",
+        "textContent": "Pergunta: Como conciliar disponibilidade com autoridade? Resposta: Lucas afirma que as pessoas atribuem credibilidade, competência e valor antes da avaliação racional; marcas fortes convencem com menos esforço. Disponibilidade e autoridade não são opostos. O que enfraquece autoridade é estar disponível sem critério. Quando o tempo é seletivo e bem direcionado, a disponibilidade reforça autoridade.",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 1,
+        "narrativeRole": "hook",
+        "metadata": {
+          "sourceExcerpt": "Disponibilidade e autoridade não são opostos. O que enfraquece autoridade não é estar disponível. É estar disponível sem critério.",
+          "noSourceTextReason": null,
+          "quick": {
+            "roleLabel": "Story 1 · Autoridade como critério",
+            "title": "A resposta corrige a oposição criada pela pergunta",
+            "summary": "Lucas desloca o problema de estar disponível para estar disponível sem critério.",
+            "evidence": "A distinção literal aparece no fechamento: disponibilidade e autoridade não são opostos; a falta de critério é que enfraquece.",
+            "audienceEffect": "Produz alívio e direção para quem teme que acessibilidade diminua valor.",
+            "subtext": "Autoridade é apresentada como gestão intencional de tempo e percepção, não como desaparecimento.",
+            "funnelFunction": "Autoridade, relacionamento e consideração pelo método do especialista.",
+            "extractedRule": "Quando houver uma falsa oposição, revele a terceira variável que governa os dois lados."
+          },
+          "visual": {
+            "roleLabel": "Story 1 · Pergunta, rosto e prova ambiental",
+            "title": "A formalidade sustenta a distinção antes da explicação",
+            "scene": "Vídeo frontal de Lucas em plano médio fechado. Ele usa terno xadrez cinza, camisa branca, gravata cinza, óculos e dois pins na lapela. Placas vermelhas e douradas aparecem sobre uma parede escura ao fundo.",
+            "typography": "Sticker nativo grande no alto, com cabeçalho escuro e pergunta em área branca. Não foram identificadas legendas sincronizadas no frame inspecionado.",
+            "composition": "A pergunta ocupa o terço superior. Rosto e tronco dominam o centro e a metade inferior, com contato visual direto e gesto contido.",
+            "graphic": "Caixa de pergunta é o único elemento gráfico dominante; as placas funcionam como prova ambiental silenciosa.",
+            "palette": [
+              "#151515",
+              "#4a4a48",
+              "#f0efeb",
+              "#8b2030",
+              "#b38a3a"
+            ],
+            "impression": "Formalidade, competência, seletividade e reconhecimento.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "O sticker comprova que a resposta nasce de uma dúvida real."
+              },
+              {
+                "label": "2",
+                "description": "O olhar frontal e o plano estável transformam a distinção conceitual em resposta direta."
+              },
+              {
+                "label": "3",
+                "description": "As placas e o traje reforçam autoridade sem serem mencionados na fala."
+              }
+            ]
+          },
+          "deep": {
+            "roleLabel": "Story 1 · Redefinição de autoridade",
+            "title": "O problema não é presença; é ausência de critério",
+            "lead": "Lucas não responde com frequência ideal de contato nem técnica de escassez. Ele corrige a moldura: disponibilidade e autoridade podem coexistir quando o uso do tempo parece seletivo e bem direcionado.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "A pergunta do seguidor organiza a resposta e oferece um conflito de posicionamento reconhecível."
+              },
+              "critique": {
+                "status": "present",
+                "rationale": "A distinção é forte, mas a afirmação inicial sobre o cérebro e a atribuição de credibilidade é apresentada sem evidência ou qualificação."
+              }
+            },
+            "sections": [
+              {
+                "title": "Uma falsa oposição abre o módulo",
+                "covers": [
+                  "narrative",
+                  "continuity",
+                  "attention"
+                ],
+                "paragraphs": [
+                  "A pergunta sugere que disponibilidade e autoridade competem. A resposta ganha atenção porque promete resolver essa tensão sem escolher simplesmente um dos lados.",
+                  "Como módulo, o story não depende dos seguintes. Ele instala a lente que reaparece nas outras respostas: valor é consequência do que o comportamento ensina ao público."
+                ]
+              },
+              {
+                "title": "Critério transforma presença em sinal",
+                "covers": [
+                  "evidence",
+                  "funnel",
+                  "subtext",
+                  "template-consequence"
+                ],
+                "paragraphs": [
+                  "A evidência textual é a própria distinção repetida no fechamento: o problema não é disponibilidade, mas disponibilidade sem critério.",
+                  "O template precisa procurar perguntas cuja premissa possa ser corrigida por uma variável mais precisa; sem essa virada, a resposta seria apenas recomendação genérica."
+                ]
+              }
+            ],
+            "extractedRule": "Revele a variável escondida que dissolve a oposição aparente."
+          }
+        }
+      },
+      {
+        "mediaType": "image",
+        "textContent": "Pergunta: Qual etapa da jornada de compra ainda é desafiadora para o empresário? Resposta: Lucas aponta a negociação. Muitos destroem a venda seguinte para fechar a de hoje ao dar desconto, flexibilizar condição e abrir exceção. Assim, ensinam ao mercado que o preço nunca foi verdadeiro. Fechar uma venda sacrificando a autoridade do negócio é sempre um mau negócio.",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 2,
+        "narrativeRole": "development",
+        "metadata": {
+          "sourceExcerpt": "É aí que muitos destroem a venda seguinte para fechar a venda de hoje. [...] Ele ensinou o mercado que o preço dele nunca foi o preço de verdade.",
+          "noSourceTextReason": null,
+          "quick": {
+            "roleLabel": "Story 2 · Negociação como sinal",
+            "title": "A concessão de hoje ensina o mercado para amanhã",
+            "summary": "Lucas muda a unidade de análise do fechamento atual para o aprendizado acumulado pelo mercado.",
+            "evidence": "Desconto, flexibilização e exceção são listados como comportamentos que fazem o preço parecer artificial.",
+            "audienceEffect": "Cria vigilância sobre concessões que pareciam inofensivas.",
+            "subtext": "Autoridade comercial depende de coerência entre preço declarado e condição praticada.",
+            "funnelFunction": "Autoridade aplicada, consideração e educação comercial.",
+            "extractedRule": "Traduza uma decisão tática em seu custo de posicionamento acumulado."
+          },
+          "visual": {
+            "roleLabel": "Story 2 · Continuidade de sessão",
+            "title": "O mesmo enquadramento faz a tese carregar a mudança",
+            "scene": "Lucas permanece no mesmo cenário, com a mesma roupa e placas ao fundo. A resposta é frontal e os gestos e expressões fornecem a principal variação.",
+            "typography": "Sticker nativo grande no topo. A pergunta é mais longa e ocupa várias linhas. Não foram identificadas legendas sincronizadas.",
+            "composition": "Pergunta acima, rosto central e gestos na faixa inferior. A repetição cria reconhecimento imediato de série.",
+            "graphic": "Caixa de pergunta e placas ambientais; nenhum gráfico ou exemplo visual acompanha a explicação sobre preço.",
+            "palette": [
+              "#151515",
+              "#4a4a48",
+              "#f0efeb",
+              "#8b2030",
+              "#b38a3a"
+            ],
+            "impression": "Continuidade, firmeza comercial e advertência.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "A pergunta longa ocupa o alto e define o problema comercial."
+              },
+              {
+                "label": "2",
+                "description": "A repetição de roupa e cenário identifica uma sessão contínua."
+              },
+              {
+                "label": "3",
+                "description": "A ausência de prova visual deixa toda a causalidade sob responsabilidade da fala."
+              }
+            ]
+          },
+          "deep": {
+            "roleLabel": "Story 2 · Consequência comercial",
+            "title": "A venda atual é julgada pelo que ensina sobre o preço",
+            "lead": "O fechamento deixa de ser o único critério de sucesso. Lucas avalia a negociação como comunicação: cada concessão informa ao mercado se o preço anunciado merece confiança.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "A pergunta sobre jornada de compra autoriza uma resposta operacional e diretamente ligada à rotina empresarial."
+              },
+              "critique": {
+                "status": "present",
+                "rationale": "A formulação é memorável, mas trata desconto e flexibilização de modo amplo; contexto, margem, segmentação e estratégia podem alterar a conclusão."
+              }
+            },
+            "sections": [
+              {
+                "title": "Uma consequência invisível segura a atenção",
+                "covers": [
+                  "narrative",
+                  "continuity",
+                  "attention"
+                ],
+                "paragraphs": [
+                  "A frase sobre destruir a próxima venda reinterpreta um fechamento aparentemente bem-sucedido como risco futuro. A pessoa continua para descobrir como uma venda concluída poderia ser prejudicial.",
+                  "O módulo aplica a lente de autoridade do conjunto ao preço, mas continua compreensível sem o story anterior."
+                ]
+              },
+              {
+                "title": "O comportamento da empresa educa o mercado",
+                "covers": [
+                  "evidence",
+                  "funnel",
+                  "subtext",
+                  "template-consequence"
+                ],
+                "paragraphs": [
+                  "A enumeração de desconto, flexibilização e exceção fornece comportamentos concretos. A interpretação é que a repetição dessas concessões altera a credibilidade do preço.",
+                  "Na transferência, o valor não está em condenar todo desconto. Está em mostrar a consequência de segunda ordem de uma escolha aparentemente tática."
+                ]
+              }
+            ],
+            "extractedRule": "Avalie a ação imediata pelo aprendizado que ela instala no público."
+          }
+        }
+      },
+      {
+        "mediaType": "image",
+        "textContent": "Pergunta: Qual foi o maior insight que você já teve sobre vendas? Resposta: Lucas afirma que ninguém compra porque foi convencido; as pessoas compram quando a conclusão passa a parecer delas. Atribui a Blaise Pascal a ideia de que somos mais persuadidos pelas razões que descobrimos. O empresário comum tenta vencer com argumentos; o de alto nível conduz o cliente até uma conclusão lógica. Venda deixa de ser persuasão e passa a ser consequência.",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 3,
+        "narrativeRole": "closing",
+        "metadata": {
+          "sourceExcerpt": "As pessoas compram quando a conclusão passa a parecer delas. [...] Venda deixa de ser persuasão e passa a ser consequência.",
+          "noSourceTextReason": null,
+          "quick": {
+            "roleLabel": "Story 3 · Persuasão como descoberta",
+            "title": "A conclusão precisa parecer do cliente",
+            "summary": "Uma tese contraintuitiva redefine venda como condução de raciocínio, não vitória argumentativa.",
+            "evidence": "A resposta contrasta o empresário que tenta vencer com argumentos com aquele que conduz uma conclusão lógica.",
+            "audienceEffect": "Oferece uma identidade aspiracional e uma filosofia de venda.",
+            "subtext": "O especialista se posiciona como alguém que organiza decisões sem pressionar.",
+            "funnelFunction": "Autoridade, posicionamento e consideração por um método de vendas.",
+            "extractedRule": "Sustente a tese contraintuitiva com mecanismo e contraste identitário antes da frase final."
+          },
+          "visual": {
+            "roleLabel": "Story 3 · Variação de ângulo e sticker",
+            "title": "A pergunta desce e renova a composição",
+            "scene": "Mesmo cenário e roupa, agora em plano mais próximo e levemente angulado. Lucas começa com o olhar um pouco fora do eixo e depois retorna à câmera. O ar-condicionado aparece no alto.",
+            "typography": "O sticker nativo migra para a parte inferior. Não foram identificadas legendas sincronizadas.",
+            "composition": "Rosto e placas ocupam a metade superior e central. A pergunta fica abaixo, invertendo a hierarquia dos módulos anteriores sem romper a unidade.",
+            "graphic": "Sticker inferior, placas no fundo e leve mudança de distância da câmera.",
+            "palette": [
+              "#151515",
+              "#4a4a48",
+              "#f0efeb",
+              "#8b2030",
+              "#b38a3a"
+            ],
+            "impression": "Reflexão, fechamento conceitual e continuidade com renovação discreta.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "O plano mais próximo aumenta a sensação de reflexão pessoal."
+              },
+              {
+                "label": "2",
+                "description": "O sticker inferior evita a repetição exata dos dois módulos anteriores."
+              },
+              {
+                "label": "3",
+                "description": "O cenário continua reconhecível e preserva a assinatura da sessão."
+              }
+            ]
+          },
+          "deep": {
+            "roleLabel": "Story 3 · Filosofia de venda",
+            "title": "A venda amadurece quando a conclusão parece descoberta",
+            "lead": "Lucas abre com uma negação forte, apresenta uma explicação sobre razões descobertas pelo próprio indivíduo e organiza um contraste entre disputa argumentativa e condução lógica.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "A pergunta sobre maior insight permite uma resposta mais abstrata e autoral que as anteriores."
+              },
+              "critique": {
+                "status": "present",
+                "rationale": "A tese é útil, mas a citação atribuída a Pascal não foi verificada nesta análise e o contraste 'comum versus alto nível' pode soar performático."
+              }
+            },
+            "sections": [
+              {
+                "title": "A negação contraintuitiva cria atrito",
+                "covers": [
+                  "narrative",
+                  "continuity",
+                  "attention"
+                ],
+                "paragraphs": [
+                  "Dizer que ninguém compra porque foi convencido contradiz a linguagem usual de vendas e cria uma lacuna: se não é convencimento, o que produz a compra?",
+                  "No conjunto, o módulo fecha em maior abstração. Ele reaproveita a ideia de consequência presente na primeira resposta, mas permanece autônomo."
+                ]
+              },
+              {
+                "title": "Descoberta própria como mecanismo de adesão",
+                "covers": [
+                  "evidence",
+                  "funnel",
+                  "subtext",
+                  "template-consequence"
+                ],
+                "paragraphs": [
+                  "A explicação central é que razões percebidas como próprias geram mais adesão. O contraste posterior traduz essa filosofia em dois modos de vender: disputar argumentos ou conduzir raciocínio.",
+                  "O template deve usar referências intelectuais apenas quando verificadas e necessárias. O mecanismo precisa permanecer compreensível sem depender do prestígio da citação."
+                ]
+              }
+            ],
+            "extractedRule": "Use uma tese contraintuitiva para conduzir o público até uma distinção aplicável."
+          }
+        }
+      }
+    ]
+  },
+  "assets": [
+    {
+      "narrativeOrder": 1,
+      "localPath": "C:/tmp/instagram-story-capture/lucastorres-2026-07-25/story-01-frames/frame-01.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "narrativeOrder": 2,
+      "localPath": "C:/tmp/instagram-story-capture/lucastorres-2026-07-25/story-02-frames/frame-01.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "narrativeOrder": 3,
+      "localPath": "C:/tmp/instagram-story-capture/lucastorres-2026-07-25/story-03-frames/frame-01.jpg",
+      "mimeType": "image/jpeg"
+    }
+  ]
+}

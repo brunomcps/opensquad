@@ -34,3 +34,14 @@ Este arquivo guarda contexto editorial compacto. Não é banco de métricas em t
 - **Funil provável:** a caixa gera participação; as respostas aumentam familiaridade e confiança; provas de trajetória, relacionamento, produto e valores tornam a persona mais nítida; ofertas aparecem como consequência contextual, não como assunto obrigatório de toda resposta.
 - **Cuidados de leitura:** não transformar toda resposta pessoal em conselho universal; não confundir exposição familiar com ausência de limites; verificar produtos e funcionalidades atuais antes de descrevê-los como vigentes.
 - **Origem deste perfil:** identificação fornecida por Bruno e sequência de cinco stories do perfil `@icarode.carvalho`, analisada em 25/07/2026.
+
+## Lucas Torres
+
+- **Nome canônico:** Lucas Torres
+- **Perfil observado:** `@lucastorres`
+- **Área declarada no perfil:** negócios, vendas e mentoria
+- **Arquétipo editorial observado:** especialista formal que transforma perguntas do público em distinções conceituais, consequências comerciais e princípios de decisão.
+- **Recursos recorrentes a observar:** resposta frontal em vídeo; cenário e roupa consistentes; pergunta visível; tese entregue cedo; correção de premissa; contraste entre comportamento comum e decisão criteriosa; fechamento aforístico.
+- **Funil provável:** perguntas geram relacionamento; mecanismos e distinções demonstram julgamento; a consistência entre respostas aumenta autoridade e consideração pelo método ou pela mentoria.
+- **Cuidados de leitura:** não tratar cenário, traje e placas como prova suficiente de competência; verificar citações e afirmações cognitivas antes de usos formais; distinguir conteúdo educacional de evidência científica.
+- **Origem deste perfil:** bio e três stories em vídeo recuperados do perfil `@lucastorres`, transcritos e analisados em 25/07/2026.

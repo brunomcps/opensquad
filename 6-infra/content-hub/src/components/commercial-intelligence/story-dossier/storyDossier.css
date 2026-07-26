@@ -1152,6 +1152,12 @@
   bottom: auto;
 }
 
+.ci-dossier-placeholder.is-person.is-slot-middle {
+  left: 16%;
+  width: 68%;
+  min-height: 14%;
+}
+
 .ci-dossier-placeholder.is-slot-lower {
   top: 65%;
   bottom: auto;
