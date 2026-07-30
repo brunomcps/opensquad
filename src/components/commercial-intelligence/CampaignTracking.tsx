@@ -385,7 +385,13 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
     }
   }
 
-  if (loading && !visibleAttribution) return <div className="ci-overview-state"><span className="loading-pulse">Carregando rastreamento...</span></div>;
+  // Só a PRIMEIRA carga troca a tela inteira pelo aviso de carregamento. Antes a
+  // condição olhava `visibleAttribution`, que zera a cada troca de período: ao
+  // clicar em "90 dias" o explorador era DESMONTADO e remontava com o estado
+  // inicial, devolvendo o filtro pra "7 dias" e parecendo que nada acontecia.
+  // Recarregamentos posteriores mantêm a tela montada e avisam no lugar certo.
+  const primeiraCarga = loading && !catalog.videos.length && !campaigns.length;
+  if (primeiraCarga) return <div className="ci-overview-state"><span className="loading-pulse">Carregando rastreamento...</span></div>;
 
   return (
     <div className="ci-decision-view">
@@ -407,6 +413,8 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
       />
 
       {error && <div className="ci-warning-box" role="alert"><strong>Rastreamento indisponível</strong><span>{error}</span></div>}
+
+      {!visibleAttribution && !error && <div className="ci-overview-state"><span className="loading-pulse">Atualizando campanhas e atribuição para o período escolhido...</span></div>}
 
       {visibleAttribution && <>
         {!campaigns.length && <section className="ci-empty-action"><strong>Ainda não existe campanha rastreável</strong><span>Crie a primeira campanha acima. As transações históricas que chegaram sem código de origem permanecem sem atribuição.</span></section>}
