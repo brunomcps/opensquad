@@ -2194,6 +2194,95 @@
   display: flex;
   align-items: flex-end;
   gap: 8px;
+  /* Os campos de data ficam SEMPRE visíveis. Antes eles só existiam com o preset
+     "Personalizado" ativo e passavam despercebidos ao quebrar linha. */
+  padding: 6px 10px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card-hover);
+}
+
+.ci-custom-dates-active {
+  border-style: solid;
+  border-color: var(--accent-gold);
+  background: var(--accent-gold-bg);
+}
+
+.ci-position-filters .ci-position-short {
+  display: none;
+}
+
+/* Em telas estreitas volta a abreviação, com o nome completo no title/aria-label. */
+@media (max-width: 900px) {
+  .ci-position-filters .ci-position-name {
+    display: none;
+  }
+
+  .ci-position-filters .ci-position-short {
+    display: inline;
+  }
+}
+
+.ci-origin-breakdown .ci-origin-table-wrap {
+  overflow-x: auto;
+}
+
+.ci-origin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 500 12px var(--font-body);
+}
+
+.ci-origin-table th,
+.ci-origin-table td {
+  padding: 9px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--border-light);
+  white-space: nowrap;
+}
+
+.ci-origin-table thead th {
+  font: 700 10px var(--font-body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--accent-gold);
+}
+
+.ci-origin-table tbody th[scope='row'],
+.ci-origin-table tfoot th[scope='row'],
+.ci-origin-table thead th:first-child {
+  text-align: left;
+  font-weight: 600;
+}
+
+.ci-origin-table tbody td,
+.ci-origin-table tfoot td {
+  font: 600 15px var(--font);
+  font-variant-numeric: tabular-nums;
+}
+
+.ci-origin-table tfoot th,
+.ci-origin-table tfoot td {
+  border-top: 1px solid var(--accent-gold);
+  border-bottom: none;
+  font-weight: 700;
+}
+
+.ci-origin-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 7px;
+  vertical-align: middle;
+}
+
+.ci-origin-note {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 11px;
 }
 
 .ci-history-video-filter {

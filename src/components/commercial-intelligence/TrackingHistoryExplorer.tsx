@@ -369,17 +369,10 @@ export function TrackingHistoryExplorer({
     onPeriodChange?.(start, end);
   }, [end, onPeriodChange, start]);
 
-  useEffect(() => {
-    const poll = () => {
-      if (document.visibilityState === 'visible') void load(true);
-    };
-    const interval = window.setInterval(poll, 30_000);
-    document.addEventListener('visibilitychange', poll);
-    return () => {
-      window.clearInterval(interval);
-      document.removeEventListener('visibilitychange', poll);
-    };
-  }, [load]);
+  // Sem polling por relógio: a tela recarregava sozinha a cada 30 s (e ao voltar
+  // o foco pra aba), o que atropelava a leitura no meio de uma análise. Agora a
+  // busca acontece quando o filtro muda, quando o usuario clica em "Buscar dados
+  // agora", ou quando uma sincronizacao emite 'ci:data-updated' (listener acima).
 
   function applyPreset(nextPreset: RangePreset) {
     setPreset(nextPreset);
@@ -461,6 +454,32 @@ export function TrackingHistoryExplorer({
     saleUnattributed: bucket.sales.unattributed,
     saleAmbiguous: bucket.sales.ambiguous,
   })), [visibleSeries]);
+  // Totais por origem no período/filtros ativos. Somados dos mesmos buckets que
+  // alimentam o gráfico, pra tabela e gráfico nunca discordarem entre si.
+  const originTotals = useMemo(() => {
+    type OriginRow = { key: string; label: string; color: string; clicks: number; sales: number };
+    const rows: OriginRow[] = ORIGIN_SERIES.map(origin => {
+      const clicks = chartData.reduce((sum, item) => sum + (Number(item[origin.clickField as keyof TrackingChartDatum]) || 0), 0);
+      const sales = chartData.reduce((sum, item) => sum + (Number(item[origin.saleField as keyof TrackingChartDatum]) || 0), 0);
+      return { key: origin.key, label: origin.label, color: origin.color, clicks, sales };
+    });
+    const otherClicks = chartData.reduce((sum, item) => sum + (Number(item.clickOther) || 0), 0);
+    const unattributedSales = chartData.reduce((sum, item) => sum + (Number(item.saleUnattributed) || 0), 0);
+    const ambiguousSales = chartData.reduce((sum, item) => sum + (Number(item.saleAmbiguous) || 0), 0);
+    const additionalSales = chartData.reduce((sum, item) => sum + (Number(item.saleAdditional) || 0), 0);
+    if (otherClicks || unattributedSales || ambiguousSales) {
+      rows.push({
+        key: 'other',
+        label: 'Sem local atribuído',
+        color: '#8a8172',
+        clicks: otherClicks,
+        sales: unattributedSales + ambiguousSales,
+      });
+    }
+    const totalClicks = rows.reduce((sum, row) => sum + row.clicks, 0);
+    const totalSales = rows.reduce((sum, row) => sum + row.sales, 0);
+    return { rows, totalClicks, totalSales, additionalSales };
+  }, [chartData]);
   const { hasClicks, hasSales } = useMemo(() => trackingChartAvailability(chartData), [chartData]);
   const hasRevenue = useMemo(() => chartData.some(item => item.revenue !== 0), [chartData]);
   const hasChartData = hasClicks || hasSales || hasRevenue;
@@ -514,7 +533,7 @@ export function TrackingHistoryExplorer({
       </div>
       <div className={`ci-live-state ci-live-state-${liveTone}`}>
         <span className="ci-live-dot" aria-hidden="true" />
-        <span><strong>{liveMessage}</strong><small>Consulta automática a cada 30 s somente com esta aba aberta</small></span>
+        <span><strong>{liveMessage}</strong><small>A tela não recarrega sozinha. Ela busca ao trocar um filtro ou quando você pede.</small></span>
       </div>
     </header>
 
@@ -524,7 +543,7 @@ export function TrackingHistoryExplorer({
         <li><span>1</span><div><strong>Cliques</strong><small>Gravados no redirecionamento, em tempo real.</small></div></li>
         <li><span>2</span><div><strong>Vendas</strong><small>Entram pelo webhook Hotmart; confirme a última chegada logo abaixo.</small></div></li>
         <li><span>3</span><div><strong>Reconciliação</strong><small>{reconciliationScheduleLabel(visibleSeries?.freshness)}.</small></div></li>
-        <li><span>4</span><div><strong>Tela</strong><small>Consulta o banco a cada 30 s enquanto estiver aberta.</small></div></li>
+        <li><span>4</span><div><strong>Tela</strong><small>Consulta o banco ao trocar um filtro ou quando você clica em “Buscar dados agora”.</small></div></li>
       </ol>
     </section>
 
@@ -537,10 +556,20 @@ export function TrackingHistoryExplorer({
           onClick={() => applyPreset(option.value)}
         >{option.label}</button>)}
       </div>
-      {preset === 'custom' && <div className="ci-custom-dates">
-        <label className="ci-select-label">De<input type="date" value={start} onChange={event => setStart(event.target.value)} /></label>
-        <label className="ci-select-label">Até<input type="date" value={end} onChange={event => setEnd(event.target.value)} /></label>
-      </div>}
+      <div className={`ci-custom-dates${preset === 'custom' ? ' ci-custom-dates-active' : ''}`}>
+        <label className="ci-select-label">De<input
+          type="date"
+          value={start}
+          max={end || undefined}
+          onChange={event => { setPreset('custom'); setStart(event.target.value); }}
+        /></label>
+        <label className="ci-select-label">Até<input
+          type="date"
+          value={end}
+          min={start || undefined}
+          onChange={event => { setPreset('custom'); setEnd(event.target.value); }}
+        /></label>
+      </div>
       {!fixedVideoId && <label className="ci-select-label ci-history-video-filter">Vídeo
         <select value={videoId} onChange={event => setVideoId(event.target.value)}>
           <option value="">Todos os vídeos</option>
@@ -552,9 +581,13 @@ export function TrackingHistoryExplorer({
           type="button"
           key={option.value}
           title={option.label}
+          aria-label={option.label}
           className={position === option.value ? 'active' : ''}
           onClick={() => setPosition(option.value)}
-        >{option.short}</button>)}
+        >
+          <span className="ci-position-name">{option.label}</span>
+          <span className="ci-position-short" aria-hidden="true">{option.short}</span>
+        </button>)}
       </div>
       <label className="ci-select-label">Tráfego
         <select value={traffic} onChange={event => setTraffic(event.target.value as TrackingTrafficFilter)}>
@@ -571,7 +604,7 @@ export function TrackingHistoryExplorer({
           <option value="week">Por semana</option>
         </select>
       </label>
-      <button type="button" className="ci-refresh" disabled={refreshing} onClick={refreshPanel}>{refreshing ? 'Atualizando...' : 'Atualizar painel'}</button>
+      <button type="button" className="ci-refresh" disabled={refreshing} onClick={refreshPanel} title="Os filtros já aplicam sozinhos. Use isto para buscar dados novos agora.">{refreshing ? 'Buscando...' : 'Buscar dados agora'}</button>
     </div>
 
     {products.length > 1 && <div className="ci-product-filterbar" role="group" aria-label="Filtro de produtos">
@@ -596,12 +629,55 @@ export function TrackingHistoryExplorer({
 
     {visibleSeries && <>
     <div className="ci-history-kpis">
-      <article><span>Cliques no filtro</span><strong>{displayedClicks.toLocaleString('pt-BR')}</strong><small>{visibleSeries.totals.qualifiedClicks} qualificado(s) · {visibleSeries.totals.technicalClicks} técnico(s) · {visibleSeries.totals.unknownClicks} sem classificação</small></article>
+      <article><span>{traffic === 'qualified' ? 'Cliques qualificados' : traffic === 'technical' ? 'Cliques técnicos / bots' : 'Cliques (todos os eventos)'}</span><strong>{displayedClicks.toLocaleString('pt-BR')}</strong><small>De {visibleSeries.totals.totalClicks.toLocaleString('pt-BR')} cliques no período: {visibleSeries.totals.qualifiedClicks} qualificado(s) · {visibleSeries.totals.technicalClicks} técnico(s) · {visibleSeries.totals.unknownClicks} sem classificação</small></article>
       <article><span>Compras atribuídas</span><strong>{visibleSeries.totals.attributedSales}</strong><small>{visibleSeries.totals.unattributedSales} sem origem · {visibleSeries.totals.ambiguousSales} com origem conflitante</small></article>
       <article><span>Produtos adicionais</span><strong>{visibleSeries.totals.additionalProducts}</strong><small>Separados das compras principais do MAPA</small></article>
       <article><span>Conversão clique → compra</span><strong>{percent(conversion)}</strong><small>Compra MAPA atribuída ÷ cliques qualificados</small></article>
       <article><span>Líquido total originado</span><strong>{money(visibleSeries.totals.netAfterFees)}</strong><small>{visibleSeries.totals.financialDataIncomplete} compra(s) originada(s) sem financeiro completo</small></article>
     </div>
+
+    <article className="ci-panel ci-origin-breakdown">
+      <header>
+        <div>
+          <span>Cliques e compras por origem</span>
+          <small>Soma do período e dos filtros ativos. Conversão = compras atribuídas ÷ cliques da mesma origem.</small>
+        </div>
+      </header>
+      <div className="ci-origin-table-wrap">
+        <table className="ci-origin-table">
+          <thead>
+            <tr>
+              <th scope="col">Origem do link</th>
+              <th scope="col">Cliques</th>
+              <th scope="col">Compras</th>
+              <th scope="col">Conversão</th>
+            </tr>
+          </thead>
+          <tbody>
+            {originTotals.rows.map(row => <tr key={row.key}>
+              <th scope="row">
+                <span className="ci-origin-dot" style={{ background: row.color }} aria-hidden="true" />
+                {row.label}
+              </th>
+              <td>{row.clicks.toLocaleString('pt-BR')}</td>
+              <td>{row.sales.toLocaleString('pt-BR')}</td>
+              <td>{percent(row.clicks ? row.sales / row.clicks : null)}</td>
+            </tr>)}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row">Total</th>
+              <td>{originTotals.totalClicks.toLocaleString('pt-BR')}</td>
+              <td>{originTotals.totalSales.toLocaleString('pt-BR')}</td>
+              <td>{percent(originTotals.totalClicks ? originTotals.totalSales / originTotals.totalClicks : null)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      {Boolean(originTotals.additionalSales) && <small className="ci-origin-note">
+        {originTotals.additionalSales} compra(s) de produto adicional fora desta tabela, por não terem local de link próprio.
+      </small>}
+    </article>
 
     <div className="ci-freshness-grid" aria-label="Atualidade dos dados">
       <span><small>Dados consultados</small><strong>{formatDateTime(visibleSeries.freshness.consultedAt || visibleSeries.generatedAt)}</strong></span>
