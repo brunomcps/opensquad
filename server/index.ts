@@ -28,6 +28,7 @@ import onedriveRouter from './routes/onedrive.js';
 import catalogoRouter from './routes/catalogo.js';
 import nicheRadarRouter from './routes/nicheRadar.js';
 import instagramDmRouter from './routes/instagramDm.js';
+import manychatRouter from './routes/manychat.js';
 import { igResponderRouter } from './routes/igResponder.js';
 import { startIgResponderCron } from './services/igResponder.js';
 import { startRadarCron } from './services/nicheRadar/cron.js';
@@ -67,6 +68,10 @@ if (process.env.NODE_ENV === 'production' && process.env.AUTH_USERS) {
       req.path === '/api/sync-push'
       || req.path === '/api/health'
       || req.path === '/api/instagram-dm/webhook'
+      // esteira de DM do ManyChat: o ManyChat e o Telegram não sabem Basic Auth.
+      // Essas rotas se protegem sozinhas com o SYNC_PUSH_SECRET (ver routes/manychat.ts).
+      || req.path === '/api/manychat/inbox'
+      || req.path === '/api/manychat/tg-callback'
       || req.path.startsWith('/api/telegram/')
       || req.path.startsWith('/favicon')
     ) return next();
@@ -117,6 +122,7 @@ app.use('/api/onedrive', onedriveRouter);
 app.use('/api/catalogo', catalogoRouter);
 app.use('/api/niche-radar', nicheRadarRouter);
 app.use('/api/instagram-dm', instagramDmRouter);
+app.use('/api/manychat', manychatRouter);
 app.use('/api/ig-responder', igResponderRouter);
 
 app.get('/api/health', (_req, res) => {
