@@ -9,3 +9,24 @@ docs/
 .superpowers/
 temp/
 _opensquad/_telegram/
+
+# Pipeline packaging — runtime ignorado
+6-infra/squads/packaging/cache/
+6-infra/squads/packaging/state/
+6-infra/squads/packaging/output/
+
+.env.local
+
+# Private local financial data and credentials
+/.mcp.json
+/4-financeiro/
+/6-infra/apps/pluggy-mcp/.env*
+/6-infra/apps/pluggy-mcp/*.log
+/6-infra/claude-memory/project_financas_automatizadas.md
+/6-infra/claude-memory/project_investimentos_alocacao.md
+
+# backups de .env (nunca versionar: contêm tokens)
+.env.bak*
+.env.*.bak
+.env.backup*
+.env.*recovered*

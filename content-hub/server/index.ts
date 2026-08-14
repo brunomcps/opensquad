@@ -27,6 +27,7 @@ import telegramRouter from './routes/telegram.js';
 import onedriveRouter from './routes/onedrive.js';
 import catalogoRouter from './routes/catalogo.js';
 import instagramDmRouter from './routes/instagramDm.js';
+import manychatRouter from './routes/manychat.js';
 import { startBRollWatcher } from './services/brollWatcher.js';
 import { refreshTokenIfNeeded } from './services/instagram.js';
 import { refreshFacebookTokenIfNeeded } from './services/facebook.js';
@@ -63,6 +64,10 @@ if (process.env.NODE_ENV === 'production' && process.env.AUTH_USERS) {
       req.path === '/api/sync-push'
       || req.path === '/api/health'
       || req.path === '/api/instagram-dm/webhook'
+      // esteira de DM do ManyChat: o ManyChat e o Telegram não sabem Basic Auth.
+      // Essas rotas se protegem sozinhas com o SYNC_PUSH_SECRET (ver routes/manychat.ts).
+      || req.path === '/api/manychat/inbox'
+      || req.path === '/api/manychat/tg-callback'
       || req.path.startsWith('/api/telegram/')
       || req.path.startsWith('/favicon')
     ) return next();
@@ -112,6 +117,7 @@ app.use('/api/telegram', telegramRouter);
 app.use('/api/onedrive', onedriveRouter);
 app.use('/api/catalogo', catalogoRouter);
 app.use('/api/instagram-dm', instagramDmRouter);
+app.use('/api/manychat', manychatRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, timestamp: new Date().toISOString() });
