@@ -1,0 +1,15 @@
+{
+  "generatedFrom": "2-profissional/produtos/ecossistema-cognitivo/inteligencia/analises/2026-07-10-youtube-vendas",
+  "sanitized": true,
+  "containsBuyerPii": false,
+  "tolerances": {
+    "counts": 0,
+    "money": 0.01,
+    "correlations": 1e-8,
+    "proportions": 1e-8
+  },
+  "notes": [
+    "Snapshot reduzido para regressão; não substitui os artefatos analíticos completos.",
+    "Associação temporal não é atribuição causal."
+  ]
+}

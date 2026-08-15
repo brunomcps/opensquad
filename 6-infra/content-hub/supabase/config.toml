@@ -1,0 +1,40 @@
+project_id = "commercial-intelligence"
+
+[functions.ci-quality]
+verify_jwt = false
+
+[functions.ci-overview]
+verify_jwt = false
+
+[functions.ci-hotmart-webhook]
+verify_jwt = false
+
+[functions.ci-sync-hotmart]
+verify_jwt = false
+
+[functions.ci-sync-youtube]
+verify_jwt = false
+
+[functions.ci-campaigns]
+verify_jwt = false
+
+[functions.ci-attribution]
+verify_jwt = false
+
+[functions.ci-association]
+verify_jwt = false
+
+[functions.ci-campaign-redirect]
+verify_jwt = false
+
+[functions.ci-tracking-series]
+verify_jwt = false
+
+[functions.ci-tracking-events]
+verify_jwt = false
+
+[functions.ci-content]
+verify_jwt = false
+
+[functions.ci-story-ingest]
+verify_jwt = false

@@ -1,0 +1,84 @@
+{
+  "columnHeaders": [
+    {
+      "name": "video",
+      "columnType": "DIMENSION",
+      "dataType": "STRING"
+    },
+    {
+      "name": "day",
+      "columnType": "DIMENSION",
+      "dataType": "STRING"
+    },
+    {
+      "name": "comments",
+      "columnType": "METRIC",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "views",
+      "columnType": "METRIC",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "estimatedMinutesWatched",
+      "columnType": "METRIC",
+      "dataType": "FLOAT"
+    },
+    {
+      "name": "likes",
+      "columnType": "METRIC",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "shares",
+      "columnType": "METRIC",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "subscribersGained",
+      "columnType": "METRIC",
+      "dataType": "INTEGER"
+    },
+    {
+      "name": "subscribersLost",
+      "columnType": "METRIC",
+      "dataType": "INTEGER"
+    }
+  ],
+  "rows": [
+    [
+      "fixture-video-001",
+      "2026-07-08",
+      3,
+      100,
+      450.5,
+      12,
+      2,
+      4,
+      1
+    ],
+    [
+      "fixture-video-001",
+      "2026-07-10",
+      4,
+      140,
+      620,
+      16,
+      3,
+      5,
+      0
+    ],
+    [
+      "fixture-video-002",
+      "2026-07-10",
+      1,
+      25,
+      80,
+      3,
+      0,
+      1,
+      0
+    ]
+  ]
+}

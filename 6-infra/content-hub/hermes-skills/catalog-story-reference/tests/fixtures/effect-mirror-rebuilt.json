@@ -1,0 +1,713 @@
+{
+  "dossierContractVersion": "1.0",
+  "referenceKey": "instagram-reservatoriodedopamina-369dd31e183fba04ea5b",
+  "template": {
+    "canonicalKey": "efeito-espelho",
+    "name": "Efeito Espelho: identificação -> microexplicação -> entrega por DM",
+    "objective": "Transformar um comportamento cotidiano reconhecivel em interesse por uma entrega pratica solicitada por mensagem.",
+    "description": "Usa uma fonte externa como espelho, converte o tema em autorreconhecimento, oferece uma explicacao curta com alivio emocional e materializa uma entrega coerente antes de pedir resposta por DM.",
+    "tags": [
+      "stories",
+      "identificacao",
+      "educacao",
+      "lead magnet",
+      "conversao por DM"
+    ],
+    "definition": {
+      "editorialName": "Efeito Espelho",
+      "editorialSummary": "Reservatorio de Dopamina · 3 telas · reconhecimento, recompensa cognitiva e entrega por DM",
+      "formula": "autoridade externa -> autorreconhecimento -> acolhimento -> microexplicacao -> humor -> entrega concreta -> DM",
+      "risks": [
+        "Transformar uma enquete de identificacao em sugestao de diagnostico.",
+        "Simplificar uma explicacao cientifica ate ela parecer absoluta ou imprecisa.",
+        "Usar humor apenas como enfeite e quebrar a continuidade do assunto.",
+        "Pedir resposta por DM sem deixar claro o que escrever ou como a entrega acontece."
+      ],
+      "preserveRules": [
+        "Preservar a ordem reconhecimento, recompensa cognitiva e oferta.",
+        "Preservar uma interacao de baixa friccao antes da explicacao.",
+        "Preservar a alternancia entre evidencia externa, explicacao visual e prova da entrega.",
+        "Preservar uma unica acao final ligada ao recurso mostrado."
+      ],
+      "adaptRules": [
+        "Adaptar tema, linguagem, nivel de rigor, prova e recurso para o contexto de Bruno.",
+        "Substituir noticia, meme, paleta e identidade visual por elementos coerentes com cada pauta.",
+        "Ajustar a interacao para que ela reconheca experiencia sem induzir autodiagnostico.",
+        "Explicitar a palavra ou resposta esperada no CTA quando isso reduzir incerteza."
+      ],
+      "avoidRules": [
+        "Nao copiar o tema sono, o fundo vinho, o meme ou os mockups apenas porque aparecem na referencia.",
+        "Nao chamar um comportamento de transtorno sem sustentacao clinica.",
+        "Nao apresentar mecanismo neurocientifico simplificado como explicacao completa.",
+        "Nao esconder uma oferta fraca atras de uma seta ou de um pedido generico de resposta."
+      ],
+      "moldSteps": [
+        {
+          "id": "screen-recognition",
+          "templateStepIds": [
+            "mirror-trigger"
+          ],
+          "title": "Espelho e resposta",
+          "purpose": "Converter um sinal externo em uma pergunta pessoal que possa ser respondida sem esforco.",
+          "fixedFunction": "Comprovar que o tema existe e permitir que o publico se reconheca antes de qualquer explicacao.",
+          "placeholders": [
+            {
+              "kind": "scene",
+              "label": "Fundo ou contexto cotidiano ligado ao comportamento",
+              "slot": "lower"
+            },
+            {
+              "kind": "proof",
+              "label": "Recorte, dado ou sinal externo verificavel",
+              "slot": "upper"
+            },
+            {
+              "kind": "copy",
+              "label": "Pergunta direta sobre uma experiencia, sem diagnosticar",
+              "slot": "top"
+            },
+            {
+              "kind": "reaction",
+              "label": "Enquete ou resposta de baixa friccao",
+              "slot": "bottom"
+            }
+          ]
+        },
+        {
+          "id": "screen-explanation",
+          "templateStepIds": [
+            "validate-resistance",
+            "micro-explanation",
+            "humor-relief"
+          ],
+          "title": "Acolhimento, mecanismo e alivio",
+          "purpose": "Recompensar a identificacao com entendimento pratico sem transformar a sequencia em aula.",
+          "fixedFunction": "Validar a resistencia, explicar o essencial e aliviar o peso da mensagem sem abandonar o assunto.",
+          "placeholders": [
+            {
+              "kind": "copy",
+              "label": "Frase que acolhe a resistencia ou contradicao vivida",
+              "slot": "top"
+            },
+            {
+              "kind": "proof",
+              "label": "Microexplicacao ou mecanismo sustentado com rigor proporcional",
+              "slot": "upper"
+            },
+            {
+              "kind": "scene",
+              "label": "Imagem, meme ou demonstracao que concretiza a ideia",
+              "slot": "lower"
+            },
+            {
+              "kind": "reaction",
+              "label": "Reacao leve que prolonga a interacao",
+              "slot": "bottom"
+            }
+          ]
+        },
+        {
+          "id": "screen-delivery",
+          "templateStepIds": [
+            "materialize-delivery",
+            "dm-conversation"
+          ],
+          "title": "Entrega visivel e conversa",
+          "purpose": "Mostrar o recurso prometido e transformar interesse em uma resposta privada.",
+          "fixedFunction": "Reduzir incerteza sobre a entrega e indicar uma unica acao final.",
+          "placeholders": [
+            {
+              "kind": "copy",
+              "label": "Oferta especifica e coerente com o problema",
+              "slot": "top"
+            },
+            {
+              "kind": "proof",
+              "label": "Previa, mockup ou trecho real do que sera entregue",
+              "slot": "upper"
+            },
+            {
+              "kind": "copy",
+              "label": "Instrucao unica com a palavra ou resposta esperada",
+              "slot": "lower"
+            },
+            {
+              "kind": "response",
+              "label": "Campo de DM ou outro canal de continuidade",
+              "slot": "bottom"
+            }
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "role": "hook",
+          "instruction": "Usar uma evidencia externa e uma pergunta de baixa friccao para produzir autorreconhecimento."
+        },
+        {
+          "role": "development",
+          "instruction": "Acolher a resistencia, explicar o mecanismo com rigor proporcional e usar humor como alivio funcional."
+        },
+        {
+          "role": "cta",
+          "instruction": "Materializar a entrega e conduzir a pessoa para uma unica resposta por DM."
+        }
+      ]
+    },
+    "steps": [
+      {
+        "role": "hook",
+        "instruction": "Usar uma evidencia externa e uma pergunta de baixa friccao para produzir autorreconhecimento."
+      },
+      {
+        "role": "development",
+        "instruction": "Acolher a resistencia, explicar o mecanismo com rigor proporcional e usar humor como alivio funcional."
+      },
+      {
+        "role": "cta",
+        "instruction": "Materializar a entrega e conduzir a pessoa para uma unica resposta por DM."
+      }
+    ]
+  },
+  "reference": {
+    "title": "Reservatorio de Dopamina, Efeito Espelho",
+    "description": "A sequencia usa uma manchete sobre adiamento do sono para fazer o publico se reconhecer, recompensa essa identificacao com acolhimento, uma explicacao curta e humor, e encerra mostrando uma aula e um material gratuito que podem ser pedidos por DM.",
+    "sequenceConfirmed": true,
+    "sequenceConfirmationSource": "Bruno enviou as tres capturas na ordem narrativa e confirmou que a sequencia estava completa.",
+    "analysis": {
+      "summary": "A sequencia transforma uma noticia em espelho comportamental, paga a identificacao com entendimento acessivel e converte a tensao em uma entrega gratuita solicitada por mensagem.",
+      "overview": [
+        "A primeira tela nao tenta ensinar: ela empresta atualidade e autoridade de um recorte jornalistico, traduz o tema em uma pergunta pessoal e oferece uma resposta binaria de baixissimo esforco.",
+        "A segunda tela muda de uma captura externa para a voz da plataforma. Ela acolhe a resistencia a dormir, oferece uma justificativa simplificada e usa humor para impedir que o conteudo assuma tom de repreensao.",
+        "A terceira tela revela que a educacao anterior prepara uma oferta. Os mockups provam que a entrega existe e a seta liga a promessa ao campo de mensagem, deslocando a relacao do consumo passivo para uma conversa privada."
+      ],
+      "narrativeArc": [
+        "Reconhecimento e resposta sem exposicao",
+        "Acolhimento, explicacao e alivio",
+        "Entrega concreta e continuidade por DM"
+      ],
+      "whyItWorks": [
+        "A sequencia comeca pela experiencia do publico, nao pela oferta da plataforma.",
+        "Cada tela muda o estimulo dominante: recorte e enquete, texto e meme, mockups e seta.",
+        "A microexplicacao funciona como recompensa entre o clique da enquete e o pedido de mensagem.",
+        "A oferta corresponde diretamente ao problema apresentado e aparece visualmente antes do CTA.",
+        "A transicao para DM cria uma proxima etapa proporcional, embora a instrucao pudesse especificar o que a pessoa deve escrever."
+      ],
+      "templateFit": "A referencia executa o Efeito Espelho em tres telas: uma evidencia externa instala reconhecimento, a plataforma devolve significado e alivio, e uma entrega visualmente comprovada transforma interesse em conversa por DM.",
+      "sequenceMap": [
+        {
+          "kind": "story",
+          "storyOrder": 1,
+          "label": "1 · Espelho",
+          "value": "Autoridade externa + autorreconhecimento + enquete"
+        },
+        {
+          "kind": "story",
+          "storyOrder": 2,
+          "label": "2 · Recompensa",
+          "value": "Acolhimento + microexplicacao + humor"
+        },
+        {
+          "kind": "story",
+          "storyOrder": 3,
+          "label": "3 · Conversao",
+          "value": "Oferta especifica + prova visual + resposta por DM"
+        },
+        {
+          "kind": "product",
+          "label": "Produto estrategico",
+          "value": "Plataforma percebida como educadora acessivel, pratica e capaz de transformar informacao em recurso aplicavel"
+        }
+      ],
+      "visualGrammar": "A sequencia abre com uma fotografia fria e desfocada coberta por elementos nativos e um recorte branco; depois estabiliza a identidade em fundo vinho, tipografia pesada, amarelo para enfase e branco para explicacao. O elemento dominante progride de noticia e enquete para meme e reacao, e termina em mockups e seta. Apesar da ruptura cromatica entre a primeira e a segunda tela, as duas telas finais criam continuidade de marca e a variacao de objetos renova a atencao.",
+      "apparentProduct": "Uma aula gratuita sobre os impactos de um sono ruim e um material para higiene do sono.",
+      "productRevealed": "A plataforma Reservatorio de Dopamina como fonte de educacao acessivel, acolhedora e pratica que converte identificacao em acesso a recursos e relacionamento por DM.",
+      "personaConstructed": "Uma marca que entende a resistencia cotidiana do publico, traduz temas de saude em linguagem simples, usa humor sem perder a funcao educativa e oferece ferramentas aplicaveis.",
+      "transferRules": [
+        "Comecar com um sinal externo verificavel quando ele tornar o problema imediatamente reconhecivel.",
+        "Transformar o tema em pergunta sobre experiencia, nao em teste diagnostico.",
+        "Usar interacao de baixa friccao para produzir compromisso minimo antes da explicacao.",
+        "Validar a resistencia real do publico antes de recomendar mudanca.",
+        "Entregar uma microexplicacao diretamente ligada ao gancho e com rigor proporcional.",
+        "Usar humor para aliviar a mensagem, nao para trocar de assunto.",
+        "Mostrar o recurso antes de pedir a acao.",
+        "Encerrar com uma unica instrucao, preferencialmente especificando o que responder."
+      ],
+      "synthesis": [
+        {
+          "key": "screen-roles",
+          "title": "Papel de cada tela",
+          "paragraphs": [
+            "Story 1 empresta autoridade e devolve uma pergunta pessoal; Story 2 recompensa a identificacao com acolhimento, explicacao e humor; Story 3 materializa a solucao e abre uma conversa por DM.",
+            "A sequencia nao salta diretamente de dor para oferta: existe uma tela intermediaria que justifica por que o tema importa e reduz a sensacao de venda."
+          ]
+        },
+        {
+          "key": "stimulus-change",
+          "title": "Mudanca de estimulo",
+          "paragraphs": [
+            "Recorte jornalistico + enquete -> headline e explicacao + meme e reacao -> mockups + seta para o campo de mensagem.",
+            "A variacao evita monotonia enquanto mantem uma linha de causalidade clara entre problema, significado e recurso."
+          ]
+        },
+        {
+          "key": "aesthetics-production",
+          "title": "Estetica e producao",
+          "paragraphs": [
+            "A primeira tela parece uma curadoria espontanea feita dentro do Instagram. As duas seguintes assumem uma composicao grafica de marca com fundo vinho, tipografia sans-serif pesada e amarelo como cor de enfase.",
+            "A producao e simples e replicavel: recorte, texto, meme, mockups e desenho manual. O controle vem da hierarquia, nao de acabamento sofisticado."
+          ]
+        },
+        {
+          "key": "strengths-limitations",
+          "title": "Forcas e limitacoes",
+          "paragraphs": [
+            "As principais forcas sao a entrada pela experiencia do publico, a baixa friccao da enquete, a recompensa antes da oferta e a prova visual da entrega.",
+            "Os limites sao o enquadramento potencialmente patologizante de um comportamento como novo tipo de insonia, a explicacao cientifica excessivamente simplificada e a falta de uma palavra ou resposta especifica no CTA final."
+          ]
+        }
+      ],
+      "registeredTemplate": {
+        "name": "Efeito Espelho",
+        "formula": "autoridade externa -> autorreconhecimento -> explicacao acolhedora -> alivio -> entrega -> DM",
+        "useWhen": "Quando existe um comportamento cotidiano que o publico vive, mas ainda nao nomeia ou relaciona claramente a um problema que pode ser trabalhado.",
+        "primaryFunction": "Gerar identificacao, educar sem sobrecarregar e converter interesse em uma conversa qualificada por mensagem.",
+        "requiredElements": [
+          "Um sinal externo ou cena que torne o comportamento reconhecivel.",
+          "Uma pergunta de baixa friccao sobre experiencia.",
+          "Uma explicacao curta diretamente ligada ao gancho.",
+          "Uma entrega coerente mostrada antes do CTA.",
+          "Uma unica acao final."
+        ],
+        "optionalElements": [
+          "Meme ou imagem de alivio.",
+          "Sticker de reacao depois da explicacao.",
+          "Mockup do material.",
+          "Fonte externa de autoridade."
+        ],
+        "executionRisks": [
+          "Induzir autodiagnostico com uma pergunta simplificada.",
+          "Usar uma explicacao cientifica forte demais para a evidencia apresentada.",
+          "Alongar a tela educativa e perder ritmo.",
+          "Inserir humor sem ligacao com o mecanismo.",
+          "Pedir DM sem mostrar valor ou sem explicar a resposta esperada."
+        ],
+        "capturesOrInputs": [
+          "Noticia, dado, pergunta recebida ou cena que materialize o comportamento.",
+          "Explicacao validada e curta do mecanismo.",
+          "Imagem de alivio ou humor ligada ao tema.",
+          "Previa real do recurso oferecido."
+        ],
+        "brunoAdaptation": "Aplicar a estrutura a um comportamento observavel ligado a TDAH, superdotacao ou rotina: abrir com evidencia e pergunta sem diagnosticar, explicar um mecanismo com cautela clinica, usar alivio compativel com a voz de Bruno e mostrar uma entrega concreta antes de pedir uma palavra por DM.",
+        "steps": [
+          {
+            "id": "mirror-trigger",
+            "title": "Transformar um sinal externo em espelho",
+            "description": "Abrir com uma noticia, dado, pergunta ou cena verificavel e imediatamente converter o tema em uma pergunta sobre a experiencia do publico.",
+            "mechanism": "A evidencia externa instala relevancia; a pergunta faz a pessoa deixar de observar o assunto e assumir uma posicao minima dentro dele.",
+            "condition": "O sinal precisa ser legivel e pertinente, e a pergunta deve tratar experiencia ou comportamento sem funcionar como teste diagnostico.",
+            "expectedResult": "Reconhecimento mensuravel e compromisso de baixa friccao sem sensacao de oferta.",
+            "evidenceStoryOrders": [
+              1
+            ]
+          },
+          {
+            "id": "validate-resistance",
+            "title": "Acolher a resistencia antes de orientar",
+            "description": "Reconhecer por que o comportamento inadequado pode parecer atraente ou compreensivel.",
+            "mechanism": "A validacao reduz defensividade e evita que a recomendacao pareca bronca.",
+            "condition": "O acolhimento nao pode normalizar dano nem substituir a explicacao.",
+            "expectedResult": "A pessoa permanece aberta para ouvir o mecanismo e considerar mudanca.",
+            "evidenceStoryOrders": [
+              2
+            ]
+          },
+          {
+            "id": "micro-explanation",
+            "title": "Pagar a atencao com um mecanismo curto",
+            "description": "Explicar em poucas linhas por que o comportamento importa.",
+            "mechanism": "A explicacao organiza a experiencia reconhecida e transforma curiosidade em utilidade.",
+            "condition": "A formulacao precisa ser proporcional a evidencia, evitar absolutos e responder diretamente ao gancho.",
+            "expectedResult": "Clareza, valor percebido e autoridade sem interromper o ritmo.",
+            "evidenceStoryOrders": [
+              2
+            ]
+          },
+          {
+            "id": "humor-relief",
+            "title": "Usar alivio sem abandonar o assunto",
+            "description": "Inserir humor, imagem ou reacao que torne a explicacao emocionalmente mais leve.",
+            "mechanism": "O alivio reduz a densidade e cria uma pequena recompensa afetiva depois da informacao.",
+            "condition": "O elemento leve precisa reforcar a mesma ideia e nao disputar com a mensagem central.",
+            "expectedResult": "Maior continuidade, proximidade e disposicao para chegar a oferta.",
+            "evidenceStoryOrders": [
+              2
+            ]
+          },
+          {
+            "id": "materialize-delivery",
+            "title": "Provar a entrega antes de pedi-la",
+            "description": "Mostrar visualmente o recurso que resolve ou aprofunda o problema apresentado.",
+            "mechanism": "A prova concreta reduz incerteza e transforma uma promessa abstrata em objeto percebido.",
+            "condition": "A entrega precisa corresponder ao tema e a previa deve ser reconhecivel.",
+            "expectedResult": "Aumento do valor percebido e da confianca para agir.",
+            "evidenceStoryOrders": [
+              3
+            ]
+          },
+          {
+            "id": "dm-conversation",
+            "title": "Abrir uma conversa privada com uma acao unica",
+            "description": "Indicar que a pessoa deve responder ao story para receber a entrega.",
+            "mechanism": "A resposta transfere o interesse para um canal em que a relacao pode continuar individualmente.",
+            "condition": "A instrucao deve ser unica e, de preferencia, dizer exatamente o que responder.",
+            "expectedResult": "Conversas qualificadas por DM e continuidade mensuravel do interesse.",
+            "evidenceStoryOrders": [
+              3
+            ]
+          }
+        ]
+      },
+      "sourceNote": "Analise refeita a partir de tres capturas originais enviadas por Bruno em 24 de julho de 2026. A ordem e a completude foram confirmadas por Bruno. Os horarios relativos exibidos pelo Instagram nao permitem determinar a data exata de publicacao. A leitura cientifica se limita ao que esta visivel e registra como critica a simplificacao presente na segunda tela. Nenhuma pesquisa externa foi usada para completar trechos ou atribuir informacoes ausentes."
+    },
+    "platform": "instagram",
+    "sourceAccount": "@reservatoriodedopamina",
+    "sourceUrl": "https://www.instagram.com/reservatoriodedopamina/",
+    "sourceStartedAt": null,
+    "sourceEndedAt": null,
+    "items": [
+      {
+        "mediaType": "image",
+        "textContent": "'Novo tipo de insonia': conheca o habito de adiar o sono para ter mais tempo de diversao. Fruto do excesso de trabalho e demandas, novo tipo de insonia pode trazer problemas de saude. Voce sofre desse novo tipo de insonia? Enquete: Sim / Nao.",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 1,
+        "narrativeRole": "hook",
+        "metadata": {
+          "sourceExcerpt": "'Novo tipo de insonia': conheca o habito de adiar o sono para ter mais tempo de diversao. Voce sofre desse novo tipo de insonia? Sim / Nao.",
+          "noSourceTextReason": null,
+          "quick": {
+            "roleLabel": "Story 1 · Espelho e identificacao",
+            "title": "A noticia deixa de ser externa",
+            "summary": "Um recorte sobre adiar o sono e convertido em pergunta pessoal e resposta binaria.",
+            "evidence": "A manchete ocupa o topo, a pergunta repete o enquadramento no centro e a enquete Sim/Nao fecha a tela.",
+            "audienceEffect": "A pessoa se compara ao comportamento descrito e consegue se posicionar com um toque.",
+            "subtext": "A plataforma acompanha assuntos atuais e reconhece experiencias que o publico talvez ainda nao soubesse nomear.",
+            "funnelFunction": "Atencao, segmentacao comportamental e primeiro microcompromisso.",
+            "extractedRule": "Use uma evidencia externa como espelho e pergunte sobre experiencia, nao sobre diagnostico."
+          },
+          "visual": {
+            "roleLabel": "Story 1 · Recorte, pergunta e enquete",
+            "title": "Camadas brancas organizam um fundo frio e cotidiano",
+            "scene": "Captura do Instagram sobre uma fotografia vertical desfocada, com superficie geometrica clara no alto e uma forma escura semelhante a um animal ou objeto em primeiro plano. Nao ha rosto humano identificavel.",
+            "typography": "O recorte usa manchete preta pesada sobre cartao branco. A pergunta aparece em sans-serif branca, grande, centralizada e dividida em duas linhas. A enquete usa texto escuro em dois campos cinza-claro dentro de um bloco branco arredondado.",
+            "composition": "A leitura desce em tres patamares: fonte externa no terco superior, pergunta no centro e gesto de resposta no terco inferior. O fundo desfocado oferece contexto sem competir; os grandes blocos claros criam contraste e direcionam o olhar.",
+            "graphic": "Recorte jornalistico com editoria Saude/Bem-estar e sticker nativo de enquete com opcoes Sim e Nao.",
+            "palette": [
+              "#0d1117",
+              "#f5f6f6",
+              "#dce3e6",
+              "#ffffff"
+            ],
+            "impression": "Atualidade, reconhecimento silencioso e baixa pressao para participar.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "O recorte branco empresta autoridade e instala o comportamento antes da pergunta."
+              },
+              {
+                "label": "2",
+                "description": "A repeticao de 'novo tipo de insonia' converte a manchete em interpelacao pessoal."
+              },
+              {
+                "label": "3",
+                "description": "A enquete binaria transforma reconhecimento em um gesto minimo e mensuravel."
+              }
+            ]
+          },
+          "deep": {
+            "roleLabel": "Story 1 · Autoridade externa e autorreconhecimento",
+            "title": "O espelho nasce da passagem entre manchete e pergunta",
+            "lead": "A tela se apropria de um enquadramento jornalistico e, sem acrescentar explicacao, muda o sujeito da historia: primeiro existe um comportamento noticiado; segundos depois, a pessoa precisa decidir se aquilo descreve a propria rotina.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "A enquete Sim/Nao exige um toque, segmenta respostas e cria um compromisso minimo com o tema."
+              },
+              "critique": {
+                "status": "present",
+                "rationale": "O mecanismo de identificacao e forte, mas repetir 'novo tipo de insonia' pode confundir comportamento de adiamento do sono com diagnostico clinico."
+              }
+            },
+            "sections": [
+              {
+                "title": "Da prova emprestada para a experiencia propria",
+                "covers": [
+                  "evidence",
+                  "narrative"
+                ],
+                "paragraphs": [
+                  "O recorte funciona como premissa verificavel: a plataforma nao precisa afirmar sozinha que o comportamento existe. A pergunta reaproveita as mesmas palavras e desloca a leitura do campo informativo para o autobiografico.",
+                  "A tela para antes de explicar causa ou solucao. Essa suspensao preserva uma pergunta aberta que a segunda tela podera responder."
+                ]
+              },
+              {
+                "title": "Hierarquia e gesto de resposta",
+                "covers": [
+                  "attention"
+                ],
+                "paragraphs": [
+                  "O cartao branco captura o primeiro olhar, a pergunta grande assume o centro e a enquete encerra o percurso. A composicao transforma leitura em acao sem introduzir outro comando concorrente."
+                ],
+                "bullets": [
+                  "A fonte externa ocupa mais area que o nome da plataforma.",
+                  "A pergunta pessoal e visualmente mais forte que o subtitulo da noticia.",
+                  "As duas respostas aparecem com o mesmo peso e evitam orientar publicamente uma escolha."
+                ]
+              },
+              {
+                "title": "Abertura que exige uma devolucao",
+                "covers": [
+                  "continuity",
+                  "funnel",
+                  "subtext",
+                  "template-consequence"
+                ],
+                "paragraphs": [
+                  "Depois que a pessoa se reconhece, a sequencia passa a dever uma interpretacao. O clique nao pode desembocar imediatamente em oferta; ele cria a expectativa de que a plataforma explique por que aquilo acontece e o que fazer com essa informacao.",
+                  "No funil, a enquete produz envolvimento e sinal de interesse. Editorialmente, comunica que a marca observa a vida real do publico antes de ensinar."
+                ]
+              }
+            ],
+            "extractedRule": "A primeira tela deve provar que o comportamento existe, permitir reconhecimento sem exposicao e deixar uma pergunta que a proxima tela seja obrigada a pagar."
+          }
+        }
+      },
+      {
+        "mediaType": "image",
+        "textContent": "A gente entende que dormir nao e nada divertido, mas e uma forma de cuidar de si mesmo. E durante o sono que o cerebro faz uma 'limpa' em tudo que aconteceu no seu dia, descarta memorias inuteis, elimina toxinas acumuladas... Procrastinar o sono custa caro, viu?",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 2,
+        "narrativeRole": "development",
+        "metadata": {
+          "sourceExcerpt": "A gente entende que dormir nao e nada divertido, mas e uma forma de cuidar de si mesmo. E durante o sono que o cerebro faz uma 'limpa' em tudo que aconteceu no seu dia, descarta memorias inuteis, elimina toxinas acumuladas... Procrastinar o sono custa caro, viu?",
+          "noSourceTextReason": null,
+          "quick": {
+            "roleLabel": "Story 2 · Recompensa e alivio",
+            "title": "A plataforma acolhe antes de corrigir",
+            "summary": "A resistencia a dormir e reconhecida, seguida por uma explicacao curta e um fechamento bem-humorado.",
+            "evidence": "Headline amarela de acolhimento, paragrafo branco sobre o sono, meme central e frase final em amarelo aparecem na mesma tela.",
+            "audienceEffect": "Reduz defensividade, oferece sentido para mudar e mantem a mensagem leve.",
+            "subtext": "A marca quer ser percebida como alguem que entende a contradicao antes de prescrever comportamento.",
+            "funnelFunction": "Recompensa cognitiva, autoridade acessivel e preparacao da oferta.",
+            "extractedRule": "Valide a resistencia, explique apenas o necessario e use humor para sustentar a continuidade."
+          },
+          "visual": {
+            "roleLabel": "Story 2 · Texto, meme e reacao",
+            "title": "O vinho estabiliza a marca enquanto o amarelo marca as viradas",
+            "scene": "Tela grafica sem pessoa da marca em quadro. Um meme quadrado de baixa resolucao mostra uma interacao domestica com um animal branco e uma pessoa; abaixo ha uma reacao em formato de balao com emoji de oculos e bigode.",
+            "typography": "Headline amarela muito grande e pesada no topo; explicacao branca, tambem em negrito, com corpo menor; frase amarela curta sob o meme. O alinhamento e predominantemente central e a largura estreita produz muitas quebras.",
+            "composition": "A tela empilha acolhimento, explicacao, meme, conclusao e reacao. O amarelo abre e fecha o argumento; o meme ocupa o centro como intervalo visual; o sticker branco cria um ponto de saida no terco inferior.",
+            "graphic": "Meme central e sticker de reacao com emoji. Nao ha fonte, grafico ou referencia visivel sustentando as afirmacoes cientificas.",
+            "palette": [
+              "#562326",
+              "#ffc642",
+              "#fff8ef",
+              "#ffffff"
+            ],
+            "impression": "Acolhimento, didatica popular e humor de internet com identidade visual reconhecivel.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "A headline amarela reconhece a resistencia e evita abrir em tom de bronca."
+              },
+              {
+                "label": "2",
+                "description": "O bloco branco comprime a justificativa biologica em linguagem cotidiana."
+              },
+              {
+                "label": "3",
+                "description": "O meme interrompe a massa textual sem romper o tema de cuidado e consequencia."
+              },
+              {
+                "label": "4",
+                "description": "A frase final e a reacao transformam a explicacao em alerta leve e compartilhavel."
+              }
+            ]
+          },
+          "deep": {
+            "roleLabel": "Story 2 · Acolhimento, mecanismo e humor",
+            "title": "A recompensa cognitiva chega embrulhada em cumplicidade",
+            "lead": "Em vez de responder a enquete com correcao moral, a plataforma reconhece por que adiar o sono parece atraente. So depois instala uma razao para mudar, e usa o meme para impedir que a informacao termine com peso excessivo.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "O sticker de reacao oferece continuidade leve, embora menos informativa que a enquete da primeira tela."
+              },
+              "critique": {
+                "status": "present",
+                "rationale": "A progressao emocional e eficiente, mas expressoes como 'descarta memorias inuteis' e 'elimina toxinas acumuladas' comprimem processos complexos sem fonte ou qualificacao."
+              }
+            },
+            "sections": [
+              {
+                "title": "Validacao antes da orientacao",
+                "covers": [
+                  "narrative",
+                  "subtext"
+                ],
+                "paragraphs": [
+                  "A frase 'a gente entende' responde diretamente a pessoa que acabou de se reconhecer. A marca nao se coloca acima do publico: admite que dormir compete com diversao e tempo proprio, e entao reenquadra o sono como cuidado.",
+                  "Essa escolha constrói uma voz de cumplicidade. A autoridade vem depois do acolhimento, nao antes dele."
+                ]
+              },
+              {
+                "title": "Explicacao curta, util e vulneravel a simplificacao",
+                "covers": [
+                  "evidence",
+                  "template-consequence"
+                ],
+                "paragraphs": [
+                  "A explicacao tenta pagar a curiosidade criada pelo recorte: dormir participa de processos de organizacao da memoria e eliminacao de residuos metabolicos. Isso oferece uma causa concreta para tratar o sono como autocuidado.",
+                  "O ganho de simplicidade cobra um preco. Sem fonte e com verbos absolutos, a formulacao pode sugerir que o cerebro literalmente separa memorias uteis e inuteis de maneira simples. Ao transferir o template, o mecanismo deve ser curto sem perder qualificacao."
+                ]
+              },
+              {
+                "title": "Mudanca de estimulo que preserva a historia",
+                "covers": [
+                  "attention",
+                  "continuity",
+                  "funnel"
+                ],
+                "paragraphs": [
+                  "O meme substitui o recorte jornalistico como objeto dominante e renova a atencao, enquanto o fundo vinho inaugura a linguagem institucional que continuara na oferta. A frase 'custa caro' resume a consequencia e prepara a percepcao de valor da solucao seguinte.",
+                  "No funil, a tela entrega valor suficiente para que o proximo story possa oferecer algo sem parecer que a enquete foi apenas isca."
+                ]
+              }
+            ],
+            "extractedRule": "A tela intermediaria deve responder ao reconhecimento com acolhimento, um mecanismo curto e rigoroso e uma mudanca de estimulo que prepare a oferta sem parecer intervalo decorativo."
+          }
+        }
+      },
+      {
+        "mediaType": "image",
+        "textContent": "Temos uma aula gratuita sobre os impactos de um sono ruim + material para fazer higiene do sono. Para te-los, responda a este story.",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 3,
+        "narrativeRole": "cta",
+        "metadata": {
+          "sourceExcerpt": "Temos uma aula gratuita sobre os impactos de um sono ruim + material para fazer higiene do sono. Para te-los, responda a este story.",
+          "noSourceTextReason": null,
+          "quick": {
+            "roleLabel": "Story 3 · Entrega e conversa",
+            "title": "A promessa ganha corpo antes do pedido",
+            "summary": "A aula e o checklist aparecem como objetos concretos, seguidos por uma unica chamada para resposta.",
+            "evidence": "Dois mockups ocupam o centro e uma seta branca aponta o CTA amarelo para o campo de mensagem.",
+            "audienceEffect": "Reduz duvida sobre o que sera recebido e transforma interesse em uma acao imediatamente disponivel.",
+            "subtext": "A plataforma nao oferece apenas opiniao; possui um recurso organizado e pronto para uso.",
+            "funnelFunction": "Captura de demanda e abertura de conversa qualificada por DM.",
+            "extractedRule": "Mostre a entrega, diga o beneficio e especifique uma unica resposta."
+          },
+          "visual": {
+            "roleLabel": "Story 3 · Mockups, CTA e seta",
+            "title": "A prova visual assume o centro da tela institucional",
+            "scene": "Tela grafica no mesmo fundo vinho do story anterior, sem pessoa visivel. Dois materiais inclinados aparecem como mockups: uma capa azul e vermelha sobre sono e uma folha branca de checklist.",
+            "typography": "Oferta branca, grande e pesada no topo; CTA amarelo ainda maior na metade inferior. O texto e alinhado a esquerda, com quebras amplas que ocupam quase toda a largura.",
+            "composition": "A oferta abre o quadro, os mockups ocupam o centro e o CTA fecha a leitura. Uma seta branca desenhada conduz o olhar para baixo e para a area de resposta do Instagram.",
+            "graphic": "Mockups da aula ou material 'O basico sobre o sono' e 'Checklist da higiene do sono', acompanhados por uma seta manual e um emoji de alivio.",
+            "palette": [
+              "#562326",
+              "#ffc642",
+              "#fff8ef",
+              "#192d68",
+              "#d9292e"
+            ],
+            "impression": "Entrega concreta, utilidade imediata e chamada direta com aparencia artesanal.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "Os dois mockups materializam quantidade e formato antes do pedido."
+              },
+              {
+                "label": "2",
+                "description": "O amarelo separa a instrucao da descricao da oferta."
+              },
+              {
+                "label": "3",
+                "description": "A seta liga semanticamente o verbo responder ao campo de mensagem."
+              }
+            ]
+          },
+          "deep": {
+            "roleLabel": "Story 3 · Materializacao e DM",
+            "title": "A conversao fecha o mesmo problema que abriu a sequencia",
+            "lead": "O recurso nao surge como premio generico. A aula aprofunda os impactos mencionados e o checklist transforma higiene do sono em proximo passo pratico; por isso a oferta parece continuidade da explicacao, e nao troca de assunto.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "A instrucao de responder ao story usa o campo de DM como mecanismo de conversao e continuidade individual."
+              },
+              "critique": {
+                "status": "present",
+                "rationale": "A prova visual e forte, mas a tela nao informa qual palavra enviar, como o material sera entregue nem se a resposta aciona fluxo automatico ou manual."
+              }
+            },
+            "sections": [
+              {
+                "title": "Correspondencia entre tensao e entrega",
+                "covers": [
+                  "narrative",
+                  "continuity",
+                  "evidence"
+                ],
+                "paragraphs": [
+                  "A oferta responde aos dois niveis instalados antes: a aula promete ampliar a compreensao iniciada pela microexplicacao e o checklist promete transformar cuidado em acao. Os titulos visiveis nos mockups comprovam essa correspondencia.",
+                  "O fundo vinho e a tipografia pesada continuam a segunda tela, enquanto a retirada do meme abre espaco para a solucao assumir o papel principal."
+                ]
+              },
+              {
+                "title": "Direcao do olhar e reducao de incerteza",
+                "covers": [
+                  "attention"
+                ],
+                "paragraphs": [
+                  "A hierarquia oferece primeiro o que existe, depois mostra os objetos e somente entao pede resposta. A seta desenhada funciona como ponte entre o CTA e a interface real do Instagram.",
+                  "Ainda sobra uma incerteza operacional: responder o que? Uma palavra especifica tornaria o gesto mais claro, facilitaria automacao e permitiria medir melhor a origem da conversa."
+                ]
+              },
+              {
+                "title": "Da educacao publica ao relacionamento privado",
+                "covers": [
+                  "funnel",
+                  "subtext",
+                  "template-consequence"
+                ],
+                "paragraphs": [
+                  "A tela converte interesse sem exigir link externo, formulario ou compra. A DM preserva proximidade e permite que a plataforma continue a relacao depois da sequencia.",
+                  "O subtexto e de prontidao: o material ja existe e a marca consegue transformar informacao em ferramenta. Para transferir o mecanismo, a entrega precisa permanecer concreta e a instrucao deve reduzir ao minimo a duvida sobre o proximo passo."
+                ]
+              }
+            ],
+            "extractedRule": "O fechamento deve mostrar uma entrega que resolva a tensao inicial, provar que ela existe e conduzir a uma unica acao cuja execucao seja inequivoca."
+          }
+        }
+      }
+    ]
+  },
+  "assets": [
+    {
+      "narrativeOrder": 1,
+      "localPath": "C:/Users/bruno/OneDrive/Bruno Salles/Projetos/OpenSquad/.codex-remote-attachments/019e8ed2-9b57-73d1-be83-65095b58ffdf/50d10584-bd23-461d-9d32-e8900618f243/1-Photo-1.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "narrativeOrder": 2,
+      "localPath": "C:/Users/bruno/OneDrive/Bruno Salles/Projetos/OpenSquad/.codex-remote-attachments/019e8ed2-9b57-73d1-be83-65095b58ffdf/50d10584-bd23-461d-9d32-e8900618f243/2-Photo-2.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "narrativeOrder": 3,
+      "localPath": "C:/Users/bruno/OneDrive/Bruno Salles/Projetos/OpenSquad/.codex-remote-attachments/019e8ed2-9b57-73d1-be83-65095b58ffdf/50d10584-bd23-461d-9d32-e8900618f243/3-Photo-3.jpg",
+      "mimeType": "image/jpeg"
+    }
+  ]
+}

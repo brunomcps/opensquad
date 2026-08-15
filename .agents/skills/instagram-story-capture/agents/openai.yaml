@@ -1,0 +1,4 @@
+interface:
+  display_name: "Capturar Stories do Instagram"
+  short_description: "Extrai vídeos, áudio, transcrição e frames de stories ativos."
+  default_prompt: "Localize os stories ativos do perfil indicado, capture a sequência relevante pelo Chrome logado e prepare mídia, transcrição e frames para análise."

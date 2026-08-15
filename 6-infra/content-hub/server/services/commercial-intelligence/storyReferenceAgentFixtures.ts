@@ -1,0 +1,232 @@
+const sha256 = (character: string) => character.repeat(64);
+
+export function createAgentReferenceFixture() {
+  const items = Array.from({ length: 4 }, (_, index) => {
+    const narrativeOrder = index + 1;
+    return {
+      mediaType: 'image',
+      textContent: `Texto original do story ${narrativeOrder}.`,
+      sourceOccurredAt: null,
+      narrativeOrder,
+      narrativeRole: narrativeOrder === 1 ? 'hook' : narrativeOrder === 4 ? 'closing' : 'development',
+      metadata: {
+        sourceExcerpt: `Texto original do story ${narrativeOrder}.`,
+        noSourceTextReason: null,
+        quick: {
+          roleLabel: `Papel rápido ${narrativeOrder}`,
+          title: `Leitura rápida ${narrativeOrder}`,
+          summary: `Resumo rápido ${narrativeOrder}.`,
+          evidence: `Evidência concreta ${narrativeOrder}.`,
+          audienceEffect: `Efeito no público ${narrativeOrder}.`,
+          subtext: `Subtexto ${narrativeOrder}.`,
+          funnelFunction: `Função no funil ${narrativeOrder}.`,
+          extractedRule: `Regra rápida ${narrativeOrder}.`,
+        },
+        visual: {
+          roleLabel: `Papel visual ${narrativeOrder}`,
+          title: `Raio-X visual ${narrativeOrder}`,
+          scene: `Cena ${narrativeOrder}.`,
+          typography: `Tipografia ${narrativeOrder}.`,
+          composition: `Composição ${narrativeOrder}.`,
+          graphic: `Elemento gráfico ${narrativeOrder}.`,
+          palette: ['#102f26', '#f6f1e7', '#9e1b32'],
+          impression: `Sensação transmitida ${narrativeOrder}.`,
+          markers: [{ label: `${narrativeOrder}`, description: `Marcador ${narrativeOrder}.` }],
+        },
+        deep: {
+          roleLabel: `Papel detalhado ${narrativeOrder}`,
+          title: `Análise detalhada ${narrativeOrder}`,
+          lead: `Leitura aprofundada ${narrativeOrder}.`,
+          dimensionAssessments: {
+            interaction: { status: 'present', rationale: `Há interação observável no story ${narrativeOrder}.` },
+            critique: { status: 'present', rationale: `Há material suficiente para crítica no story ${narrativeOrder}.` },
+          },
+          sections: [{
+            title: `Mecanismo ${narrativeOrder}`,
+            covers: ['narrative', 'continuity'],
+            paragraphs: [`Parágrafo aprofundado ${narrativeOrder}.`],
+            bullets: [`Evidência aprofundada ${narrativeOrder}.`],
+          }],
+          extractedRule: `Regra detalhada ${narrativeOrder}.`,
+        },
+      },
+    };
+  });
+
+  return {
+    dossierContractVersion: '1.0',
+    referenceKey: 'instagram-bruno-2026-07-24-sequencia-001',
+    contentHash: sha256('a'),
+    template: {
+      canonicalKey: 'cena-real-lente-especialista-principio',
+      name: 'Cena real → lente do especialista → princípio',
+      objective: 'Transformar uma situação reconhecível em posicionamento.',
+      description: 'A cena abre uma tensão, a lente muda o significado e o fechamento revela um princípio.',
+      tags: ['story', 'referência'],
+      definition: {
+        editorialName: 'Cena real → lente → princípio',
+        editorialSummary: 'Uma situação cotidiana ganha significado pela leitura do especialista.',
+        formula: 'Cena real → interpretação → prova → princípio',
+        preserveRules: ['Preservar a função narrativa de cada tela.'],
+        adaptRules: ['Adaptar cenário, voz e prova ao Bruno.'],
+        avoidRules: ['Não copiar a superfície da referência.'],
+        moldSteps: [
+          {
+            id: 'screen-scene',
+            templateStepIds: ['open-loop'],
+            title: 'Cena e gancho',
+            purpose: 'Abrir uma pergunta narrativa.',
+            fixedFunction: 'Mostrar uma situação real e específica.',
+            placeholders: [
+              { kind: 'scene', label: 'Cena reconhecível' },
+              { kind: 'copy', label: 'Gancho específico' },
+            ],
+          },
+          {
+            id: 'screen-lens',
+            templateStepIds: ['reinterpret-scene', 'support-reading'],
+            title: 'Lente do especialista',
+            purpose: 'Reinterpretar a cena.',
+            fixedFunction: 'Adicionar repertório sem interromper a história.',
+            placeholders: [
+              { kind: 'proof', label: 'Dado ou prova visual' },
+              { kind: 'copy', label: 'Interpretação do especialista' },
+            ],
+          },
+          {
+            id: 'screen-principle',
+            templateStepIds: ['close-principle'],
+            title: 'Resposta e princípio',
+            purpose: 'Revelar como o criador pensa.',
+            fixedFunction: 'Fechar com um princípio transferível.',
+            placeholders: [
+              { kind: 'response', label: 'Resposta do público' },
+              { kind: 'principle', label: 'Princípio pessoal' },
+            ],
+          },
+        ],
+        steps: [
+          { role: 'hook', instruction: 'Mostrar uma cena específica.', templateStepIds: ['open-loop'] },
+          { role: 'development', instruction: 'Aplicar a lente do especialista.', templateStepIds: ['reinterpret-scene', 'support-reading'] },
+          { role: 'closing', instruction: 'Fechar com um princípio.', templateStepIds: ['close-principle'] },
+        ],
+      },
+      steps: [
+        { role: 'hook', instruction: 'Mostrar uma cena específica.', templateStepIds: ['open-loop'] },
+        { role: 'development', instruction: 'Aplicar a lente do especialista.', templateStepIds: ['reinterpret-scene', 'support-reading'] },
+        { role: 'closing', instruction: 'Fechar com um princípio.', templateStepIds: ['close-principle'] },
+      ],
+    },
+    reference: {
+      title: 'Uma cena comum que revela um princípio',
+      description: 'Dossiê completo de uma sequência genérica com quatro stories.',
+      sequenceConfirmed: true,
+      sequenceConfirmationSource: 'Bruno confirmou que a sequência terminou.',
+      analysis: {
+        summary: 'A sequência transforma uma cena comum em posicionamento.',
+        overview: ['A curiosidade nasce da cena e termina em uma regra pessoal.'],
+        narrativeArc: ['cena', 'interpretação', 'prova', 'princípio'],
+        whyItWorks: ['Muda o estímulo sem abandonar a mesma história.'],
+        templateFit: 'A sequência cumpre as três funções do template.',
+        sequenceMap: [
+          { kind: 'story', storyOrder: 1, label: '1 · Gancho', value: 'Cena e curiosidade' },
+          { kind: 'story', storyOrder: 2, label: '2 · Lente', value: 'Interpretação' },
+          { kind: 'story', storyOrder: 3, label: '3 · Prova', value: 'Evidência' },
+          { kind: 'story', storyOrder: 4, label: '4 · Fechamento', value: 'Princípio' },
+          { kind: 'product', label: 'Produto real', value: 'Persona financeiramente racional' },
+        ],
+        visualGrammar: 'A hierarquia visual muda junto com a função narrativa.',
+        apparentProduct: 'Uma história cotidiana sobre uma decisão.',
+        productRevealed: 'Uma persona próxima, criteriosa e coerente.',
+        personaConstructed: 'Especialista acessível que demonstra critério na prática.',
+        transferRules: ['Preservar a função e adaptar a superfície.'],
+        synthesis: [
+          {
+            key: 'screen-roles',
+            title: 'Papel de cada tela',
+            paragraphs: ['Cada story cumpre uma função narrativa específica.'],
+          },
+          {
+            key: 'stimulus-change',
+            title: 'Mudança de estímulo',
+            paragraphs: ['A sequência progride por mudança de estímulo e continuidade temática.'],
+          },
+          {
+            key: 'aesthetics-production',
+            title: 'Estética e produção',
+            paragraphs: ['A produção preserva a unidade visual sem congelar a composição.'],
+          },
+          {
+            key: 'strengths-limitations',
+            title: 'Forças e limitações',
+            paragraphs: ['A força está na prova concreta; o limite é depender de contexto prévio.'],
+          },
+        ],
+        registeredTemplate: {
+          name: 'Cena real → lente do especialista → princípio',
+          formula: 'Cena concreta → pergunta → releitura → princípio',
+          useWhen: 'Quando uma situação cotidiana permite revelar repertório e posicionamento.',
+          primaryFunction: 'Transformar rotina em autoridade sem interromper a história.',
+          requiredElements: ['Cena comprovável', 'Leitura especializada', 'Princípio transferível'],
+          optionalElements: ['Resposta do público'],
+          executionRisks: ['Transformar a lente em aula desconectada da cena.'],
+          capturesOrInputs: ['Print ou registro da cena', 'Prova visual ou reação'],
+          brunoAdaptation: 'Usar situações reais da rotina clínica e empresarial sem expor dados sensíveis.',
+          steps: [
+            {
+              id: 'open-loop',
+              title: 'Abrir uma pergunta pela cena',
+              description: 'Apresentar uma situação concreta que contém tensão.',
+              mechanism: 'O detalhe observável faz o público antecipar uma decisão.',
+              condition: 'A cena precisa ser reconhecível e comprovável.',
+              expectedResult: 'Curiosidade sem promessa artificial.',
+              evidenceStoryOrders: [1],
+            },
+            {
+              id: 'reinterpret-scene',
+              title: 'Mudar o significado',
+              description: 'Aplicar uma lente do especialista sem abandonar a história.',
+              mechanism: 'A interpretação transforma o caso em repertório.',
+              condition: 'A leitura precisa nascer do que já apareceu.',
+              expectedResult: 'Autoridade percebida sem tom de aula.',
+              evidenceStoryOrders: [2],
+            },
+            {
+              id: 'support-reading',
+              title: 'Sustentar a interpretação',
+              description: 'Introduzir evidência que torna a leitura verificável.',
+              mechanism: 'A prova reduz a sensação de opinião gratuita.',
+              condition: 'A evidência precisa ser legível e diretamente relacionada.',
+              expectedResult: 'Confiança na leitura proposta.',
+              evidenceStoryOrders: [3],
+            },
+            {
+              id: 'close-principle',
+              title: 'Fechar com princípio',
+              description: 'Converter a resposta em uma regra pessoal transferível.',
+              mechanism: 'O desfecho revela como o criador decide.',
+              condition: 'O princípio precisa resolver a tensão inicial.',
+              expectedResult: 'Posicionamento e confiança.',
+              evidenceStoryOrders: [4],
+            },
+          ],
+        },
+        sourceNote: 'Sequência confirmada e analisada em ordem narrativa.',
+      },
+      platform: 'instagram',
+      sourceAccount: '@bruno',
+      sourceUrl: 'https://www.instagram.com/bruno/',
+      sourceStartedAt: '2026-07-24T12:00:00.000Z',
+      sourceEndedAt: '2026-07-24T12:05:00.000Z',
+      items,
+    },
+    assets: items.map(item => ({
+      narrativeOrder: item.narrativeOrder,
+      fileName: `story-${item.narrativeOrder}.jpg`,
+      sha256: sha256(String(item.narrativeOrder)),
+      mimeType: 'image/jpeg',
+      sizeBytes: 125_000 + item.narrativeOrder,
+    })),
+  };
+}
+

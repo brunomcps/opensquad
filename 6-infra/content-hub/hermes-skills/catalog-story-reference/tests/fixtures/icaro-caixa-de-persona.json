@@ -1,0 +1,862 @@
+{
+  "dossierContractVersion": "1.0",
+  "template": {
+    "canonicalKey": "caixa-de-persona",
+    "name": "Caixa de Persona: convite -> prova -> traço de identidade",
+    "objective": "Transformar perguntas espontâneas do público em respostas que revelam facetas concretas da identidade, da autoridade e dos valores do creator.",
+    "description": "Uma abertura única coleta perguntas e alimenta respostas modulares. Cada resposta usa prova, memória, bastidor ou cena real para cristalizar um traço de persona, sem exigir ordem entre os módulos.",
+    "tags": [
+      "stories",
+      "perguntas",
+      "relacionamento",
+      "persona",
+      "autoridade"
+    ],
+    "definition": {
+      "editorialName": "Caixa de Persona",
+      "editorialSummary": "Uma caixa ampla abre permissão para o público; perguntas selecionadas viram pretextos para revelar origem, afeto, construção e valores por meio de provas concretas.",
+      "formula": "convite aberto -> pergunta selecionada -> resposta ancorada em prova -> traço de identidade -> eco social",
+      "preserveRules": [
+        "Preservar uma abertura única seguida de respostas modulares que possam aparecer em qualquer ordem.",
+        "Selecionar perguntas que permitam revelar uma dimensão relevante da identidade, não apenas entregar informação.",
+        "Ancorar cada resposta em memória específica, print, bastidor, fotografia ou outro detalhe verificável.",
+        "Manter variedade entre autoridade, intimidade, construção em público e valores pessoais."
+      ],
+      "adaptRules": [
+        "Adaptar as perguntas para temas que conectem psicologia, neurociência, rotina e posicionamento de Bruno.",
+        "Usar cenas, prints e memórias sem expor pacientes, seguidores ou terceiros identificáveis.",
+        "Variar a densidade da resposta conforme a força da prova e a legibilidade no celular.",
+        "Inserir oferta somente quando a pergunta sustentar naturalmente a ponte para um produto ou recurso."
+      ],
+      "avoidRules": [
+        "Não transformar toda pergunta em venda.",
+        "Não responder com abstrações genéricas sem detalhe ou evidência concreta.",
+        "Não inventar continuidade entre respostas independentes.",
+        "Não copiar estética, frases, família, produtos ou símbolos pessoais do creator."
+      ],
+      "moldSteps": [
+        {
+          "id": "screen-open-box",
+          "templateStepIds": [
+            "open-permission"
+          ],
+          "title": "Abertura e permissão",
+          "purpose": "Convidar perguntas amplas enquanto a imagem já comunica repertório e personalidade.",
+          "fixedFunction": "Reduzir a barreira para participar e criar matéria-prima para respostas autorais.",
+          "placeholders": [
+            {
+              "kind": "copy",
+              "label": "Convite amplo e direto",
+              "slot": "top"
+            },
+            {
+              "kind": "scene",
+              "label": "Imagem magnética ou contexto de personalidade",
+              "slot": "middle"
+            },
+            {
+              "kind": "response",
+              "label": "Caixa de perguntas",
+              "slot": "bottom"
+            }
+          ]
+        },
+        {
+          "id": "screen-modular-answer",
+          "templateStepIds": [
+            "select-revealing-question",
+            "anchor-in-proof",
+            "crystallize-persona",
+            "social-echo"
+          ],
+          "title": "Resposta modular",
+          "purpose": "Usar uma pergunta do público para revelar uma faceta de identidade apoiada por prova.",
+          "fixedFunction": "Responder com especificidade, transformar evidência em posicionamento e permitir eco social sem depender de outra resposta.",
+          "placeholders": [
+            {
+              "kind": "response",
+              "label": "Pergunta selecionada",
+              "slot": "top"
+            },
+            {
+              "kind": "proof",
+              "label": "Memória, print, bastidor ou cena real",
+              "slot": "upper"
+            },
+            {
+              "kind": "copy",
+              "label": "Resposta autoral e específica",
+              "slot": "middle"
+            },
+            {
+              "kind": "principle",
+              "label": "Traço de identidade ou princípio",
+              "slot": "lower"
+            },
+            {
+              "kind": "reaction",
+              "label": "Reação social opcional",
+              "slot": "bottom"
+            }
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "role": "hook",
+          "instruction": "Abrir uma caixa ampla apoiada por uma imagem que já comunique personalidade.",
+          "templateStepIds": [
+            "open-permission"
+          ]
+        },
+        {
+          "role": "development",
+          "instruction": "Selecionar perguntas reveladoras e responder cada uma como módulo independente, com prova, traço de identidade e reação opcional.",
+          "templateStepIds": [
+            "select-revealing-question",
+            "anchor-in-proof",
+            "crystallize-persona",
+            "social-echo"
+          ]
+        }
+      ]
+    },
+    "steps": [
+      {
+        "role": "hook",
+        "instruction": "Abrir uma caixa ampla apoiada por uma imagem que já comunique personalidade.",
+        "templateStepIds": [
+          "open-permission"
+        ]
+      },
+      {
+        "role": "development",
+        "instruction": "Selecionar perguntas reveladoras e responder cada uma como módulo independente, com prova, traço de identidade e reação opcional.",
+        "templateStepIds": [
+          "select-revealing-question",
+          "anchor-in-proof",
+          "crystallize-persona",
+          "social-echo"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "title": "Ícaro de Carvalho, Caixa de Persona",
+    "description": "Uma abertura com caixa de perguntas seguida por quatro respostas independentes sobre origem profissional, casamento, produto em desenvolvimento e educação dos filhos. A ordem entre as respostas é modular.",
+    "sequenceConfirmed": true,
+    "sequenceConfirmationSource": "Bruno confirmou que a primeira imagem é a abertura obrigatória e que as quatro respostas seguintes podem aparecer em ordem aleatória.",
+    "analysis": {
+      "summary": "Ícaro usa uma caixa ampla para transformar curiosidade do público em um mosaico de persona. Cada resposta escolhe uma faceta diferente e a ancora em detalhes concretos, enquanto reações de seguidores funcionam como eco social.",
+      "overview": [
+        "A primeira tela não promete tema nem aula: ela oferece acesso amplo. A imagem cinematográfica e a frase curta criam uma atmosfera de repertório e imprevisibilidade antes da caixa.",
+        "As quatro respostas não compõem uma história linear. Cada uma recebe a permissão criada na abertura e revela uma dimensão autônoma: pioneirismo profissional, vínculo conjugal, construção de produto e princípio de paternidade.",
+        "O mecanismo recorrente é a passagem da pergunta genérica para uma resposta muito específica. Nomes, valores, prints, cenas e decisões concretas impedem que a persona seja construída apenas por autoafirmação."
+      ],
+      "narrativeArc": [
+        "Permissão ampla para perguntar",
+        "Seleção modular de perguntas reveladoras",
+        "Prova concreta dentro de cada resposta",
+        "Cristalização de autoridade, intimidade, construção ou valor",
+        "Eco social opcional"
+      ],
+      "whyItWorks": [
+        "O público escolhe o ponto de entrada, o que reduz a sensação de pauta imposta.",
+        "As respostas carregam detalhes verificáveis, como Orkut, PayPal, R$ 600, conversa no WhatsApp, tela do aplicativo e cena no palco.",
+        "A alternância de facetas evita que a autoridade dependa apenas de trabalho ou resultado financeiro.",
+        "A oferta aparece como bastidor de construção quando a pergunta pede contexto sobre o produto.",
+        "As reações visíveis sugerem leitura coletiva sem substituir o conteúdo da resposta."
+      ],
+      "templateFit": "A referência executa uma abertura única e quatro módulos independentes. Em cada módulo, a pergunta funciona como autorização para mostrar uma prova e revelar um traço reconhecível da persona.",
+      "sequenceMap": [
+        {
+          "kind": "story",
+          "storyOrder": 1,
+          "label": "1 · Permissão",
+          "value": "Imagem magnética + convite amplo + caixa de perguntas"
+        },
+        {
+          "kind": "story",
+          "storyOrder": 2,
+          "label": "2 · Origem",
+          "value": "Memória específica + primeiro pagamento + vocação"
+        },
+        {
+          "kind": "story",
+          "storyOrder": 3,
+          "label": "3 · Intimidade",
+          "value": "Print real + declaração afetiva + humor interno"
+        },
+        {
+          "kind": "story",
+          "storyOrder": 4,
+          "label": "4 · Construção",
+          "value": "Tela do produto + bastidor + visão de desenvolvimento"
+        },
+        {
+          "kind": "story",
+          "storyOrder": 5,
+          "label": "5 · Valores",
+          "value": "Cena familiar + conflito real + princípio de educação"
+        },
+        {
+          "kind": "product",
+          "label": "Produto estratégico",
+          "value": "Persona multidimensional: pioneiro digital, marido apaixonado, construtor em público e pai orientado por valores"
+        }
+      ],
+      "visualGrammar": "Todas as telas usam fundo preto, tipografia branca pesada e o sticker nativo de pergunta como origem visual da conversa. As respostas variam o objeto dominante entre texto, print de WhatsApp, tela de aplicativo e fotografia de palco. Amarelo, laranja e vermelho destacam frases-chave; reações em balões escuros aparecem junto à base. A produção parece montada no próprio story, mas a hierarquia é deliberada: pergunta, prova, resposta e eco.",
+      "apparentProduct": "Uma sessão aberta de perguntas e respostas com seguidores.",
+      "productRevealed": "Uma persona ampla e coerente que conecta trajetória profissional, casamento, construção de produtos e valores familiares; o aplicativo aparece como extensão concreta desse universo.",
+      "personaConstructed": "Um creator experiente e autoral que associa sucesso a uma descoberta precoce, expõe afeto e humor, constrói produtos publicamente e organiza a vida familiar por princípios.",
+      "transferRules": [
+        "Usar uma única abertura para alimentar várias respostas independentes.",
+        "Escolher perguntas que permitam revelar uma faceta relevante, não apenas informar.",
+        "Ancorar cada resposta em um detalhe concreto antes de extrair princípio ou posicionamento.",
+        "Alternar autoridade, bastidor, relação e valores para evitar uma persona monotemática.",
+        "Usar prints privados somente com consentimento e sem dados sensíveis.",
+        "Manter oferta contextual: produto entra quando a pergunta cria a ponte.",
+        "Reduzir densidade ou dividir a resposta quando a leitura no celular ficar sacrificada."
+      ],
+      "synthesis": [
+        {
+          "key": "screen-roles",
+          "title": "Uma abertura, quatro facetas",
+          "paragraphs": [
+            "A primeira tela coleta matéria-prima. As quatro seguintes são módulos: origem profissional, intimidade conjugal, construção de produto e valor familiar.",
+            "A ordem interna dos módulos não altera o template. O vínculo narrativo é radial: todas as respostas apontam para a abertura e para a persona, não umas para as outras."
+          ]
+        },
+        {
+          "key": "stimulus-change",
+          "title": "A prova muda e a moldura permanece",
+          "paragraphs": [
+            "Imagem cinematográfica -> texto autobiográfico -> print de conversa -> tela de produto -> fotografia de palco.",
+            "O fundo preto, o sticker de pergunta, os destaques cromáticos e os balões de reação mantêm reconhecimento enquanto o objeto de prova muda."
+          ]
+        },
+        {
+          "key": "aesthetics-production",
+          "title": "Montagem nativa com direção editorial",
+          "paragraphs": [
+            "A estética usa recursos nativos do Instagram, prints e fotografias sem acabamento excessivo. A assinatura nasce da tipografia branca pesada e das palavras coloridas.",
+            "A aparência espontânea convive com respostas longas e cuidadosamente editadas. O principal custo de produção é selecionar prova e escrever com especificidade."
+          ]
+        },
+        {
+          "key": "strengths-limitations",
+          "title": "Forças e limites do formato",
+          "paragraphs": [
+            "As forças são variedade de facetas, provas concretas, acesso percebido e oferta contextual. O público sente que perguntou, mas o creator controla quais dimensões serão reveladas.",
+            "Os limites são alta densidade textual, risco de exposição de terceiros, dependência de perguntas úteis e possibilidade de a seleção soar excessivamente calculada."
+          ]
+        }
+      ],
+      "registeredTemplate": {
+        "name": "Caixa de Persona",
+        "formula": "convite aberto -> pergunta selecionada -> prova -> traço de identidade -> eco social",
+        "useWhen": "Quando o creator já recebe perguntas ou quer abrir uma janela de relacionamento capaz de revelar diferentes dimensões de sua identidade.",
+        "primaryFunction": "Relacionamento com posicionamento e autoridade; oferta contextual quando uma pergunta sustenta a ponte.",
+        "requiredElements": [
+          "Uma abertura ampla e fácil de responder.",
+          "Perguntas selecionadas por potencial de revelar identidade.",
+          "Uma prova ou detalhe específico em cada resposta.",
+          "Uma frase, decisão ou princípio que cristalize a faceta revelada."
+        ],
+        "optionalElements": [
+          "Print de conversa consentido.",
+          "Tela de produto ou bastidor de construção.",
+          "Fotografia familiar ou de palco.",
+          "Reação de seguidor como eco social."
+        ],
+        "executionRisks": [
+          "Responder genericamente e perder força de persona.",
+          "Forçar produto em perguntas sem ponte natural.",
+          "Expor conversas ou pessoas sem consentimento.",
+          "Usar texto pequeno demais para a leitura em celular.",
+          "Escolher perguntas tão convenientes que a espontaneidade pareça encenada."
+        ],
+        "capturesOrInputs": [
+          "Uma imagem de abertura que comunique personalidade.",
+          "Caixa de perguntas e respostas reais do público.",
+          "Memórias específicas, prints autorizados, bastidores ou cenas de prova.",
+          "Reações autênticas que possam ser exibidas."
+        ],
+        "brunoAdaptation": "Bruno pode abrir perguntas sobre rotina, TDAH adulto, carreira acadêmica, bastidores de produção e princípios clínicos gerais. Cada resposta precisa permanecer em terceira pessoa quando houver conteúdo clínico, evitar qualquer paciente identificável e usar evidência compatível com sua ética.",
+        "steps": [
+          {
+            "id": "open-permission",
+            "title": "Abrir permissão ampla",
+            "description": "Convidar perguntas sem limitar excessivamente o tema.",
+            "mechanism": "A amplitude aumenta a chance de o público oferecer matéria-prima inesperada e sinaliza acesso.",
+            "condition": "A imagem e o convite precisam comunicar personalidade suficiente para evitar uma caixa genérica.",
+            "expectedResult": "Volume e variedade de perguntas com baixa barreira de participação.",
+            "evidenceStoryOrders": [
+              1
+            ]
+          },
+          {
+            "id": "select-revealing-question",
+            "title": "Selecionar uma pergunta reveladora",
+            "description": "Escolher perguntas que abram uma dimensão estratégica da identidade.",
+            "mechanism": "A pergunta do seguidor funciona como autorização externa para o creator falar de si sem iniciar em autopromoção.",
+            "condition": "A pergunta precisa permitir resposta específica e acrescentar uma faceta diferente.",
+            "expectedResult": "Curiosidade atendida e posicionamento percebido como resposta, não discurso imposto.",
+            "evidenceStoryOrders": [
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "id": "anchor-in-proof",
+            "title": "Ancorar a resposta em prova",
+            "description": "Usar memória, valor, print, tela, fotografia ou outro detalhe concreto.",
+            "mechanism": "A evidência reduz abstração e faz a persona parecer demonstrada em vez de declarada.",
+            "condition": "A prova deve ser legível, pertinente e segura para publicação.",
+            "expectedResult": "Credibilidade, textura narrativa e maior retenção.",
+            "evidenceStoryOrders": [
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "id": "crystallize-persona",
+            "title": "Cristalizar um traço de identidade",
+            "description": "Fechar a resposta com vocação, humor, visão de construção ou princípio pessoal.",
+            "mechanism": "O detalhe recebe significado e passa a compor uma percepção estável sobre quem publica.",
+            "condition": "O traço precisa nascer da prova e não de uma frase de efeito desconectada.",
+            "expectedResult": "Persona reconhecível e coerência entre respostas de temas diferentes.",
+            "evidenceStoryOrders": [
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          {
+            "id": "social-echo",
+            "title": "Acolher o eco social",
+            "description": "Mostrar reação de seguidor quando ela reforçar a leitura ou prolongar a conversa.",
+            "mechanism": "A reação torna visível que a resposta foi recebida e cria sensação de leitura coletiva.",
+            "condition": "O módulo precisa funcionar mesmo sem reação; o eco é reforço, não muleta.",
+            "expectedResult": "Proximidade, validação social e continuidade da interação.",
+            "evidenceStoryOrders": [
+              2,
+              3,
+              4,
+              5
+            ]
+          }
+        ]
+      },
+      "sourceNote": "Análise baseada nas cinco capturas enviadas por Bruno em 25 de julho de 2026. Bruno confirmou que a primeira tela é a abertura obrigatória e que as quatro respostas podem aparecer em ordem aleatória. Os horários relativos visíveis são inconsistentes com uma cronologia linear; por isso a ordem 2 a 5 é tratada como ordem de apresentação do material recebido, não como dependência narrativa. O contexto atual do aplicativo A Minha Casa foi conferido em fonte pública; nenhuma pesquisa foi usada para completar texto ilegível."
+    },
+    "platform": "instagram",
+    "sourceAccount": "@icarode.carvalho",
+    "sourceUrl": "https://www.instagram.com/icarode.carvalho/",
+    "sourceStartedAt": null,
+    "sourceEndedAt": null,
+    "items": [
+      {
+        "mediaType": "image",
+        "textContent": "Pergunte o que quiser. Manda!",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 1,
+        "narrativeRole": "hook",
+        "metadata": {
+          "sourceExcerpt": "Pergunte o que quiser. Manda!",
+          "noSourceTextReason": null,
+          "quick": {
+            "roleLabel": "Story 1 · Abertura e permissão",
+            "title": "A caixa promete acesso sem limitar o assunto",
+            "summary": "Uma imagem cinematográfica sustenta um convite curto e uma caixa ampla.",
+            "evidence": "A frase 'Pergunte o que quiser' aparece imediatamente acima do sticker 'Manda!'.",
+            "audienceEffect": "Reduz a barreira para participar e cria expectativa sobre quais perguntas serão escolhidas.",
+            "subtext": "O creator comunica repertório e disponibilidade para atravessar temas profissionais e pessoais.",
+            "funnelFunction": "Relacionamento, coleta de pauta e ativação de audiência.",
+            "extractedRule": "Abra permissão ampla, mas use a imagem para dar personalidade à caixa."
+          },
+          "visual": {
+            "roleLabel": "Story 1 · Imagem, convite e caixa",
+            "title": "A cena escura torna a caixa menos genérica",
+            "scene": "Print vertical do Instagram com uma fotografia de aparência cinematográfica em um quarto pouco iluminado. Três pessoas aparecem em torno de uma cama; uma delas segura um fio ou cordão. Não é possível confirmar personagens ou origem da imagem apenas pelo print.",
+            "typography": "Convite branco, grande, pesado e centralizado abaixo da fotografia. O sticker branco usa título preto e campo interno cinza-claro.",
+            "composition": "A fotografia ocupa o terço superior e parte do centro. O convite forma a ponte visual para a caixa, posicionada no centro inferior. A base preta preserva bastante respiro.",
+            "graphic": "Sticker nativo de perguntas com avatar circular sobreposto ao topo e campo 'Digite algo...'.",
+            "palette": [
+              "#111111",
+              "#f5f5f3",
+              "#d9d9d9",
+              "#6f5d52"
+            ],
+            "impression": "Mistério, repertório cultural e acesso direto.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "A imagem cria personalidade antes de qualquer explicação."
+              },
+              {
+                "label": "2",
+                "description": "O convite amplo elimina restrição temática."
+              },
+              {
+                "label": "3",
+                "description": "A caixa transforma curiosidade em envio privado."
+              }
+            ]
+          },
+          "deep": {
+            "roleLabel": "Story 1 · Porta de entrada",
+            "title": "A permissão é ampla, mas a moldura já seleciona o tom",
+            "lead": "A tela oferece liberdade verbal enquanto a imagem escura impede que o convite pareça um formulário neutro. Antes de receber qualquer pergunta, Ícaro já comunica gosto, estranheza e controle de atmosfera.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "O sticker de perguntas solicita envio aberto e cria a matéria-prima dos módulos seguintes."
+              },
+              "critique": {
+                "status": "present",
+                "rationale": "A imagem é magnética, mas sua relação com a dinâmica não é explicitada e depende do repertório ou da curiosidade do público."
+              }
+            },
+            "sections": [
+              {
+                "title": "A abertura cria um centro comum",
+                "covers": [
+                  "narrative",
+                  "continuity",
+                  "attention"
+                ],
+                "paragraphs": [
+                  "A única dependência estrutural da referência nasce aqui: todas as respostas posteriores existem porque esta tela abriu a coleta. Depois disso, cada módulo pode ser consumido isoladamente.",
+                  "A fotografia oferece um estímulo mais rico que uma tela lisa e faz a pessoa parar antes de ler o convite."
+                ]
+              },
+              {
+                "title": "Acesso percebido como ativo editorial",
+                "covers": [
+                  "evidence",
+                  "funnel",
+                  "subtext",
+                  "template-consequence"
+                ],
+                "paragraphs": [
+                  "A expressão 'o que quiser' comunica acesso amplo, mas o creator continua controlando a curadoria ao escolher o que responder.",
+                  "O template exige uma imagem que sinalize personalidade; sem ela, a abertura corre o risco de virar apenas mais uma caixinha genérica."
+                ]
+              }
+            ],
+            "extractedRule": "Concentre a dependência narrativa na abertura e deixe as respostas livres para variar."
+          }
+        }
+      },
+      {
+        "mediaType": "image",
+        "textContent": "Pergunta: quando percebeu que estava no rumo certo, no sentido de continuar e ficar rico? Resposta: Ícaro relata que, no começo, na comunidade Investidores Agressivos do Orkut, alguém perguntou quem sabia fazer ebook. Ele disse que sabia, fez, vendeu e recebeu 600 reais. Ao olhar a conta do PayPal, concluiu que pessoas pagariam para ele escrever e que não precisaria fazer outra coisa.",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 2,
+        "narrativeRole": "development",
+        "metadata": {
+          "sourceExcerpt": "Qnd percebeu q tava no rumo certo? Tipo: se eu continuar aqui, fico rico. [...] Lá no Orkut [...] alguém perguntou: 'quem aqui sabe fazer ebook?'. Eu disse que sabia - e fiz. Vendi. Recebi 600 reais.",
+          "noSourceTextReason": null,
+          "quick": {
+            "roleLabel": "Story 2 · Origem e autoridade",
+            "title": "O primeiro pagamento vira mito de origem",
+            "summary": "Uma pergunta sobre riqueza recebe uma memória específica de descoberta profissional.",
+            "evidence": "A resposta cita Orkut, a comunidade 'Investidores agressivos', um ebook, PayPal e o valor de 600 reais.",
+            "audienceEffect": "Humaniza a trajetória e permite imaginar uma origem pequena antes do resultado atual.",
+            "subtext": "A autoridade teria começado por iniciativa, escrita e leitura rápida de oportunidade, não por um plano grandioso.",
+            "funnelFunction": "Autoridade, identificação aspiracional e relacionamento.",
+            "extractedRule": "Troque retrospectiva genérica por cena, plataforma, ação e valor específicos."
+          },
+          "visual": {
+            "roleLabel": "Story 2 · Pergunta e memória colorida",
+            "title": "A prova vive no texto, não em uma imagem externa",
+            "scene": "Tela preta sem pessoa ou fotografia. O sticker da pergunta aparece no topo e um bloco longo de resposta ocupa a metade superior e central.",
+            "typography": "Texto branco pesado, grande e alinhado à esquerda. Expressões-chave aparecem em vermelho, laranja e amarelo, criando marcos de leitura dentro do parágrafo.",
+            "composition": "Pergunta no alto, resposta em dois blocos abaixo e grande área preta na metade inferior. Uma reação de seguidora aparece junto à base.",
+            "graphic": "Sticker nativo de pergunta e balão escuro de reação com palmas.",
+            "palette": [
+              "#111111",
+              "#f5f5f3",
+              "#ffcc4d",
+              "#f05a3f",
+              "#d9365b"
+            ],
+            "impression": "Confissão segura, memória de pioneirismo e convicção.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "Orkut e a comunidade localizam a origem em um momento verificável."
+              },
+              {
+                "label": "2",
+                "description": "R$ 600 dá escala concreta ao primeiro sinal de mercado."
+              },
+              {
+                "label": "3",
+                "description": "As cores transformam frases de virada em pontos de escaneamento."
+              }
+            ]
+          },
+          "deep": {
+            "roleLabel": "Story 2 · Faceta de origem",
+            "title": "A autoridade é construída pelo tamanho pequeno do primeiro sinal",
+            "lead": "Em vez de responder com faturamento atual ou conselho abstrato, Ícaro retorna ao primeiro pagamento. A modéstia do valor torna a convicção posterior mais crível e transforma o episódio em mito de origem.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "A pergunta do seguidor dispara a autobiografia e a reação de palmas mostra recepção positiva."
+              },
+              "critique": {
+                "status": "present",
+                "rationale": "A especificidade é forte, mas a resposta é densa e depende de leitura longa em uma única tela."
+              }
+            },
+            "sections": [
+              {
+                "title": "Módulo independente, faceta acumulativa",
+                "covers": [
+                  "narrative",
+                  "continuity",
+                  "funnel"
+                ],
+                "paragraphs": [
+                  "A tela recebe apenas a autorização da caixa inicial. Ela não prepara nem depende das respostas sobre casamento, produto ou filhos.",
+                  "Sua contribuição para o conjunto é acrescentar origem e autoridade à persona, permitindo que qualquer módulo seguinte mude de assunto sem quebrar o formato."
+                ]
+              },
+              {
+                "title": "Detalhes que substituem autopromoção",
+                "covers": [
+                  "evidence",
+                  "attention",
+                  "subtext",
+                  "template-consequence"
+                ],
+                "paragraphs": [
+                  "Orkut, comunidade, ebook, PayPal e R$ 600 formam uma sequência causal curta: oportunidade percebida, ação executada e validação recebida.",
+                  "A regra transferível não é contar uma história antiga qualquer; é escolher detalhes que provem o traço de identidade que a resposta quer instalar."
+                ]
+              }
+            ],
+            "extractedRule": "Use o menor sinal concreto capaz de explicar a origem de uma convicção maior."
+          }
+        }
+      },
+      {
+        "mediaType": "image",
+        "textContent": "Pergunta: Como conquistou a Ana? Ícaro mostra uma conversa no WhatsApp e responde que é completamente apaixonado por ela há 19 anos, com humor sobre Abba, Bee Gees e o filme As Branquelas.",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 3,
+        "narrativeRole": "development",
+        "metadata": {
+          "sourceExcerpt": "Como conquistou a Ana? [...] eu sou completamente apaixonado por essa mulher... pqp! 19 anos - e parece sempre que começou ontem. Se ela não ouvisse Abba e Bee Gees, seria perfeito.",
+          "noSourceTextReason": null,
+          "quick": {
+            "roleLabel": "Story 3 · Intimidade e afeto",
+            "title": "O print prova rotina antes da declaração",
+            "summary": "Uma pergunta romântica recebe conversa cotidiana, declaração intensa e humor interno.",
+            "evidence": "O print do WhatsApp mostra foto enviada, 'Pensando em você', conversa sobre as crianças e resposta sobre saudade.",
+            "audienceEffect": "Cria proximidade e oferece uma faceta doméstica que contrasta com a autoridade profissional.",
+            "subtext": "A relação é apresentada como duradoura, apaixonada e atravessada por brincadeiras reconhecíveis.",
+            "funnelFunction": "Relacionamento, intimidade controlada e ampliação de persona.",
+            "extractedRule": "Mostre um fragmento cotidiano antes de declarar o valor ou sentimento."
+          },
+          "visual": {
+            "roleLabel": "Story 3 · Pergunta, WhatsApp e declaração",
+            "title": "A conversa ocupa o centro como prova de intimidade",
+            "scene": "Tela preta com sticker de pergunta no alto. Um print vertical de conversa no WhatsApp ocupa o centro e inclui fotografia de um evento e mensagens do casal.",
+            "typography": "Pergunta em cartão branco. Resposta branca pesada na base, com palavras amarelas e vermelhas destacando referências culturais e a piada.",
+            "composition": "Pergunta no topo, prova central grande e comentário autoral abaixo. Um balão de reação aparece junto à base.",
+            "graphic": "Print de WhatsApp com nome e foto de contato visíveis, além de reação escura de seguidores.",
+            "palette": [
+              "#111111",
+              "#f6f2e9",
+              "#dff6cf",
+              "#f2bd36",
+              "#df3a5f"
+            ],
+            "impression": "Intimidade, duração, humor e espontaneidade doméstica.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "A conversa demonstra rotina familiar antes da declaração."
+              },
+              {
+                "label": "2",
+                "description": "Os 19 anos dão escala temporal ao vínculo."
+              },
+              {
+                "label": "3",
+                "description": "As referências musicais e cinematográficas evitam solenidade."
+              }
+            ]
+          },
+          "deep": {
+            "roleLabel": "Story 3 · Faceta de intimidade",
+            "title": "A declaração funciona porque chega depois de uma prova banal",
+            "lead": "O print não mostra um grande gesto romântico. Mostra deslocamento, crianças, saudade e cuidado cotidiano. Essa banalidade sustenta a intensidade da declaração e impede que ela pareça apenas performance sentimental.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "A pergunta abre a resposta íntima e a reação de seguidores prolonga o humor sobre gosto musical e cinema."
+              },
+              "critique": {
+                "status": "present",
+                "rationale": "O uso de conversa privada fortalece a prova, mas exige consentimento e cuidado com nomes, fotos e informações familiares."
+              }
+            },
+            "sections": [
+              {
+                "title": "A intimidade não cria dependência de ordem",
+                "covers": [
+                  "narrative",
+                  "continuity",
+                  "funnel"
+                ],
+                "paragraphs": [
+                  "Como módulo, a tela só depende da abertura. Ela pode vir antes ou depois da origem profissional porque sua função é acrescentar afeto à persona, não avançar uma história.",
+                  "No relacionamento, a mudança de assunto amplia o universo do creator e recompensa quem acompanha além do conteúdo técnico."
+                ]
+              },
+              {
+                "title": "Prova cotidiana e humor de vínculo",
+                "covers": [
+                  "evidence",
+                  "attention",
+                  "subtext",
+                  "template-consequence"
+                ],
+                "paragraphs": [
+                  "A conversa sobre crianças e saudade funciona como evidência mais forte do que uma fotografia posada. A declaração posterior interpreta o print para o público.",
+                  "Ao transferir o mecanismo, a prova íntima precisa ser autorizada e suficiente; não é necessário expor toda a conversa para comunicar o valor."
+                ]
+              }
+            ],
+            "extractedRule": "Use intimidade demonstrada em detalhe cotidiano, com consentimento, antes de nomear o sentimento."
+          }
+        }
+      },
+      {
+        "mediaType": "image",
+        "textContent": "Pergunta: Charlie é a IA do ONM e o que ele faz? Ícaro responde que Charlie é uma plataforma de estudos em desenvolvimento, baseada em seu método, já disponível para assinantes do A Minha Casa. Relata que estava subindo estudo sobre vídeos e planejava leitura de livros em grupo.",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 4,
+        "narrativeRole": "development",
+        "metadata": {
+          "sourceExcerpt": "Major, não acompanhei... O Charlie é a IA do ONM? Pode falar o que 'ele' faz? [...] É a plataforma de estudos que eu estou desenvolvendo, que carrega exatamente o meu método de estudos.",
+          "noSourceTextReason": null,
+          "quick": {
+            "roleLabel": "Story 4 · Construção e oferta",
+            "title": "A pergunta transforma produto em bastidor",
+            "summary": "Uma dúvida sobre Charlie recebe tela do aplicativo, correção de contexto e descrição pública do desenvolvimento.",
+            "evidence": "O print mostra a área 'Nossos Apps', a biblioteca e capas; o texto cita features de vídeo e leitura de livros em grupo.",
+            "audienceEffect": "Reduz confusão sobre o produto e cria expectativa ao mostrar que ele está sendo construído diante do público.",
+            "subtext": "O creator se apresenta como construtor que usa, testa e amplia o próprio método em produto.",
+            "funnelFunction": "Consideração, demonstração de produto e retenção de assinantes.",
+            "extractedRule": "Quando a pergunta pedir contexto de produto, responda com tela, estado atual e próximo avanço concreto."
+          },
+          "visual": {
+            "roleLabel": "Story 4 · Produto, pergunta e roadmap",
+            "title": "A interface serve de prova para uma resposta densa",
+            "scene": "Tela preta com captura do aplicativo em roxo ocupando a esquerda e o centro. O sticker de pergunta fica no topo direito e a resposta cobre a faixa inferior.",
+            "typography": "Texto branco pesado e alinhado à esquerda. Trechos amarelos, laranja e vermelhos marcam disponibilidade, uso recente e próximos recursos.",
+            "composition": "A tela do produto domina o fundo; pergunta sobreposta no alto; frase curta 'De graça, pra quem tá no app' junto à imagem; resposta longa abaixo; reações na base.",
+            "graphic": "Print de biblioteca digital com cards de apps, livros e investimentos, além de sticker e balões de reação.",
+            "palette": [
+              "#111111",
+              "#241037",
+              "#f4ede2",
+              "#f2be3c",
+              "#de3a5b"
+            ],
+            "impression": "Construção em público, acesso de bastidor e evolução contínua.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "A tela prova que a plataforma existe e possui módulos."
+              },
+              {
+                "label": "2",
+                "description": "A correção 'Não, meu irmão' responde diretamente à confusão."
+              },
+              {
+                "label": "3",
+                "description": "O roadmap transforma uma dúvida em expectativa de produto."
+              }
+            ]
+          },
+          "deep": {
+            "roleLabel": "Story 4 · Faceta de construção",
+            "title": "A oferta entra como explicação de trabalho em andamento",
+            "lead": "A pergunta permite corrigir uma percepção e mostrar o produto sem mudar artificialmente de assunto. A tela do aplicativo prova existência; o relato sobre features comunica método, ritmo e ambição.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "A dúvida do seguidor organiza a demonstração e as reações na base sugerem interesse pelo acesso."
+              },
+              "critique": {
+                "status": "present",
+                "rationale": "Há muita informação em uma tela, partes da interface são pequenas e o roadmap pode envelhecer rapidamente."
+              }
+            },
+            "sections": [
+              {
+                "title": "Produto como faceta, não como destino da série",
+                "covers": [
+                  "narrative",
+                  "continuity",
+                  "funnel"
+                ],
+                "paragraphs": [
+                  "A tela depende da abertura e da pergunta selecionada, não das respostas pessoais. Sua função é acrescentar construção e oferta ao mosaico.",
+                  "A conversão é contextual: assinantes recebem informação de valor e não assinantes percebem acesso e evolução, mas o template não exige produto em todos os módulos."
+                ]
+              },
+              {
+                "title": "Prova atual mais visão futura",
+                "covers": [
+                  "evidence",
+                  "attention",
+                  "subtext",
+                  "template-consequence"
+                ],
+                "paragraphs": [
+                  "A captura mostra acervo e organização; o texto acrescenta uso recente e próximos recursos. Juntos, esses elementos constroem a imagem de um produto vivo.",
+                  "A transferência precisa separar estado comprovado de promessa. Tela atual, recurso já disponível e roadmap devem ser nomeados com precisão."
+                ]
+              }
+            ],
+            "extractedRule": "Use a pergunta para mostrar o produto em estado real e distinguir claramente o que existe do que está sendo construído."
+          }
+        }
+      },
+      {
+        "mediaType": "image",
+        "textContent": "Pergunta: Qual o maior desafio em educar quatro filhos? Ícaro responde que o maior desafio é dar o máximo de amor na mesma medida em que educa, dizer sim aos convites para brincar mesmo durante o trabalho e entregar tudo sem impedir que os filhos aprendam a se virar.",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 5,
+        "narrativeRole": "closing",
+        "metadata": {
+          "sourceExcerpt": "Qual maior desafio em educar 4 filhos? [...] O maior desafio é dar o máximo de amor, todo o amor que existe no nosso coração, na mesma medida com que educamos.",
+          "noSourceTextReason": null,
+          "quick": {
+            "roleLabel": "Story 5 · Valores e família",
+            "title": "A resposta transforma dificuldade em princípio",
+            "summary": "Uma pergunta ampla recebe conflito real, cena com a filha e uma formulação sobre presença, amor e autonomia.",
+            "evidence": "A fotografia mostra Ícaro no palco com uma criança; o texto menciona trabalho, ligações e o convite 'vem brincar comigo?'.",
+            "audienceEffect": "Gera identificação emocional e oferece uma regra pessoal que pode ser admirada ou discutida.",
+            "subtext": "Sucesso profissional é enquadrado como responsabilidade de presença, não apenas como conquista.",
+            "funnelFunction": "Relacionamento, declaração de valores e fechamento emocional.",
+            "extractedRule": "Converta uma pergunta ampla em tensão concreta antes de formular o princípio."
+          },
+          "visual": {
+            "roleLabel": "Story 5 · Palco, pergunta e princípio",
+            "title": "A criança em cena impede que o valor fique abstrato",
+            "scene": "Fotografia escura de palco com Ícaro falando ao microfone e uma criança ao lado. A legenda 'Teresa no palco.' aparece inclinada na parte superior.",
+            "typography": "Sticker branco sobre a fotografia. Resposta branca pesada na metade inferior, com amarelo, laranja e vermelho destacando conflito e princípio.",
+            "composition": "Fotografia grande no alto, pergunta sobreposta à direita e resposta longa abaixo. A frase-princípio recebe maior concentração de cor. Reação de seguidora junto à base.",
+            "graphic": "Fotografia de palco, sticker de pergunta e balão de reação 'Linda Tereza'.",
+            "palette": [
+              "#111111",
+              "#253b64",
+              "#e9404f",
+              "#f1bd3b",
+              "#f4f1e8"
+            ],
+            "impression": "Presença, vulnerabilidade, responsabilidade e afeto disciplinado.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "A criança no palco materializa a integração entre trabalho e família."
+              },
+              {
+                "label": "2",
+                "description": "A frase 'uma porrada' abre com conflito e evita idealização imediata."
+              },
+              {
+                "label": "3",
+                "description": "O bloco colorido concentra o princípio que define a faceta familiar."
+              }
+            ]
+          },
+          "deep": {
+            "roleLabel": "Story 5 · Faceta de valores",
+            "title": "O princípio ganha credibilidade porque admite a tensão antes",
+            "lead": "A resposta não começa com uma máxima elegante. Começa reconhecendo excesso e dificuldade, depois reduz o problema a uma tensão entre entrega amorosa, presença e autonomia dos filhos.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "A pergunta conduz à declaração de valor e a reação sobre Teresa prolonga a dimensão afetiva."
+              },
+              "critique": {
+                "status": "present",
+                "rationale": "A resposta é emocionalmente forte, mas muito densa e apresenta uma experiência pessoal como princípio sem explorar exceções ou limites."
+              }
+            },
+            "sections": [
+              {
+                "title": "Fechamento do material, não fechamento obrigatório do template",
+                "covers": [
+                  "narrative",
+                  "continuity",
+                  "funnel"
+                ],
+                "paragraphs": [
+                  "No conjunto recebido, a tela encerra com força emocional. Estruturalmente, porém, ela continua sendo um módulo independente e poderia aparecer antes das demais respostas.",
+                  "Sua função é ampliar a persona com valores familiares e criar relacionamento, não concluir uma progressão iniciada pela origem profissional."
+                ]
+              },
+              {
+                "title": "Cena, conflito e princípio",
+                "covers": [
+                  "evidence",
+                  "attention",
+                  "subtext",
+                  "template-consequence"
+                ],
+                "paragraphs": [
+                  "A fotografia de palco com a criança torna visível a disputa entre trabalho e presença mencionada no texto. A abertura coloquial admite dificuldade antes da formulação moral.",
+                  "Para transferir o mecanismo, a resposta precisa mostrar a tensão vivida e evitar transformar valor pessoal em conselho universal."
+                ]
+              }
+            ],
+            "extractedRule": "Admita o conflito concreto antes de extrair um princípio de valor."
+          }
+        }
+      }
+    ]
+  },
+  "assets": [
+    {
+      "narrativeOrder": 1,
+      "localPath": "C:/Users/bruno/OneDrive/Bruno Salles/Projetos/OpenSquad/.codex-remote-attachments/019e8ed2-9b57-73d1-be83-65095b58ffdf/f1d8dc6a-3a51-4a37-a675-77e115ee9c9c/1-Photo-1.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "narrativeOrder": 2,
+      "localPath": "C:/Users/bruno/OneDrive/Bruno Salles/Projetos/OpenSquad/.codex-remote-attachments/019e8ed2-9b57-73d1-be83-65095b58ffdf/f1d8dc6a-3a51-4a37-a675-77e115ee9c9c/2-Photo-2.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "narrativeOrder": 3,
+      "localPath": "C:/Users/bruno/OneDrive/Bruno Salles/Projetos/OpenSquad/.codex-remote-attachments/019e8ed2-9b57-73d1-be83-65095b58ffdf/f1d8dc6a-3a51-4a37-a675-77e115ee9c9c/3-Photo-3.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "narrativeOrder": 4,
+      "localPath": "C:/Users/bruno/OneDrive/Bruno Salles/Projetos/OpenSquad/.codex-remote-attachments/019e8ed2-9b57-73d1-be83-65095b58ffdf/f1d8dc6a-3a51-4a37-a675-77e115ee9c9c/4-Photo-4.jpg",
+      "mimeType": "image/jpeg"
+    },
+    {
+      "narrativeOrder": 5,
+      "localPath": "C:/Users/bruno/OneDrive/Bruno Salles/Projetos/OpenSquad/.codex-remote-attachments/019e8ed2-9b57-73d1-be83-65095b58ffdf/f1d8dc6a-3a51-4a37-a675-77e115ee9c9c/5-Photo-5.jpg",
+      "mimeType": "image/jpeg"
+    }
+  ]
+}

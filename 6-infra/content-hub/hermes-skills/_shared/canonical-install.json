@@ -1,0 +1,15 @@
+{
+  "contractVersion": "1.0",
+  "releaseDate": "2026-07-25",
+  "sourceTreeSha256": "730f49a4bbfd2a38bee49b0574ce7121f88db3e783ce763d9c5ea0e0ae209973",
+  "hashScope": [
+    "_shared",
+    "catalog-story-reference",
+    "story-sequence-template-analysis"
+  ],
+  "hashExcludes": [
+    "_shared/canonical-install.json",
+    "*/__pycache__"
+  ],
+  "expectedInstallRoot": "~/.hermes/skills/social-media"
+}

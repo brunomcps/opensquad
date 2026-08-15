@@ -1,0 +1,273 @@
+{
+  "dossierContractVersion": "1.0",
+  "template": {
+    "canonicalKey": "nome-estrutural-do-template",
+    "name": "Nome unico: movimento -> movimento -> resultado",
+    "objective": "Descrever a transformacao produzida pela sequencia.",
+    "description": "Explicar a logica reutilizavel sem copiar a superficie da referencia.",
+    "tags": ["stories", "referencia"],
+    "definition": {
+      "editorialName": "Nome editorial do template",
+      "editorialSummary": "Resumo da estrutura e do efeito produzido.",
+      "formula": "movimento 1 -> movimento 2 -> movimento 3",
+      "preserveRules": [
+        "Preservar a funcao narrativa especifica identificada na referencia."
+      ],
+      "adaptRules": [
+        "Adaptar cenario, voz, prova e interacao para a realidade do Bruno."
+      ],
+      "avoidRules": [
+        "Nao copiar tema, frase, paleta ou objeto apenas porque aparecem na fonte."
+      ],
+      "moldSteps": [
+        {
+          "id": "screen-complete",
+          "templateStepIds": [
+            "surface-tension",
+            "micro-explanation",
+            "next-step"
+          ],
+          "title": "Tela funcional",
+          "purpose": "Conduzir a sequencia pelos tres movimentos conceituais.",
+          "fixedFunction": "Manter a tensao, explicar o mecanismo e apontar a proxima acao.",
+          "placeholders": [
+            {
+              "kind": "scene",
+              "label": "Cena ou evidencia reconhecivel"
+            },
+            {
+              "kind": "copy",
+              "label": "Mensagem central ligada a cena"
+            },
+            {
+              "kind": "proof",
+              "label": "Prova, print ou elemento verificavel"
+            }
+          ]
+        }
+      ],
+      "steps": [
+        {
+          "role": "hook",
+          "instruction": "Executar os movimentos conceituais sem perder a continuidade.",
+          "templateStepIds": [
+            "surface-tension",
+            "micro-explanation",
+            "next-step"
+          ]
+        }
+      ]
+    },
+    "steps": [
+      {
+        "role": "hook",
+        "instruction": "Executar os movimentos conceituais sem perder a continuidade.",
+        "templateStepIds": [
+          "surface-tension",
+          "micro-explanation",
+          "next-step"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "title": "Titulo da referencia",
+    "description": "Descricao completa da sequencia e de seu contexto.",
+    "sequenceConfirmed": true,
+    "sequenceConfirmationSource": "Bruno confirmou que a sequencia terminou.",
+    "analysis": {
+      "summary": "Resumo transversal da sequencia.",
+      "overview": [
+        "Leitura geral sustentada pelas evidencias das telas."
+      ],
+      "narrativeArc": [
+        "Tensao concreta",
+        "Explicacao",
+        "Proxima acao"
+      ],
+      "whyItWorks": [
+        "Explicar o mecanismo que faz a progressao funcionar."
+      ],
+      "templateFit": "Explicar como cada tela sustenta os movimentos do template.",
+      "sequenceMap": [
+        {
+          "kind": "story",
+          "storyOrder": 1,
+          "label": "Story 1",
+          "value": "Papel narrativo especifico da tela."
+        },
+        {
+          "kind": "product",
+          "label": "Produto real",
+          "value": "Resultado estrategico ou percepcao construida."
+        }
+      ],
+      "visualGrammar": "Descrever continuidade, mudanca de estimulo, hierarquia e aparencia de producao.",
+      "apparentProduct": "O assunto ou entrega que aparece na superficie.",
+      "productRevealed": "O ativo estrategico realmente construido pela sequencia.",
+      "personaConstructed": "A percepcao sobre quem publica, ou null quando nao se aplicar.",
+      "transferRules": [
+        "Regra transferivel para Bruno ligada a uma evidencia concreta."
+      ],
+      "synthesis": [
+        {
+          "key": "screen-roles",
+          "title": "Papel de cada tela",
+          "paragraphs": [
+            "Sintese dos papeis narrativos sem repetir o modo rapido."
+          ]
+        },
+        {
+          "key": "stimulus-change",
+          "title": "Mudanca de estimulo",
+          "paragraphs": [
+            "Sintese do ritmo, da continuidade e da variacao visual."
+          ]
+        },
+        {
+          "key": "aesthetics-production",
+          "title": "Estetica e producao",
+          "paragraphs": [
+            "Sintese da linguagem visual e da aparencia de producao."
+          ]
+        },
+        {
+          "key": "strengths-limitations",
+          "title": "Forcas e limitacoes",
+          "paragraphs": [
+            "Critica equilibrada com mecanismos fortes, limites e riscos."
+          ]
+        }
+      ],
+      "registeredTemplate": {
+        "name": "Nome operacional do template",
+        "formula": "tensao -> explicacao -> proxima acao",
+        "useWhen": "Descrever a situacao em que o template faz sentido.",
+        "primaryFunction": "Descrever a funcao principal no relacionamento ou no funil.",
+        "requiredElements": [
+          "Uma evidencia concreta",
+          "Uma explicacao ligada a evidencia"
+        ],
+        "optionalElements": [
+          "Interacao ou resposta do publico"
+        ],
+        "executionRisks": [
+          "Explicar demais e interromper a progressao."
+        ],
+        "capturesOrInputs": [
+          "Cena, print ou prova que sustenta a abertura."
+        ],
+        "brunoAdaptation": "Explicar a transferencia para Bruno sem escrever copy pronta.",
+        "steps": [
+          {
+            "id": "surface-tension",
+            "title": "Materializar uma tensao",
+            "description": "Apresentar um sinal concreto que o publico reconhece.",
+            "mechanism": "A evidencia observavel transforma um tema abstrato em pergunta.",
+            "condition": "O sinal precisa ser legivel e relevante para o publico.",
+            "expectedResult": "Reconhecimento e curiosidade para continuar.",
+            "evidenceStoryOrders": [1]
+          },
+          {
+            "id": "micro-explanation",
+            "title": "Explicar o mecanismo",
+            "description": "Dar significado ao sinal sem virar uma aula desconectada.",
+            "mechanism": "A explicacao curta organiza a experiencia vista na abertura.",
+            "condition": "A explicacao precisa responder diretamente a tensao apresentada.",
+            "expectedResult": "Clareza e autoridade percebida.",
+            "evidenceStoryOrders": [1]
+          },
+          {
+            "id": "next-step",
+            "title": "Oferecer uma proxima acao",
+            "description": "Converter a compreensao em um passo concreto e proporcional.",
+            "mechanism": "A acao fecha o loop sem apagar o valor entregue.",
+            "condition": "A entrega precisa ser coerente com o que foi explicado.",
+            "expectedResult": "Resposta, continuidade ou conversao qualificada.",
+            "evidenceStoryOrders": [1]
+          }
+        ]
+      },
+      "sourceNote": "Registrar ordem, completude, legibilidade e qualquer limitacao da fonte."
+    },
+    "platform": "instagram",
+    "sourceAccount": "@CONTA",
+    "sourceUrl": "https://www.instagram.com/CONTA/",
+    "sourceStartedAt": null,
+    "sourceEndedAt": null,
+    "items": [
+      {
+        "mediaType": "image",
+        "textContent": "Transcricao ou descricao fiel do story.",
+        "sourceOccurredAt": null,
+        "narrativeOrder": 1,
+        "narrativeRole": "hook",
+        "metadata": {
+          "sourceExcerpt": "Trecho original legivel da tela.",
+          "noSourceTextReason": null,
+          "quick": {
+            "roleLabel": "Papel rapido",
+            "title": "Titulo do modo rapido",
+            "summary": "Resumo conciso da funcao desta tela.",
+            "evidence": "Detalhe visivel que sustenta a leitura.",
+            "audienceEffect": "Efeito produzido no publico.",
+            "subtext": "O que a tela comunica sem declarar.",
+            "funnelFunction": "Funcao especifica no funil.",
+            "extractedRule": "Regra reutilizavel que nasce desta tela."
+          },
+          "visual": {
+            "roleLabel": "Papel visual",
+            "title": "Titulo do raio-X visual",
+            "scene": "Cena, pessoa, roupa, ambiente e captura.",
+            "typography": "Texto, posicao, alinhamento, tratamento e contraste.",
+            "composition": "Distribuicao, hierarquia e direcao do olhar.",
+            "graphic": "Grafico, print, sticker, objeto ou outra prova visual.",
+            "palette": ["#102f26", "#f6f1e7", "#9e1b32"],
+            "impression": "Sensacao e significado transmitidos visualmente.",
+            "markers": [
+              {
+                "label": "1",
+                "description": "Marcador ligado a um detalhe real do print."
+              }
+            ]
+          },
+          "deep": {
+            "roleLabel": "Papel aprofundado",
+            "title": "Titulo da analise aprofundada",
+            "lead": "Abertura interpretativa que nao repete o resumo rapido.",
+            "dimensionAssessments": {
+              "interaction": {
+                "status": "present",
+                "rationale": "Justificar com o mecanismo interativo visivel."
+              },
+              "critique": {
+                "status": "present",
+                "rationale": "Apontar forca e limite com base na fonte."
+              }
+            },
+            "sections": [
+              {
+                "title": "Narrativa e continuidade",
+                "covers": ["narrative", "continuity"],
+                "paragraphs": [
+                  "Explicar como a tela recebe a anterior e prepara a seguinte."
+                ],
+                "bullets": [
+                  "Registrar a evidencia que sustenta a interpretacao."
+                ]
+              }
+            ],
+            "extractedRule": "Regra aprofundada ligada ao mecanismo observado."
+          }
+        }
+      }
+    ]
+  },
+  "assets": [
+    {
+      "narrativeOrder": 1,
+      "localPath": "/CAMINHO/ABSOLUTO/story-1.jpg",
+      "mimeType": "image/jpeg"
+    }
+  ]
+}

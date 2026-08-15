@@ -1,0 +1,6 @@
+node_modules/
+dist/
+dist-ci/
+data/
+*.tsbuildinfo
+supabase/.temp/
