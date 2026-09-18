@@ -137,7 +137,7 @@ function money(value: number | null, currency = 'BRL'): string {
 }
 
 function percent(value: number | null): string {
-  return value === null ? '—' : `${(value * 100).toFixed(1)}%`;
+  return value === null ? '—' : `${(value * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
 }
 
 function displayText(value: string): string {
@@ -629,9 +629,9 @@ export function TrackingHistoryExplorer({
       : `Painel atualizado ${relativeAge(lastSuccessfulAt)}`;
   const periodLabel = trackingPeriodLabel(start, end);
   const healthLights = useMemo(() => visibleSeries ? trackingHealthLights(visibleSeries.freshness) : [], [visibleSeries]);
-  const otherProductNames = products
+  const otherProductNames = [...new Set(products
     .filter(product => !product.productName.toLocaleLowerCase('pt-BR').includes('mapa-7p'))
-    .map(product => displayText(product.productName).split('·')[0].trim());
+    .map(product => displayText(product.productName).split('·')[0].split('+')[0].trim()))].slice(0, 4);
   const foreignCurrencies = attribution
     ? [...new Set(attribution.campaigns.flatMap(campaign => Object.keys(campaign.foreignBreakdown || {})))]
     : [];
@@ -793,7 +793,7 @@ export function TrackingHistoryExplorer({
       <article>
         <span>Líquido pelos links<Explain text="Valor que sobrou para você depois das taxas da Hotmart, somando MAPA e outros produtos originados pelos links. Vendas em outra moeda não entram na soma em reais." /></span>
         <strong>{money(visibleSeries.totals.netAfterFees)}</strong>
-        <small>{periodLabel}{attribution ? ` · ${money(attribution.totals.attributedNetAfterFees)} MAPA + ${money(attribution.totals.attributedAdditionalNetAfterFees)} outros` : ''}{foreignCurrencies.length ? ` · vendas em ${foreignCurrencies.join(', ')} fora da soma` : ''}{visibleSeries.totals.financialDataIncomplete ? ` · ${visibleSeries.totals.financialDataIncomplete} sem financeiro completo` : ''}</small>
+        <small>{periodLabel}{attribution ? ` · ${money(attribution.totals.attributedNetAfterFees)} MAPA + ${money(attribution.totals.attributedAdditionalNetAfterFees)} outros` : ''}{visibleSeries.totals.financialDataIncomplete ? ` · ${visibleSeries.totals.financialDataIncomplete} venda(s) ${foreignCurrencies.length ? `em ${foreignCurrencies.join(', ')}` : 'sem valor em reais'} fora da soma` : ''}</small>
       </article>
     </div>
     </>}
