@@ -2,7 +2,8 @@ import { CommercialIntelligenceError } from './errors.ts';
 
 export type CampaignStatus = 'draft' | 'active' | 'inactive';
 export type TrackingParameter = 'sck' | 'src';
-export type CtaPosition = 'description' | 'pinned_comment' | 'comment_reply' | 'video' | 'bio' | 'community' | 'other';
+// 'dm' = DM manual do Instagram (existe no banco desde 20/07/2026).
+export type CtaPosition = 'description' | 'pinned_comment' | 'comment_reply' | 'video' | 'bio' | 'dm' | 'community' | 'other';
 export type TrafficClassification = 'qualified' | 'bot' | 'scanner' | 'technical' | 'duplicate' | 'unknown';
 
 export interface TrafficSignals {
@@ -24,8 +25,9 @@ export interface CampaignRecord {
   tracking_code: string;
   slug: string;
   name: string;
-  channel: 'youtube';
-  video_id: string;
+  // Instagram (bio, comentário → DM, DM manual) não tem vídeo: video_id fica null.
+  channel: 'youtube' | 'instagram';
+  video_id: string | null;
   product_id: string;
   product_name: string;
   offer_code: string | null;
@@ -87,6 +89,7 @@ const POSITION_CODES: Record<CtaPosition, string> = {
   comment_reply: 'r',
   video: 'v',
   bio: 'b',
+  dm: 'm',
   community: 'c',
   other: 'o',
 };

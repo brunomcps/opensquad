@@ -64,7 +64,8 @@ export interface AttributionDto extends Omit<DirectAttributionReport, 'campaigns
 
 export type TrackingGranularity = 'auto' | 'hour' | 'day' | 'week';
 export type TrackingTrafficFilter = 'qualified' | 'technical' | 'all';
-export type TrackingPositionFilter = 'all' | 'description' | 'pinned_comment' | 'comment_reply' | 'video';
+// bio e dm são os locais do Instagram (comment_reply vale pros dois canais).
+export type TrackingPositionFilter = 'all' | 'description' | 'pinned_comment' | 'comment_reply' | 'video' | 'bio' | 'dm';
 export type TrackingEventType = 'click' | 'sale';
 
 export interface TrackingHistoryFilters {
