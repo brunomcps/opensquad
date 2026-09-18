@@ -90,12 +90,20 @@ export function BundleTotals({ totals, periodLabel, bioNote = false }: {
   </div>;
 }
 
-// As linhas de link (D/C/R/V no YouTube; B/C/DM no Instagram), com copiar e métricas.
-export function PositionRows({ items, copied, copyError, onCopy }: {
+export interface LinkTestState {
+  state: 'testing' | 'ok' | 'fail';
+  text: string;
+}
+
+// As linhas de link (D/C/R/V no YouTube; B/C/DM no Instagram), com copiar,
+// testar e métricas.
+export function PositionRows({ items, copied, copyError, onCopy, onTest, tests = {} }: {
   items: CampaignPositionItem[];
   copied: string | null;
   copyError: string | null;
   onCopy: (key: string, value: string) => Promise<void>;
+  onTest?: (item: CampaignPositionItem) => void;
+  tests?: Record<string, LinkTestState>;
 }) {
   return <div className="ci-position-list">
     {items.map(item => {
@@ -114,7 +122,20 @@ export function PositionRows({ items, copied, copyError, onCopy }: {
             : <span className="ci-position-link-missing">Link público indisponível</span>}
           {copyError === publicKey && <small className="ci-copy-error" role="alert">Não foi possível copiar. Selecione o link.</small>}
         </div>
-        {publicUrl && <button type="button" className="ci-copy-button" onClick={() => onCopy(publicKey, publicUrl)}>{copied === publicKey ? 'Copiado' : 'Copiar'}</button>}
+        <div className="ci-position-acoes">
+          {publicUrl && <button type="button" className="ci-copy-button" onClick={() => onCopy(publicKey, publicUrl)}>{copied === publicKey ? 'Copiado' : 'Copiar'}</button>}
+          {publicUrl && onTest && <button
+            type="button"
+            className="ci-test-button"
+            disabled={tests[item.campaign.campaign_id]?.state === 'testing'}
+            title="Faz um teste sem contar clique: confere se o link responde e manda pra Hotmart com o código."
+            onClick={() => onTest(item)}
+          >{tests[item.campaign.campaign_id]?.state === 'testing' ? 'Testando...' : 'Testar'}</button>}
+          {tests[item.campaign.campaign_id] && tests[item.campaign.campaign_id].state !== 'testing' && <small
+            className={`ci-test-result ci-test-result-${tests[item.campaign.campaign_id].state}`}
+            role="status"
+          >{tests[item.campaign.campaign_id].state === 'ok' ? '✓ ' : '✗ '}{tests[item.campaign.campaign_id].text}</small>}
+        </div>
         <div className="ci-position-metrics" aria-label={`Métricas de ${item.label}`}>
           <span><strong>{item.metrics.clicks}</strong><small>cliques</small></span>
           <span><strong>{item.metrics.sales}</strong><small>vendas MAPA</small></span>
@@ -156,7 +177,7 @@ export function TechnicalDetails({ items, role, copied, copyError, onCopy, onTog
             <span><small>Tracking code</small><code>{item.campaign.tracking_code}</code></span>
           </div>
           <div className="ci-technical-link">
-            <small>HotLink direto (não conta clique: use só onde o link curto não cabe)</small>
+            <small>HotLink direto · <b>não usar no YouTube nem no Instagram</b>: não conta clique. Só onde o link curto não cabe.</small>
             <code title={item.campaign.directUrl}>{item.campaign.directUrl}</code>
             <button type="button" className="ci-copy-button" onClick={() => onCopy(directKey, item.campaign.directUrl)}>{copied === directKey ? 'Copiado' : 'Copiar'}</button>
             {copyError === directKey && <span className="ci-copy-error" role="alert">Não foi possível copiar. Selecione o link.</span>}
@@ -181,6 +202,8 @@ export function VideoCampaignBundle({
   historyEnd,
   onHistoryToggle,
   periodLabel,
+  onTest,
+  tests,
 }: {
   bundle: VideoCampaignBundleModel;
   role: MemberRole;
@@ -194,6 +217,8 @@ export function VideoCampaignBundle({
   historyEnd: string;
   onHistoryToggle: (videoId: string) => void;
   periodLabel: string;
+  onTest?: (item: CampaignPositionItem) => void;
+  tests?: Record<string, LinkTestState>;
 }) {
   const title = displayText(bundle.title);
   const catalogVideo = historyVideos.find(video => video.video_id === bundle.videoId);
@@ -255,7 +280,7 @@ export function VideoCampaignBundle({
       </button>
     </div>
 
-    <PositionRows items={bundle.items} copied={copied} copyError={copyError} onCopy={onCopy} />
+    <PositionRows items={bundle.items} copied={copied} copyError={copyError} onCopy={onCopy} onTest={onTest} tests={tests} />
 
     {historyExpanded && <TrackingHistoryExplorer
       videos={historyVideos}

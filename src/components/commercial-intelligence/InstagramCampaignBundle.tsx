@@ -1,7 +1,7 @@
 import type { CampaignCatalog, CampaignDto, MemberRole } from '../../../ci-app/src/api';
-import type { InstagramCampaignBundleModel } from './campaignBundleModel';
+import type { CampaignPositionItem, InstagramCampaignBundleModel } from './campaignBundleModel';
 import { TrackingHistoryExplorer } from './TrackingHistoryExplorer';
-import { BundleTotals, PositionRows, TechnicalDetails, bundleLinksText } from './VideoCampaignBundle';
+import { BundleTotals, PositionRows, TechnicalDetails, bundleLinksText, type LinkTestState } from './VideoCampaignBundle';
 
 function shortDate(value: string | null): string | null {
   if (!value) return null;
@@ -25,6 +25,8 @@ export function InstagramCampaignBundle({
   historyEnd,
   onHistoryToggle,
   periodLabel,
+  onTest,
+  tests,
 }: {
   bundle: InstagramCampaignBundleModel;
   role: MemberRole;
@@ -38,6 +40,8 @@ export function InstagramCampaignBundle({
   historyEnd: string;
   onHistoryToggle: () => void;
   periodLabel: string;
+  onTest?: (item: CampaignPositionItem) => void;
+  tests?: Record<string, LinkTestState>;
 }) {
   const allKey = 'all-instagram';
   const linkCount = bundle.items.filter(item => item.campaign.redirectUrl).length;
@@ -74,7 +78,7 @@ export function InstagramCampaignBundle({
       </button>
     </div>
 
-    <PositionRows items={bundle.items} copied={copied} copyError={copyError} onCopy={onCopy} />
+    <PositionRows items={bundle.items} copied={copied} copyError={copyError} onCopy={onCopy} onTest={onTest} tests={tests} />
 
     {bundle.bioWithoutClicks && bio && <div className="ci-bundle-aviso" role="status">
       <strong>Bio: {bio.metrics.sales} {bio.metrics.sales === 1 ? 'venda' : 'vendas'} e 0 cliques.</strong>

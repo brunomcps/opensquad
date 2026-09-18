@@ -87,6 +87,29 @@ export interface BundleBuildOptions {
   lifetime?: AttributionDto['campaigns'] | null;
 }
 
+// Vários links no mesmo local: as respostas a comentário têm variantes
+// (padrão, acolhimento, relato, dúvida) e o Instagram tem um link por post.
+// Sem isto, quatro linhas "Resposta a comentário" iguais não dizem nada.
+const REPLY_VARIANT_NAMES: Record<string, string> = { acolhimento: 'acolhimento', relato: 'relato', duvida: 'dúvida' };
+
+export function itemVariant(
+  campaign: Pick<CampaignDto, 'cta_position' | 'utm_content'>,
+  channel: 'youtube' | 'instagram',
+): { label: string; hint?: string } | null {
+  const content = campaign.utm_content || '';
+  if (channel === 'instagram' && content.startsWith('post-')) {
+    return { label: `Post ${content.slice(5)}`, hint: 'comentário → DM deste post (robô ManyChat)' };
+  }
+  if (channel === 'youtube' && campaign.cta_position === 'comment_reply') {
+    const match = content.match(/comment_reply_([a-z]+)$/i);
+    if (match) {
+      const variant = match[1].toLowerCase();
+      return { label: `Resposta · ${REPLY_VARIANT_NAMES[variant] || variant}`, hint: 'resposta a comentário' };
+    }
+  }
+  return null;
+}
+
 export function positionPresentation(position: CtaPosition | string, channel: string | null = 'youtube'): PositionPresentation {
   if (channel === 'instagram') return INSTAGRAM_POSITION_PRESENTATION[position] || POSITION_PRESENTATION[position] || POSITION_FALLBACK;
   return POSITION_PRESENTATION[position] || POSITION_FALLBACK;
@@ -217,14 +240,18 @@ function buildItems(
   const position = options.position && options.position !== 'all' ? options.position : null;
   return campaigns
     .filter(campaign => !position || campaign.cta_position === position)
-    .sort((left, right) => positionPresentation(left.cta_position, channel).order - positionPresentation(right.cta_position, channel).order)
+    .sort((left, right) => (
+      positionPresentation(left.cta_position, channel).order - positionPresentation(right.cta_position, channel).order
+      || (left.utm_content || '').localeCompare(right.utm_content || '')
+    ))
     .map(campaign => {
       const presentation = positionPresentation(campaign.cta_position, channel);
+      const variant = itemVariant(campaign, channel);
       return {
         campaign,
         code: presentation.code,
-        label: presentation.label,
-        hint: presentation.hint,
+        label: variant?.label || presentation.label,
+        hint: variant?.hint || presentation.hint,
         metrics: positionMetrics(attributionByCampaign.get(campaign.campaign_id), traffic),
       };
     });

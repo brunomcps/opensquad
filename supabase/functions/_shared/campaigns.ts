@@ -313,3 +313,68 @@ export function classifyTraffic(signals: TrafficSignals): TrafficClassificationR
 export function probableBot(userAgent: string | null): boolean {
   return classifyTraffic({ userAgent }).isBot;
 }
+
+// Etapa 5 da faxina (18/09/2026): "colar o link" em vez de escolher em lista.
+
+// Aceita o ID puro (11 caracteres) ou qualquer formato de link do YouTube:
+// watch?v=, youtu.be/, /shorts/, /live/, /embed/, com ou sem parâmetros extras.
+export function extractYoutubeVideoId(value: string): string | null {
+  const text = (value || '').trim();
+  if (!text) return null;
+  if (/^[A-Za-z0-9_-]{11}$/.test(text)) return text;
+  let url: URL;
+  try {
+    url = new URL(/^https?:\/\//i.test(text) ? text : `https://${text}`);
+  } catch {
+    return null;
+  }
+  const host = url.hostname.toLowerCase().replace(/^(www|m|music)\./, '');
+  if (!['youtube.com', 'youtu.be', 'youtube-nocookie.com'].includes(host)) return null;
+  let candidate: string | null = null;
+  if (host === 'youtu.be') candidate = url.pathname.split('/').filter(Boolean)[0] || null;
+  else if (url.searchParams.get('v')) candidate = url.searchParams.get('v');
+  else {
+    const match = url.pathname.match(/^\/(?:shorts|live|embed|v)\/([A-Za-z0-9_-]{11})/);
+    candidate = match?.[1] || null;
+  }
+  return candidate && /^[A-Za-z0-9_-]{11}$/.test(candidate) ? candidate : null;
+}
+
+// Link de post, reel ou vídeo do Instagram → código curto do post (shortcode).
+export function extractInstagramShortcode(value: string): string | null {
+  const text = (value || '').trim();
+  if (!text) return null;
+  let url: URL;
+  try {
+    url = new URL(/^https?:\/\//i.test(text) ? text : `https://${text}`);
+  } catch {
+    return null;
+  }
+  const host = url.hostname.toLowerCase().replace(/^www\./, '');
+  if (host !== 'instagram.com' && host !== 'instagr.am') return null;
+  const match = url.pathname.match(/^\/(?:[A-Za-z0-9_.]+\/)?(?:p|reel|reels|tv)\/([A-Za-z0-9_-]{5,20})\/?/);
+  return match?.[1] || null;
+}
+
+export function generateInstagramPostTrackingCode(
+  shortcode: string,
+  nonce = crypto.randomUUID().replace(/-/g, '').slice(0, 4),
+): string {
+  const code = `ig|${compactTrackingSegment(shortcode, 14)}|c|${compactTrackingSegment(nonce, 5)}`;
+  if (code.length > 30 || !/^[A-Za-z0-9|]+$/.test(code)) {
+    throw new CommercialIntelligenceError('tracking_code_invalid', 'Não foi possível gerar o código do post.', 500);
+  }
+  return code;
+}
+
+export function generateInstagramPostSlug(shortcode: string): string {
+  const slug = `ig-post-${compactSlugSegment(shortcode, 20)}`;
+  if (slug.length < 6 || slug.length > 48 || !/^[a-z0-9-]+$/.test(slug)) {
+    throw new CommercialIntelligenceError('campaign_slug_invalid', 'Não foi possível gerar o link do post.', 500);
+  }
+  return slug;
+}
+
+export function instagramPostUtmContent(shortcode: string): string {
+  return `post-${shortcode}`.slice(0, 160);
+}

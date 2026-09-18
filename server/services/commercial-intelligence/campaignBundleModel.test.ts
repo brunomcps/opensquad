@@ -209,3 +209,24 @@ test('Instagram vira um card próprio com Bio, Comentário → DM e DM manual, f
   assert.equal(buildVideoCampaignBundles(campaigns, videos, report).length, 1, 'o YouTube segue só com o vídeo');
   assert.equal(buildInstagramCampaignBundle([campaigns[3]], report), null);
 });
+
+test('várias respostas no mesmo vídeo ganham nome (padrão, acolhimento, relato, dúvida) e post do Instagram vira "Post X"', () => {
+  const campaigns = [
+    campaign({ campaign_id: 'r-duvida', video_id: '0OkxYzoxzUk', cta_position: 'comment_reply', utm_content: '0OkxYzoxzUk-comment_reply_duvida' }),
+    campaign({ campaign_id: 'r-padrao', video_id: '0OkxYzoxzUk', cta_position: 'comment_reply', utm_content: '0OkxYzoxzUk-comment_reply' }),
+    campaign({ campaign_id: 'r-acolhimento', video_id: '0OkxYzoxzUk', cta_position: 'comment_reply', utm_content: '0OkxYzoxzUk-comment_reply_acolhimento' }),
+    campaign({ campaign_id: 'desc', video_id: '0OkxYzoxzUk', cta_position: 'description', utm_content: '0OkxYzoxzUk-description' }),
+  ];
+  const [bundle] = buildVideoCampaignBundles(campaigns, videos, []);
+  assert.deepEqual(bundle.items.map(item => item.label), [
+    'Descrição', 'Resposta a comentário', 'Resposta · acolhimento', 'Resposta · dúvida',
+  ]);
+
+  const instagram = buildInstagramCampaignBundle([
+    campaign({ campaign_id: 'ig-cmt', video_id: null, cta_position: 'comment_reply', channel: 'instagram', utm_content: 'comentario-mapa-dm' }),
+    campaign({ campaign_id: 'ig-post', video_id: null, cta_position: 'comment_reply', channel: 'instagram', utm_content: 'post-DAbC12xyz' }),
+  ], []);
+  assert.ok(instagram);
+  assert.deepEqual(instagram.items.map(item => item.label), ['Comentário → DM', 'Post DAbC12xyz']);
+  assert.equal(instagram.items[1].hint, 'comentário → DM deste post (robô ManyChat)');
+});

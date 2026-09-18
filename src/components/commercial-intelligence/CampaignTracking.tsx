@@ -3,19 +3,22 @@ import type { CampaignInput, CtaPosition, TrackingParameter } from '../../../sup
 import {
   createCampaign,
   createCampaignBatch,
+  createInstagramPostLink,
+  createLinksFromYoutubeUrl,
   getAttribution,
   getCampaigns,
+  testRedirect,
   updateCampaignStatus,
   type AttributionDto,
   type CampaignCatalog,
   type CampaignDto,
   type MemberRole,
 } from '../../../ci-app/src/api';
-import { buildInstagramCampaignBundle, buildVideoCampaignBundles } from './campaignBundleModel';
+import { buildInstagramCampaignBundle, buildVideoCampaignBundles, type CampaignPositionItem } from './campaignBundleModel';
 import { InstagramCampaignBundle } from './InstagramCampaignBundle';
 import { TrackingHistoryExplorer, type TrackingPageFilters } from './TrackingHistoryExplorer';
 import { brtDateInput, TRACKING_SINCE_DATE, trackingPeriodLabel } from './trackingHistoryModel';
-import { VideoCampaignBundle } from './VideoCampaignBundle';
+import { VideoCampaignBundle, type LinkTestState } from './VideoCampaignBundle';
 
 const POSITION_LABELS: Record<CtaPosition, string> = {
   description: 'Descrição',
@@ -104,8 +107,8 @@ function CampaignForm({ catalog, onCreated }: { catalog: CampaignCatalog; onCrea
   return (
     <form className="ci-campaign-form" onSubmit={submit}>
       <header>
-        <div><span>Nova campanha</span><small>Vídeo + produto + CTA viram um código de origem único</small></div>
-        <span className="ci-evidence-badge ci-evidence-direct">Atribuição direta</span>
+        <div><span>Nova campanha (avulsa)</span><small>Pra outro produto, outra posição ou outro destino. Vídeo + produto + CTA viram um código de origem único.</small></div>
+        <span className="ci-evidence-badge ci-evidence-direct">Gera link rastreável</span>
       </header>
       <div className="ci-form-grid">
         <label>Nome da campanha<input value={form.name} required minLength={3} placeholder="Ex.: TDAH — descrição" onChange={event => setForm({ ...form, name: event.target.value })} /></label>
@@ -223,8 +226,8 @@ function BulkCampaignGenerator({
   return (
     <section className="ci-campaign-form ci-bulk-generator">
       <header>
-        <div><span>Gerador MAPA-7P</span><small>Cria descrição, comentário fixado, resposta e card para cada vídeo não Short selecionado</small></div>
-        <span className="ci-evidence-badge ci-evidence-direct">HotLink verificado</span>
+        <div><span>Gerador MAPA-7P (em lote)</span><small>Cria descrição, comentário fixado, resposta e card para cada vídeo não Short selecionado</small></div>
+        <span className="ci-evidence-badge ci-evidence-direct">Gera link rastreável</span>
       </header>
       <div className="ci-bulk-summary">
         <div><strong>{eligibleVideos.length}</strong><span>vídeo(s) ainda têm links pendentes</span></div>
@@ -258,6 +261,103 @@ function BulkCampaignGenerator({
   );
 }
 
+// Atalhos da etapa 5: colar o link e pronto. O gerador em lote e o formulário
+// avulso continuam logo abaixo pra quem precisa de mais controle.
+function CriarLinksRapido({ onCreated, onCopy, copied }: {
+  onCreated: () => Promise<void>;
+  onCopy: (key: string, value: string) => Promise<void>;
+  copied: string | null;
+}) {
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [instagramUrl, setInstagramUrl] = useState('');
+  const [busy, setBusy] = useState<'youtube' | 'instagram' | null>(null);
+  const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string; link?: string } | null>(null);
+
+  async function submitYoutube(event: FormEvent) {
+    event.preventDefault();
+    setBusy('youtube');
+    setMessage(null);
+    try {
+      const result = await createLinksFromYoutubeUrl(youtubeUrl);
+      const title = displayText(result.video.title);
+      const parts = [
+        `"${title}" ${result.catalogued ? 'entrou no catálogo' : 'já estava no catálogo'}`,
+        result.created ? `${result.created} link(s) criado(s)` : 'nenhum link novo',
+        result.skipped ? `${result.skipped} já existia(m)` : null,
+        result.video.privacy_status && result.video.privacy_status !== 'public' ? `atenção: vídeo ${result.video.privacy_status === 'private' ? 'privado' : 'não listado'} no YouTube` : null,
+      ].filter(Boolean);
+      setMessage({ tone: 'ok', text: parts.join(' · ') });
+      setYoutubeUrl('');
+      await onCreated();
+    } catch (cause) {
+      setMessage({ tone: 'error', text: cause instanceof Error ? cause.message : 'Não foi possível criar os links.' });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function submitInstagram(event: FormEvent) {
+    event.preventDefault();
+    setBusy('instagram');
+    setMessage(null);
+    try {
+      const result = await createInstagramPostLink(instagramUrl);
+      const link = result.campaign.redirectUrl || result.campaign.directUrl;
+      setMessage({
+        tone: 'ok',
+        text: result.created ? 'Link do post criado. Cole este link na automação do ManyChat desse post:' : 'Esse post já tinha link. É este:',
+        link,
+      });
+      setInstagramUrl('');
+      await onCreated();
+    } catch (cause) {
+      setMessage({ tone: 'error', text: cause instanceof Error ? cause.message : 'Não foi possível criar o link do post.' });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return <section className="ci-campaign-form ci-criar-rapido">
+    <header>
+      <div><span>Colar o link e pronto</span><small>YouTube: cadastra o vídeo (título, data, capa) e cria os 4 links do MAPA. Instagram: um link por post, pro robô entregar na DM.</small></div>
+      <span className="ci-evidence-badge ci-evidence-direct">Gera link rastreável</span>
+    </header>
+    <div className="ci-criar-rapido-grid">
+      <form onSubmit={submitYoutube}>
+        <label>Link do vídeo do YouTube
+          <input
+            type="text"
+            value={youtubeUrl}
+            placeholder="https://www.youtube.com/watch?v=..."
+            required
+            onChange={event => setYoutubeUrl(event.target.value)}
+          />
+        </label>
+        <button type="submit" disabled={busy !== null || !youtubeUrl.trim()}>{busy === 'youtube' ? 'Criando...' : 'Criar os 4 links'}</button>
+      </form>
+      <form onSubmit={submitInstagram}>
+        <label>Link do post ou reel do Instagram
+          <input
+            type="text"
+            value={instagramUrl}
+            placeholder="https://www.instagram.com/p/..."
+            required
+            onChange={event => setInstagramUrl(event.target.value)}
+          />
+        </label>
+        <button type="submit" disabled={busy !== null || !instagramUrl.trim()}>{busy === 'instagram' ? 'Criando...' : 'Criar link do post'}</button>
+      </form>
+    </div>
+    {message && <div className={message.tone === 'ok' ? 'ci-form-message' : 'ci-form-error'} role={message.tone === 'ok' ? 'status' : 'alert'}>
+      {message.text}
+      {message.link && <span className="ci-criar-rapido-link">
+        <code>{message.link}</code>
+        <button type="button" className="ci-copy-button" onClick={() => onCopy('rapido-ig', message.link!)}>{copied === 'rapido-ig' ? 'Copiado' : 'Copiar'}</button>
+      </span>}
+    </div>}
+  </section>;
+}
+
 function initialFilters(today: string): TrackingPageFilters {
   return {
     start: TRACKING_SINCE_DATE, end: today, preset: 'all', channel: 'all', videoId: '', position: 'all', traffic: 'qualified', products: [],
@@ -282,6 +382,7 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
   const [expandedVideoId, setExpandedVideoId] = useState<string | null>(null);
   const [criarAberto, setCriarAberto] = useState(false);
   const criarRef = useRef<HTMLDetailsElement | null>(null);
+  const [linkTests, setLinkTests] = useState<Record<string, LinkTestState>>({});
   const loadSequence = useRef(0);
   const attributionKey = `${start}|${end}|${channel}`;
   const lifetimeKey = `${TRACKING_SINCE_DATE}|${today}|all`;
@@ -425,8 +526,28 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
     }
   }
 
+  async function testLink(item: CampaignPositionItem) {
+    const id = item.campaign.campaign_id;
+    setLinkTests(current => ({ ...current, [id]: { state: 'testing', text: 'testando' } }));
+    try {
+      const check = await testRedirect(item.campaign.slug);
+      setLinkTests(current => ({
+        ...current,
+        [id]: check.ok
+          ? { state: 'ok', text: `respondeu em ${check.latencyMs} ms e manda pra Hotmart com o código` }
+          : { state: 'fail', text: check.detail || `respondeu ${check.httpStatus ?? 'sem status'}` },
+      }));
+    } catch (cause) {
+      setLinkTests(current => ({ ...current, [id]: { state: 'fail', text: cause instanceof Error ? cause.message : 'não foi possível testar' } }));
+    }
+  }
+
   async function toggle(campaign: CampaignDto) {
     const status = campaign.status === 'active' ? 'inactive' : 'active';
+    // Desativar é irreversível pra quem clicar no link até reativar: pede confirmação.
+    if (status === 'inactive' && !window.confirm(
+      `Desativar o link "${campaign.name}"?\n\nQuem clicar nele depois disso vai ver "Link indisponível". O histórico de cliques e vendas continua guardado, e dá pra reativar em Detalhes técnicos.`,
+    )) return;
     try {
       const updated = await updateCampaignStatus(campaign.campaign_id, status);
       setCampaigns(current => current.map(item => item.campaign_id === campaign.campaign_id ? updated : item));
@@ -513,6 +634,8 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
             historyEnd={end}
             onHistoryToggle={() => setExpandedVideoId(current => current === 'instagram' ? null : 'instagram')}
             periodLabel={periodLabel}
+            onTest={role === 'admin' ? testLink : undefined}
+            tests={linkTests}
           />}
           {renderedBundles.map(bundle => <VideoCampaignBundle
             key={bundle.videoId}
@@ -528,6 +651,8 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
             historyEnd={end}
             onHistoryToggle={videoId => setExpandedVideoId(current => current === videoId ? null : videoId)}
             periodLabel={periodLabel}
+            onTest={role === 'admin' ? testLink : undefined}
+            tests={linkTests}
           />)}
         </div>
         {bundlesRestantes > 0 && <button
@@ -545,7 +670,8 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
 
   const criarLinks = role === 'admin'
     ? <details className="ci-tracking-recolhido ci-criar-links-secao" ref={criarRef} open={criarAberto} onToggle={event => setCriarAberto(event.currentTarget.open)}>
-      <summary>Gerador MAPA-7P e Nova campanha<small>também abrem pelo botão "+ Criar links"</small></summary>
+      <summary>Criar links<small>colar link do YouTube ou do Instagram · gerador em lote · campanha avulsa</small></summary>
+      <CriarLinksRapido onCreated={load} onCopy={copy} copied={copied} />
       <BulkCampaignGenerator catalog={catalog} campaigns={campaigns} onCreated={load} />
       <CampaignForm catalog={catalog} onCreated={load} />
     </details>

@@ -11,7 +11,7 @@ function validFingerprint(value: string | null): string | null {
 
 // Cabeçalhos que ajudam a entender por que um clique ficou "unknown"
 // (navegador de verdade sem sec-fetch? webview do app do YouTube?). Guardados
-// 30 dias em ci_click_signals, só pros unknown, nunca com IP.
+// 30 dias em ci_click_signals, só pros unknown, nunca com o endereço de quem clicou.
 const SIGNAL_HEADERS = [
   'user-agent', 'accept', 'accept-language', 'sec-fetch-mode', 'sec-fetch-dest', 'sec-fetch-site', 'sec-fetch-user',
   'sec-ch-ua', 'sec-ch-ua-mobile', 'sec-ch-ua-platform', 'upgrade-insecure-requests', 'x-requested-with',

@@ -150,3 +150,45 @@ test('click não retém URL completa e classifica dispositivo e bot', () => {
   assert.equal(probableBot('facebookexternalhit/1.1'), true);
   assert.equal(probableBot('Mozilla/5.0'), false);
 });
+
+// Etapa 5 (18/09/2026): colar o link em vez de escolher em lista.
+test('reconhece o vídeo do YouTube em qualquer formato de link, e rejeita o que não é vídeo', async () => {
+  const { extractYoutubeVideoId } = await import('../../../supabase/functions/_shared/campaigns.ts');
+  for (const input of [
+    '1Lgfrwn1e_4',
+    'https://www.youtube.com/watch?v=1Lgfrwn1e_4',
+    'https://www.youtube.com/watch?v=1Lgfrwn1e_4&t=120s&list=PL123',
+    'https://youtu.be/1Lgfrwn1e_4?si=abc',
+    'https://m.youtube.com/watch?v=1Lgfrwn1e_4',
+    'https://www.youtube.com/shorts/1Lgfrwn1e_4',
+    'https://www.youtube.com/live/1Lgfrwn1e_4',
+    'youtube.com/watch?v=1Lgfrwn1e_4',
+    '  https://www.youtube.com/watch?v=1Lgfrwn1e_4  ',
+  ]) {
+    assert.equal(extractYoutubeVideoId(input), '1Lgfrwn1e_4', input);
+  }
+  assert.equal(extractYoutubeVideoId('https://www.youtube.com/@brunosallesphd'), null);
+  assert.equal(extractYoutubeVideoId('https://vimeo.com/123456'), null);
+  assert.equal(extractYoutubeVideoId('https://www.youtube.com/watch?v=curto'), null);
+  assert.equal(extractYoutubeVideoId(''), null);
+});
+
+test('reconhece post, reel e vídeo do Instagram e gera código/slug dentro das regras', async () => {
+  const {
+    extractInstagramShortcode, generateInstagramPostSlug, generateInstagramPostTrackingCode, instagramPostUtmContent,
+  } = await import('../../../supabase/functions/_shared/campaigns.ts');
+  assert.equal(extractInstagramShortcode('https://www.instagram.com/p/DAbC_12-xyz/'), 'DAbC_12-xyz');
+  assert.equal(extractInstagramShortcode('https://www.instagram.com/reel/DAbC12xyz/?igsh=abc'), 'DAbC12xyz');
+  assert.equal(extractInstagramShortcode('https://www.instagram.com/brunosallesphd/reel/DAbC12xyz/'), 'DAbC12xyz');
+  assert.equal(extractInstagramShortcode('instagram.com/tv/DAbC12xyz'), 'DAbC12xyz');
+  assert.equal(extractInstagramShortcode('https://www.instagram.com/brunosallesphd/'), null);
+  assert.equal(extractInstagramShortcode('https://www.youtube.com/watch?v=1Lgfrwn1e_4'), null);
+
+  const code = generateInstagramPostTrackingCode('DAbC_12-xyz', 'a1b2');
+  assert.equal(code, 'ig|DAbC12xyz|c|a1b2');
+  assert.ok(code.length <= 30);
+  assert.match(code, /^[A-Za-z0-9|]+$/);
+  assert.equal(generateInstagramPostSlug('DAbC_12-xyz'), 'ig-post-dabc12xyz');
+  assert.match(generateInstagramPostSlug('DAbC_12-xyz'), /^[a-z0-9-]{6,48}$/);
+  assert.equal(instagramPostUtmContent('DAbC_12-xyz'), 'post-DAbC_12-xyz');
+});

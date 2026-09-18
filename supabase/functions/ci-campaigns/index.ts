@@ -2,17 +2,25 @@ import { authorizeMember } from '../_shared/auth.ts';
 import {
   buildDestinationUrl,
   buildRedirectUrl,
+  extractInstagramShortcode,
+  extractYoutubeVideoId,
   generateCampaignSlug,
+  generateInstagramPostSlug,
+  generateInstagramPostTrackingCode,
   generateMapa7pCampaignSlug,
   generateTrackingCode,
+  instagramPostUtmContent,
   parseCampaignBatchInput,
   parseCampaignInput,
+  type CampaignBatchInput,
   type CtaPosition,
   type CampaignRecord,
 } from '../_shared/campaigns.ts';
-import { serviceClient } from '../_shared/client.ts';
+import { edgeRepository, serviceClient } from '../_shared/client.ts';
 import { CommercialIntelligenceError } from '../_shared/errors.ts';
 import { errorResponse, json, preflight, readJson } from '../_shared/http.ts';
+import { parseYoutubeVideoMetadata, parseYoutubeVideoStats, readYoutubeMetadata } from '../_shared/youtube.ts';
+import type { Member } from '../_shared/types.ts';
 
 const CAMPAIGN_FIELDS = [
   'campaign_id', 'tracking_code', 'slug', 'name', 'channel', 'video_id', 'product_id', 'product_name',
@@ -22,6 +30,12 @@ const CAMPAIGN_FIELDS = [
 ].join(',');
 
 const MAPA7P_PRODUCT_ID = '6966825';
+// Mesmos padrões do gerador da tela (BulkCampaignGenerator), pro "colar link"
+// criar exatamente os mesmos 4 links que o gerador criaria.
+const MAPA7P_PRODUCT_NAME = 'MAPA-7P · Mapeamento de Padrões Dopaminérgico';
+const MAPA7P_HOTLINK = 'https://go.hotmart.com/K103806991N';
+const MAPA7P_OFFER_CODE = 'vyqym0gx';
+const MAPA7P_POSITIONS: CtaPosition[] = ['description', 'pinned_comment', 'comment_reply', 'video'];
 
 function campaignSlug(productId: string, videoId: string, position: CtaPosition): string {
   if (productId === MAPA7P_PRODUCT_ID && ['description', 'pinned_comment', 'comment_reply', 'video'].includes(position)) {
@@ -145,6 +159,10 @@ function batchCampaignName(prefix: string, videoId: string, position: CtaPositio
 async function createCampaignBatch(request: Request, client: any, body: Record<string, unknown>) {
   const member = await authorizeMember(request, client, 'admin');
   const input = parseCampaignBatchInput(body);
+  return insertCampaignBatch(client, member, input);
+}
+
+async function insertCampaignBatch(client: any, member: Member, input: CampaignBatchInput) {
   const [videoResult, existingResult] = await Promise.all([
     client.from('ci_youtube_videos').select('video_id').in('video_id', input.videoIds),
     client.from('ci_campaigns').select('video_id,cta_position')
@@ -224,6 +242,107 @@ async function createCampaignBatch(request: Request, client: any, body: Record<s
   };
 }
 
+async function mapaOfferCode(client: any): Promise<string | null> {
+  const product = await client.from('ci_product_catalog').select('product_id,product_name,offer_codes')
+    .eq('product_id', MAPA7P_PRODUCT_ID).maybeSingle();
+  const offers: string[] = Array.isArray(product.data?.offer_codes) ? product.data.offer_codes.map(String) : [];
+  return offers.includes(MAPA7P_OFFER_CODE) ? MAPA7P_OFFER_CODE : offers[0] || null;
+}
+
+// Colar o link do vídeo: cadastra o vídeo no catálogo (título, data, capa,
+// privacidade, views de vida) se ainda não estiver, e cria os 4 links do MAPA.
+async function createLinksFromYoutubeUrl(request: Request, client: any, body: Record<string, unknown>) {
+  const member = await authorizeMember(request, client, 'admin');
+  const videoId = extractYoutubeVideoId(typeof body.url === 'string' ? body.url : '');
+  if (!videoId) {
+    throw new CommercialIntelligenceError('invalid_youtube_url', 'Não reconheci esse link como um vídeo do YouTube.', 400);
+  }
+  let video = await client.from('ci_youtube_videos')
+    .select('video_id,title,published_at,content_type,thumbnail_url,privacy_status')
+    .eq('video_id', videoId).maybeSingle();
+  if (video.error) databaseFailure();
+  let catalogued = false;
+  if (!video.data) {
+    const fetchedAt = new Date().toISOString();
+    const items = await readYoutubeMetadata([videoId]);
+    const metadata = parseYoutubeVideoMetadata(items, fetchedAt);
+    if (!metadata.length) {
+      throw new CommercialIntelligenceError('video_not_found', 'O YouTube não encontrou esse vídeo (link errado ou vídeo apagado).', 404);
+    }
+    const repository = edgeRepository();
+    await repository.upsertYoutubeVideos(metadata);
+    await repository.upsertYoutubeVideoStats(parseYoutubeVideoStats(items, fetchedAt)).catch(() => 0);
+    catalogued = true;
+    video = await client.from('ci_youtube_videos')
+      .select('video_id,title,published_at,content_type,thumbnail_url,privacy_status')
+      .eq('video_id', videoId).maybeSingle();
+    if (video.error || !video.data) databaseFailure();
+  }
+  const result = await insertCampaignBatch(client, member, {
+    namePrefix: 'MAPA-7P',
+    videoIds: [videoId],
+    productId: MAPA7P_PRODUCT_ID,
+    productName: MAPA7P_PRODUCT_NAME,
+    offerCode: await mapaOfferCode(client),
+    destinationUrl: MAPA7P_HOTLINK,
+    trackingParameter: 'src',
+    ctaLabel: 'Conheça o MAPA-7P',
+    positions: MAPA7P_POSITIONS,
+    utmSource: 'youtube',
+    utmMedium: 'organic',
+    utmCampaign: 'mapa7p-youtube',
+    startsAt: new Date().toISOString(),
+    status: 'active',
+  });
+  return { ...result, video: video.data, catalogued };
+}
+
+// Colar o link do post do Instagram: um link só, pro robô (ManyChat) entregar
+// na DM de quem comentar naquele post. Post repetido devolve o link que já existe.
+async function createInstagramPostLink(request: Request, client: any, body: Record<string, unknown>) {
+  const member = await authorizeMember(request, client, 'admin');
+  const shortcode = extractInstagramShortcode(typeof body.url === 'string' ? body.url : '');
+  if (!shortcode) {
+    throw new CommercialIntelligenceError('invalid_instagram_url', 'Não reconheci esse link como um post, reel ou vídeo do Instagram.', 400);
+  }
+  const utmContent = instagramPostUtmContent(shortcode);
+  const existing = await client.from('ci_campaigns').select(CAMPAIGN_FIELDS)
+    .eq('channel', 'instagram').eq('utm_content', utmContent).limit(1).maybeSingle();
+  if (existing.error) databaseFailure();
+  if (existing.data) {
+    return { campaign: campaignDto(existing.data as CampaignRecord), created: 0, skipped: 1, member };
+  }
+  const offerCode = await mapaOfferCode(client);
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    const row = {
+      tracking_code: generateInstagramPostTrackingCode(shortcode),
+      slug: generateInstagramPostSlug(shortcode),
+      name: `MAPA-7P | Instagram | post ${shortcode}`.slice(0, 120),
+      channel: 'instagram',
+      video_id: null,
+      product_id: MAPA7P_PRODUCT_ID,
+      product_name: MAPA7P_PRODUCT_NAME,
+      offer_code: offerCode,
+      destination_url: MAPA7P_HOTLINK,
+      tracking_parameter: 'src',
+      cta_label: `Comentário → DM do post ${shortcode}`.slice(0, 120),
+      cta_position: 'comment_reply',
+      utm_source: 'instagram',
+      utm_medium: 'organic',
+      utm_campaign: 'mapa7p-instagram',
+      utm_content: utmContent,
+      utm_term: null,
+      status: 'active',
+      starts_at: new Date().toISOString(),
+      created_by: member.userId,
+    };
+    const inserted = await client.from('ci_campaigns').insert(row).select(CAMPAIGN_FIELDS).single();
+    if (!inserted.error && inserted.data) return { campaign: campaignDto(inserted.data as CampaignRecord), created: 1, skipped: 0, member };
+    if (inserted.error?.code !== '23505') databaseFailure();
+  }
+  throw new CommercialIntelligenceError('campaign_code_collision', 'Não foi possível gerar um código único. Tente novamente.', 409);
+}
+
 async function updateCampaign(request: Request, client: any) {
   const member = await authorizeMember(request, client, 'admin');
   const body = await readJson(request);
@@ -251,6 +370,28 @@ Deno.serve(async request => {
     }
     if (request.method === 'POST') {
       const body = await readJson(request);
+      if (body.mode === 'youtube_url') {
+        const result = await createLinksFromYoutubeUrl(request, client, body);
+        return json(request, {
+          ok: true,
+          video: result.video,
+          catalogued: result.catalogued,
+          campaigns: result.campaigns,
+          created: result.created,
+          skipped: result.skipped,
+          member: { role: result.member.role },
+        }, 201);
+      }
+      if (body.mode === 'instagram_post') {
+        const result = await createInstagramPostLink(request, client, body);
+        return json(request, {
+          ok: true,
+          campaign: result.campaign,
+          created: result.created,
+          skipped: result.skipped,
+          member: { role: result.member.role },
+        }, 201);
+      }
       if (body.mode === 'bulk') {
         const result = await createCampaignBatch(request, client, body);
         return json(request, {

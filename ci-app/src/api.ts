@@ -332,6 +332,50 @@ export async function createCampaignBatch(input: CampaignBatchInput): Promise<{
   return { campaigns: result.campaigns, created: result.created, skipped: result.skipped };
 }
 
+// Etapa 5 (18/09/2026): colar o link em vez de escolher em lista.
+export interface YoutubeUrlLinksResult {
+  video: { video_id: string; title: string; published_at: string | null; content_type: string; privacy_status?: string | null };
+  catalogued: boolean;
+  campaigns: CampaignDto[];
+  created: number;
+  skipped: number;
+}
+
+export async function createLinksFromYoutubeUrl(url: string): Promise<YoutubeUrlLinksResult> {
+  const result = await request<{ ok: true } & YoutubeUrlLinksResult>('ci-campaigns', {
+    method: 'POST',
+    body: JSON.stringify({ mode: 'youtube_url', url }),
+  });
+  return { video: result.video, catalogued: result.catalogued, campaigns: result.campaigns, created: result.created, skipped: result.skipped };
+}
+
+export async function createInstagramPostLink(url: string): Promise<{ campaign: CampaignDto; created: number; skipped: number }> {
+  const result = await request<{ ok: true; campaign: CampaignDto; created: number; skipped: number }>('ci-campaigns', {
+    method: 'POST',
+    body: JSON.stringify({ mode: 'instagram_post', url }),
+  });
+  return { campaign: result.campaign, created: result.created, skipped: result.skipped };
+}
+
+export interface RedirectCheckResult {
+  slug: string;
+  ok: boolean;
+  httpStatus: number | null;
+  latencyMs: number;
+  fallback: boolean;
+  detail: string | null;
+  location: string | null;
+}
+
+// Botão "Testar": HEAD no link curto pelo servidor (não conta clique, não grava).
+export async function testRedirect(slug: string): Promise<RedirectCheckResult> {
+  const result = await request<{ ok: true; check: RedirectCheckResult }>('ci-redirect-check', {
+    method: 'POST',
+    body: JSON.stringify({ slug, manual: true }),
+  });
+  return result.check;
+}
+
 export async function updateCampaignStatus(campaignId: string, status: Extract<CampaignStatus, 'active' | 'inactive'>): Promise<CampaignDto> {
   const result = await request<{ ok: true; campaign: CampaignDto }>('ci-campaigns', {
     method: 'PATCH',

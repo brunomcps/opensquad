@@ -94,6 +94,9 @@ Deno.serve(async request => {
     await authorizeAdminOrCron(request, client, Deno.env.get('CI_CRON_SECRET'));
     const body = await readJson(request);
     const requestedSlug = typeof body.slug === 'string' && /^[a-z0-9-]{6,48}$/.test(body.slug) ? body.slug : null;
+    // Teste manual (botão "Testar" na tela): só responde, não grava nem mexe
+    // no incidente; a luz do redirecionador é do teste horário.
+    const manual = body.manual === true;
 
     let query = client.from('ci_campaigns').select('slug,tracking_code').eq('status', 'active');
     query = requestedSlug ? query.eq('slug', requestedSlug) : query.eq('channel', 'youtube').order('starts_at', { ascending: false });
@@ -102,6 +105,7 @@ Deno.serve(async request => {
     if (!campaign.data) throw new CommercialIntelligenceError('campaign_not_found', 'Nenhum link ativo pra testar.', 404);
 
     const outcome = await probe(String(campaign.data.slug), String(campaign.data.tracking_code));
+    if (manual) return json(request, { ok: true, check: outcome, manual: true });
 
     const saved = await client.from('ci_redirect_checks').insert({
       slug: outcome.slug,
