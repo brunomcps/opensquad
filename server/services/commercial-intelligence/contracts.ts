@@ -47,6 +47,8 @@ export interface HotmartEventRecord {
   sanitized_payload: Record<string, unknown>;
 }
 
+export type YoutubePrivacyStatus = 'public' | 'unlisted' | 'private';
+
 export interface YoutubeVideoRecord {
   video_id: string;
   title: string;
@@ -54,7 +56,19 @@ export interface YoutubeVideoRecord {
   duration_seconds: number | null;
   content_type: 'long' | 'short' | 'live' | 'unknown';
   thumbnail_url: string | null;
+  // status.privacyStatus da Data API. NULL = desconhecido (metadado não veio).
+  privacy_status: YoutubePrivacyStatus | null;
   metadata_refreshed_at: string;
+}
+
+// Total de vida (statistics.viewCount etc.) gravado separado do metadado para
+// nunca zerar um total já conhecido quando a API não devolve statistics.
+export interface YoutubeVideoStatsRecord {
+  video_id: string;
+  lifetime_views: number;
+  lifetime_likes: number | null;
+  lifetime_comments: number | null;
+  stats_refreshed_at: string;
 }
 
 export interface YoutubeDailyRecord {
@@ -103,7 +117,9 @@ export interface CommercialIntelligenceRepository {
     event: HotmartEventRecord,
     transaction: HotmartTransactionRecord,
   ): Promise<ApplyHotmartEventResult>;
+  listYoutubeVideoIds(): Promise<string[]>;
   upsertYoutubeVideos(rows: YoutubeVideoRecord[]): Promise<number>;
+  upsertYoutubeVideoStats(rows: YoutubeVideoStatsRecord[]): Promise<number>;
   upsertYoutubeDaily(rows: YoutubeDailyRecord[]): Promise<number>;
   createSyncRun(run: SyncRunRecord): Promise<void>;
   finishSyncRun(runId: string, update: SyncRunUpdate): Promise<void>;

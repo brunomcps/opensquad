@@ -27,6 +27,8 @@ export interface CampaignCatalog {
     published_at: string | null;
     content_type: string;
     thumbnail_url: string | null;
+    // 'public' | 'unlisted' | 'private' | null (desconhecido). Vem da sync diária.
+    privacy_status?: string | null;
     stats?: CatalogVideoStats;
   }>;
   products: Array<{

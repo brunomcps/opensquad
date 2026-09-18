@@ -2526,6 +2526,23 @@
   color: var(--accent-gold-dark, var(--text-secondary));
 }
 
+/* Vídeo não listado ou privado no YouTube: o link continua ativo, mas ninguém
+   chega nele pelo canal. Sem a etiqueta o card parecia link morto (18/09). */
+.ci-video-privacy {
+  display: inline-flex;
+  align-items: center;
+  margin: 6px 0 2px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--bg-warning, #fff4dc);
+  border: 1px solid var(--border-warning, #e0b15c);
+  color: var(--text-warning, #7a4b00);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: help;
+}
+
 .ci-event-ledger {
   min-width: 0;
 }

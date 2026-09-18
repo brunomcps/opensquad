@@ -77,9 +77,19 @@ export function CommercialIntelligenceApp() {
       window.dispatchEvent(new CustomEvent('ci:data-updated', { detail: { source } }));
       setActionMessage(`Sincronização ${source === 'youtube' ? 'YouTube' : 'Hotmart'} concluída.`);
     } catch (error) {
-      const message = error instanceof CommercialIntelligenceApiError && error.code === 'sync_in_progress'
-        ? 'Já existe uma sincronização dessa fonte em andamento.'
-        : 'Não foi possível concluir a sincronização.';
+      // O motivo real vai na tela. "Não foi possível concluir" escondeu por dois
+      // meses (16/07 a 18/09/2026) que a chave do YouTube tinha morrido.
+      const code = error instanceof CommercialIntelligenceApiError ? error.code : null;
+      const reasons: Record<string, string> = {
+        sync_in_progress: 'Já existe uma sincronização dessa fonte em andamento.',
+        youtube_auth_failed: 'O YouTube recusou a chave de acesso do painel. É preciso autorizar de novo no Google (chave YOUTUBE_REFRESH_TOKEN).',
+        youtube_api_failed: 'O YouTube não respondeu à consulta. Tente de novo em alguns minutos.',
+        youtube_report_contract_changed: 'O YouTube mudou o formato do relatório; o código da sincronização precisa de ajuste.',
+        hotmart_auth_failed: 'A Hotmart recusou as credenciais do painel (HOTMART_CLIENT_ID / SECRET).',
+        database_error: 'O banco não aceitou a gravação. Veja "Qualidade dos dados".',
+      };
+      const message = (code && reasons[code])
+        || `Não foi possível concluir a sincronização${code ? ` (motivo: ${code})` : ''}.`;
       setActionMessage(message);
     } finally {
       setSyncing(null);

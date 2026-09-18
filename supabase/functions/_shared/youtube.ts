@@ -1,6 +1,8 @@
 import { defaultDateRange, enumerateDates, validateDateRange } from './dates.ts';
 import { CommercialIntelligenceError } from './errors.ts';
-import type { EdgeRepository, SyncRunRecord, YoutubeDailyRecord, YoutubeVideoRecord } from './types.ts';
+import type {
+  EdgeRepository, SyncRunRecord, YoutubeDailyRecord, YoutubePrivacyStatus, YoutubeVideoRecord, YoutubeVideoStatsRecord,
+} from './types.ts';
 
 declare const Deno: { env: { get(name: string): string | undefined } };
 
@@ -74,6 +76,7 @@ export function parseYoutubeVideoMetadata(items: unknown[], fetchedAt: string): 
       ? 'live' : durationSeconds === null ? 'unknown' : durationSeconds <= 180 ? 'short' : 'long';
     const thumbnail = ['maxres', 'standard', 'high', 'medium', 'default']
       .map(key => text(record(thumbnails[key]).url)).find(Boolean) || null;
+    const privacy = String(record(item.status).privacyStatus || '').toLowerCase();
     return [{
       video_id: videoId,
       title: text(snippet.title) || videoId,
@@ -81,7 +84,27 @@ export function parseYoutubeVideoMetadata(items: unknown[], fetchedAt: string): 
       duration_seconds: durationSeconds,
       content_type: contentType,
       thumbnail_url: thumbnail,
+      privacy_status: (['public', 'unlisted', 'private'] as YoutubePrivacyStatus[]).find(value => value === privacy) || null,
       metadata_refreshed_at: fetchedAt,
+    }];
+  });
+}
+
+// Total de vida vem em statistics (part=statistics). Vídeo sem statistics na
+// resposta fica fora da lista: nunca gravar zero por cima de um total conhecido.
+export function parseYoutubeVideoStats(items: unknown[], fetchedAt: string): YoutubeVideoStatsRecord[] {
+  return items.flatMap(itemValue => {
+    const item = record(itemValue);
+    const videoId = text(item.id);
+    const statistics = record(item.statistics);
+    const views = numeric(statistics.viewCount, null);
+    if (!videoId || views === null) return [];
+    return [{
+      video_id: videoId,
+      lifetime_views: views,
+      lifetime_likes: numeric(statistics.likeCount, null),
+      lifetime_comments: numeric(statistics.commentCount, null),
+      stats_refreshed_at: fetchedAt,
     }];
   });
 }
@@ -141,7 +164,7 @@ export async function readYoutubeVideoIds(): Promise<string[]> {
 export async function readYoutubeMetadata(videoIds: string[]): Promise<unknown[]> {
   const url = new URL('https://www.googleapis.com/youtube/v3/videos');
   url.search = new URLSearchParams({
-    part: 'snippet,contentDetails,liveStreamingDetails', id: videoIds.join(','),
+    part: 'snippet,contentDetails,liveStreamingDetails,status,statistics', id: videoIds.join(','),
   }).toString();
   return (await googleJson(url)).items || [];
 }
@@ -187,30 +210,58 @@ export async function syncYoutubeDaily(input: {
   try {
     const sourceVideoIds = await readVideoIds();
     if (!sourceVideoIds.length) warnings.add('youtube_no_uploads');
-    for (let offset = 0; offset < sourceVideoIds.length; offset += 500) {
-      const videoIds = sourceVideoIds.slice(offset, offset + 500);
-      let startIndex = 1;
-      while (true) {
-        const parsed = parseYoutubeDailyReport(await readReport({
-          startDate: range.startDate, endDate: range.endDate, startIndex, maxResults: 200, videoIds,
-        }), now.toISOString());
-        rows.push(...parsed);
-        if (parsed.length < 200) break;
-        startIndex += parsed.length;
+    // Um relatório POR DIA. A paginação por startIndex sobre o período inteiro
+    // pulava 3 dias a cada 8 (auditoria de 18/09/2026: 14, 12 e 24 dias faltando
+    // em três rodadas). Com um dia por chamada, o relatório tem no máximo uma
+    // linha por vídeo e cabe numa página; o laço de startIndex fica só de guarda.
+    for (const day of enumerateDates(range.startDate, range.endDate)) {
+      for (let offset = 0; offset < sourceVideoIds.length; offset += 500) {
+        const videoIds = sourceVideoIds.slice(offset, offset + 500);
+        let startIndex = 1;
+        while (true) {
+          const parsed = parseYoutubeDailyReport(await readReport({
+            startDate: day, endDate: day, startIndex, maxResults: 200, videoIds,
+          }), now.toISOString());
+          rows.push(...parsed);
+          if (parsed.length < 200) break;
+          startIndex += parsed.length;
+        }
       }
     }
-    const videoIds = [...new Set(rows.map(row => row.video_id))];
-    const metadata: YoutubeVideoRecord[] = [];
+    // Mesma combinação vídeo+dia repetida (relatório que devolve dias vizinhos)
+    // fica com a última leitura, e o upsert recebe uma linha por chave.
+    const uniqueRows = [...new Map(rows.map(row => [`${row.video_id}:${row.metric_date}`, row])).values()];
+    rows.length = 0;
+    rows.push(...uniqueRows);
+    // Metadado (título, data, privacidade) e total de vida de TODOS os uploads,
+    // não só dos vídeos com view no período: é isso que mantém título retitulado
+    // e data de vídeo novo em dia, e substitui a tarefa semanal de views totais.
+    const videoIds = [...new Set([...sourceVideoIds, ...rows.map(row => row.video_id)])];
+    const metadataAll: YoutubeVideoRecord[] = [];
+    const statsAll: YoutubeVideoStatsRecord[] = [];
     for (let offset = 0; offset < videoIds.length; offset += 50) {
-      metadata.push(...parseYoutubeVideoMetadata(await readMetadata(videoIds.slice(offset, offset + 50)), now.toISOString()));
+      const items = await readMetadata(videoIds.slice(offset, offset + 50));
+      metadataAll.push(...parseYoutubeVideoMetadata(items, now.toISOString()));
+      statsAll.push(...parseYoutubeVideoStats(items, now.toISOString()));
     }
+    // A lista de uploads do dono traz TUDO (teste, rascunho, short antigo não
+    // listado). Entra no catálogo só o que é público, o que já estava lá, ou o
+    // que teve view no período. Em 18/09/2026 a primeira rodada sem este filtro
+    // empurrou 45 vídeos não listados pra dentro do gerador de links.
+    const existingIds = new Set(await input.repository.listYoutubeVideoIds());
+    const rowIds = new Set(rows.map(row => row.video_id));
+    const belongs = (videoId: string, privacy: YoutubePrivacyStatus | null) =>
+      privacy === 'public' || existingIds.has(videoId) || rowIds.has(videoId);
+    const metadata = metadataAll.filter(video => belongs(video.video_id, video.privacy_status));
+    const stats = statsAll.filter(item => metadata.some(video => video.video_id === item.video_id));
     const metadataIds = new Set(metadata.map(video => video.video_id));
-    const missingMetadata = videoIds.filter(videoId => !metadataIds.has(videoId));
+    const missingMetadata = videoIds.filter(videoId => !metadataAll.some(video => video.video_id === videoId))
+      .filter(videoId => existingIds.has(videoId) || rowIds.has(videoId));
     if (missingMetadata.length) {
       warnings.add(`youtube_metadata_missing:${missingMetadata.length}`);
       metadata.push(...missingMetadata.map(videoId => ({
         video_id: videoId, title: videoId, published_at: null, duration_seconds: null,
-        content_type: 'unknown' as const, thumbnail_url: null, metadata_refreshed_at: now.toISOString(),
+        content_type: 'unknown' as const, thumbnail_url: null, privacy_status: null, metadata_refreshed_at: now.toISOString(),
       })));
     }
     const dates = [...new Set(rows.map(row => row.metric_date))].sort();
@@ -218,6 +269,7 @@ export async function syncYoutubeDaily(input: {
     if (missingDates.length) warnings.add(`youtube_missing_days:${missingDates.length}`);
     const sourceWatermark = dates.at(-1) || null;
     const videosWritten = await input.repository.upsertYoutubeVideos(metadata);
+    await input.repository.upsertYoutubeVideoStats(stats.filter(item => metadataIds.has(item.video_id)));
     const rowsWritten = await input.repository.upsertYoutubeDaily(rows);
     const status = warnings.size ? 'partial' : 'success';
     await input.repository.finishSyncRun(runId, {

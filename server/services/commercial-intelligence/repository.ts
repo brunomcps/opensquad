@@ -8,6 +8,7 @@ import type {
   SyncRunUpdate,
   YoutubeDailyRecord,
   YoutubeVideoRecord,
+  YoutubeVideoStatsRecord,
 } from './contracts.js';
 
 const TERMINAL_HOTMART_STATUSES = new Set<NormalizedHotmartStatus>(['refunded', 'chargeback']);
@@ -148,6 +149,19 @@ export class InMemoryCommercialIntelligenceRepository implements CommercialIntel
   async upsertYoutubeVideos(rows: YoutubeVideoRecord[]): Promise<number> {
     for (const row of rows) {
       this.youtubeVideos.set(row.video_id, structuredClone(row));
+    }
+    return rows.length;
+  }
+
+  async listYoutubeVideoIds(): Promise<string[]> {
+    return [...this.youtubeVideos.keys()];
+  }
+
+  async upsertYoutubeVideoStats(rows: YoutubeVideoStatsRecord[]): Promise<number> {
+    for (const row of rows) {
+      const current = this.youtubeVideos.get(row.video_id);
+      if (!current) continue;
+      this.youtubeVideos.set(row.video_id, { ...current, ...structuredClone(row) });
     }
     return rows.length;
   }

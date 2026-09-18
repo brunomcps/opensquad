@@ -101,6 +101,12 @@ export function VideoCampaignBundle({
           <span className="ci-video-eyebrow">Vídeo do YouTube</span>
           <h3>{title}</h3>
           <code>{bundle.videoId}</code>
+          {catalogVideo?.privacy_status && catalogVideo.privacy_status !== 'public' && <span
+            className="ci-video-privacy"
+            title={catalogVideo.privacy_status === 'private'
+              ? 'Vídeo privado no YouTube: só você vê. Os links continuam ativos, mas ninguém chega neles pelo vídeo.'
+              : 'Vídeo não listado no YouTube: só abre por link direto. Não aparece no canal nem na busca.'}
+          >{catalogVideo.privacy_status === 'private' ? 'Privado no YouTube' : 'Não listado no YouTube'}</span>}
           {(stats || publishedLabel) && <div className="ci-video-audience">
             {stats && <>
               <span className="ci-audience-chip"><strong>{compactNumber(stats.views)}</strong> views</span>

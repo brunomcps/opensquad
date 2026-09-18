@@ -54,7 +54,7 @@ function campaignDto(campaign: CampaignRecord, clicks = 0) {
 async function listCampaigns(client: any) {
   const [campaignResult, videoResult, productResult, clickResult, statsResult] = await Promise.all([
     client.from('ci_campaigns').select(CAMPAIGN_FIELDS).order('created_at', { ascending: false }),
-    client.from('ci_youtube_videos').select('video_id,title,published_at,content_type,thumbnail_url').order('published_at', { ascending: false }),
+    client.from('ci_youtube_videos').select('video_id,title,published_at,content_type,thumbnail_url,privacy_status').order('published_at', { ascending: false }),
     client.from('ci_hotmart_transactions').select('product_id,product_name,offer_code').not('product_id', 'is', null),
     client.from('ci_click_events').select('campaign_id,is_bot'),
     client.from('ci_youtube_video_stats').select('video_id,views,likes,comments'),

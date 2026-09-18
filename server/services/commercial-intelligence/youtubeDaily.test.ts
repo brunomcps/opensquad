@@ -95,6 +95,82 @@ test('sync persiste day,video e mantém dia ausente como lacuna', async () => {
   assert.deepEqual(requestedVideoIds, ['fixture-video-001', 'fixture-video-002']);
 });
 
+test('relatório é pedido um dia por vez, e a duplicata vídeo+dia não conta duas vezes', async () => {
+  const repository = new InMemoryCommercialIntelligenceRepository();
+  const pedidos: Array<{ startDate: string; endDate: string }> = [];
+  const result = await syncYoutubeDaily({
+    repository,
+    startDate: '2026-07-08',
+    endDate: '2026-07-10',
+    now: new Date('2026-07-10T12:00:00.000Z'),
+    readVideoIds: async () => ['fixture-video-001', 'fixture-video-002'],
+    // A fixture devolve os três dias em toda chamada, como um relatório que
+    // ignora o intervalo: o sync precisa deduplicar em vez de gravar 9 linhas.
+    readReport: async input => { pedidos.push({ startDate: input.startDate, endDate: input.endDate }); return report; },
+    readMetadata: async () => metadata,
+  });
+  assert.deepEqual(pedidos, [
+    { startDate: '2026-07-08', endDate: '2026-07-08' },
+    { startDate: '2026-07-09', endDate: '2026-07-09' },
+    { startDate: '2026-07-10', endDate: '2026-07-10' },
+  ]);
+  assert.equal(result.rowsWritten, 3);
+  assert.equal(repository.youtubeDaily.size, 3);
+});
+
+test('metadado, privacidade e total de vida entram pra vídeo público, catalogado ou com view; upload não listado novo fica fora', async () => {
+  const repository = new InMemoryCommercialIntelligenceRepository();
+  // 003 já estava no catálogo (com título velho) e não tem view na janela: tem
+  // que ser atualizado mesmo assim. 004 é upload não listado que nunca entrou e
+  // não teve view: não pode entrar (em 18/09/2026 isso poluiu o gerador de links).
+  await repository.upsertYoutubeVideos([{
+    video_id: 'fixture-video-003', title: 'Título velho', published_at: null, duration_seconds: null,
+    content_type: 'unknown', thumbnail_url: null, privacy_status: null, metadata_refreshed_at: '2026-01-01T00:00:00.000Z',
+  }]);
+  const comStatus = [
+    { ...metadata[0], status: { privacyStatus: 'public' }, statistics: { viewCount: '194201', likeCount: '15851', commentCount: '2075' } },
+    { ...metadata[1], status: { privacyStatus: 'unlisted' } },
+    {
+      id: 'fixture-video-003',
+      snippet: { title: 'Vídeo antigo sem view na janela', publishedAt: '2025-10-14T20:05:27Z', liveBroadcastContent: 'none', thumbnails: {} },
+      contentDetails: { duration: 'PT14M54S' },
+      status: { privacyStatus: 'private' },
+      statistics: { viewCount: '355856' },
+    },
+    {
+      id: 'fixture-video-004',
+      snippet: { title: 'Rascunho não listado', publishedAt: '2025-01-01T00:00:00Z', liveBroadcastContent: 'none', thumbnails: {} },
+      contentDetails: { duration: 'PT1M' },
+      status: { privacyStatus: 'unlisted' },
+      statistics: { viewCount: '12' },
+    },
+  ];
+  const result = await syncYoutubeDaily({
+    repository,
+    startDate: '2026-07-08',
+    endDate: '2026-07-10',
+    now: new Date('2026-07-10T12:00:00.000Z'),
+    readVideoIds: async () => ['fixture-video-001', 'fixture-video-002', 'fixture-video-003', 'fixture-video-004'],
+    readReport: async () => report,
+    readMetadata: async () => comStatus,
+  });
+  assert.equal(result.videosWritten, 3);
+  assert.equal(repository.youtubeVideos.has('fixture-video-004'), false, 'upload não listado sem view e fora do catálogo não entra');
+  const v1 = repository.youtubeVideos.get('fixture-video-001') as unknown as Record<string, unknown>;
+  assert.equal(v1.privacy_status, 'public');
+  assert.equal(v1.lifetime_views, 194201);
+  assert.equal(v1.lifetime_likes, 15851);
+  assert.equal(v1.lifetime_comments, 2075);
+  const v2 = repository.youtubeVideos.get('fixture-video-002') as unknown as Record<string, unknown>;
+  assert.equal(v2.privacy_status, 'unlisted');
+  assert.equal(v2.lifetime_views, undefined, 'sem statistics na resposta, o total de vida não é tocado');
+  const v3 = repository.youtubeVideos.get('fixture-video-003') as unknown as Record<string, unknown>;
+  assert.equal(v3.title, 'Vídeo antigo sem view na janela');
+  assert.equal(v3.privacy_status, 'private');
+  assert.equal(v3.lifetime_views, 355856);
+  assert.equal(v3.lifetime_likes, null);
+});
+
 test('revisão da fonte atualiza a combinação existente', async () => {
   const repository = new InMemoryCommercialIntelligenceRepository();
   await syncYoutubeDaily({

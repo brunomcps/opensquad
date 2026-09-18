@@ -8,6 +8,7 @@ import type {
   SyncRunUpdate,
   YoutubeDailyRecord,
   YoutubeVideoRecord,
+  YoutubeVideoStatsRecord,
 } from './types.ts';
 
 type SupabaseLike = any;
@@ -35,11 +36,39 @@ export class SupabaseEdgeRepository implements EdgeRepository {
     };
   }
 
+  async listYoutubeVideoIds(): Promise<string[]> {
+    const ids: string[] = [];
+    let offset = 0;
+    const pageSize = 1000;
+    while (true) {
+      const { data, error } = await this.client
+        .from('ci_youtube_videos')
+        .select('video_id')
+        .order('video_id', { ascending: true })
+        .range(offset, offset + pageSize - 1);
+      if (error) throw databaseError('listYoutubeVideoIds', error);
+      for (const row of data || []) ids.push(String(row.video_id));
+      if (!data || data.length < pageSize) break;
+      offset += pageSize;
+    }
+    return ids;
+  }
+
   async upsertYoutubeVideos(rows: YoutubeVideoRecord[]): Promise<number> {
     if (!rows.length) return 0;
     const { error } = await this.client.from('ci_youtube_videos').upsert(rows, { onConflict: 'video_id' });
     if (error) throw databaseError('upsertYoutubeVideos', error);
     return rows.length;
+  }
+
+  // Só atualiza o total de vida de vídeo já catalogado. Upsert parcial não
+  // serve: o INSERT do ON CONFLICT exige title NOT NULL antes de achar o
+  // conflito (database_error real em 18/09/2026). A função do banco faz UPDATE.
+  async upsertYoutubeVideoStats(rows: YoutubeVideoStatsRecord[]): Promise<number> {
+    if (!rows.length) return 0;
+    const { data, error } = await this.client.rpc('ci_update_youtube_video_stats', { p_rows: rows });
+    if (error) throw databaseError('ci_update_youtube_video_stats', error);
+    return Number(data) || 0;
   }
 
   async upsertYoutubeDaily(rows: YoutubeDailyRecord[]): Promise<number> {
