@@ -4431,3 +4431,11 @@
   .ci-tracking-secao { flex-direction: column; align-items: flex-start; }
   .ci-bundle-totais { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Link parado (etapa 4): vídeo com volume que parou de receber clique. */
+.ci-video-parado {
+  margin-left: 6px;
+  background: rgba(176, 42, 30, 0.08);
+  border-color: rgba(176, 42, 30, 0.35);
+  color: var(--accent-red);
+}

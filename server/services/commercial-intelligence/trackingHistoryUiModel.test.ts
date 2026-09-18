@@ -7,6 +7,7 @@ import {
   isExpectedHotmartSchedule,
   mergeTrackingEventPages,
   purchaseStatusPresentation,
+  stalledLinkDays,
   TRACKING_SINCE_DATE,
   trackingFiltersKey,
   trackingHealthLights,
@@ -102,7 +103,7 @@ test('luzes de saúde: verde recente, amarelo atrasado, vermelho parado, cinza s
     hotmartScheduleActive: true,
     hotmartScheduleExpression: '40 9 * * *',
   }, now);
-  assert.deepEqual(lights.map(light => [light.key, light.tone]), [['clicks', 'ok'], ['sales', 'warn'], ['reconciliation', 'ok']]);
+  assert.deepEqual(lights.map(light => [light.key, light.tone]), [['clicks', 'ok'], ['sales', 'warn'], ['reconciliation', 'ok'], ['youtube', 'unknown'], ['redirect', 'unknown']]);
   assert.match(lights[0].detail, /^último \d\d\/\d\d \d\d:\d\d$/);
   assert.match(lights[2].detail, /próxima 19\/09 06:40/);
 
@@ -113,8 +114,48 @@ test('luzes de saúde: verde recente, amarelo atrasado, vermelho parado, cinza s
     lastHotmartReconciliationStatus: 'failed',
     nextHotmartReconciliationAt: null,
   }, now);
-  assert.deepEqual(stalled.map(light => light.tone), ['bad', 'unknown', 'bad']);
+  assert.deepEqual(stalled.map(light => light.tone), ['bad', 'unknown', 'bad', 'unknown', 'unknown']);
 });
+
+test('luz do YouTube: atraso de 2-3 dias é normal, sync falhada é vermelho, 4-5 dias é amarelo', () => {
+  const now = Date.parse('2026-09-18T18:00:00.000Z');
+  const hoursAgo = (hours: number) => new Date(now - hours * 3_600_000).toISOString();
+  const base = { lastClickAt: null, lastHotmartWebhookAt: null, lastHotmartReconciliationAt: null, nextHotmartReconciliationAt: null };
+  const light = (extra: Record<string, unknown>) => trackingHealthLights({ ...base, ...extra }, now)[3];
+  const ok = light({ lastYoutubeSyncAt: hoursAgo(2), lastYoutubeSyncStatus: 'partial', lastYoutubeMetricDate: '2026-09-15', youtubeScheduleActive: true });
+  assert.equal(ok.tone, 'ok');
+  assert.match(ok.detail, /métricas até 15\/09 · atraso normal/);
+  assert.equal(light({ lastYoutubeSyncAt: hoursAgo(2), lastYoutubeSyncStatus: 'partial', lastYoutubeMetricDate: '2026-09-13', youtubeScheduleActive: true }).tone, 'warn');
+  assert.equal(light({ lastYoutubeSyncAt: hoursAgo(2), lastYoutubeSyncStatus: 'partial', lastYoutubeMetricDate: '2026-09-10', youtubeScheduleActive: true }).tone, 'bad');
+  assert.equal(light({ lastYoutubeSyncAt: hoursAgo(2), lastYoutubeSyncStatus: 'failed', lastYoutubeMetricDate: '2026-09-15', youtubeScheduleActive: true }).tone, 'bad');
+  assert.equal(light({ lastYoutubeSyncAt: hoursAgo(40), lastYoutubeSyncStatus: 'success', lastYoutubeMetricDate: '2026-09-16', youtubeScheduleActive: true }).tone, 'warn', 'sync parada há mais de 30 h');
+});
+
+test('luz do redirecionador: verde testado na última hora, amarelo em plano B ou teste atrasado, vermelho parado', () => {
+  const now = Date.parse('2026-09-18T18:00:00.000Z');
+  const hoursAgo = (hours: number) => new Date(now - hours * 3_600_000).toISOString();
+  const base = { lastClickAt: null, lastHotmartWebhookAt: null, lastHotmartReconciliationAt: null, nextHotmartReconciliationAt: null };
+  const light = (extra: Record<string, unknown>) => trackingHealthLights({ ...base, ...extra }, now)[4];
+  const ok = light({ lastRedirectCheckAt: hoursAgo(0.5), lastRedirectCheckOk: true, lastRedirectCheckLatencyMs: 312 });
+  assert.equal(ok.tone, 'ok');
+  assert.match(ok.detail, /respondeu em 312 ms/);
+  assert.equal(light({ lastRedirectCheckAt: hoursAgo(4), lastRedirectCheckOk: true }).tone, 'warn');
+  assert.equal(light({ lastRedirectCheckAt: hoursAgo(0.5), lastRedirectCheckOk: false, lastRedirectCheckFallback: true, lastRedirectCheckDetail: 'plano B ativo' }).tone, 'warn');
+  const bad = light({ lastRedirectCheckAt: hoursAgo(0.5), lastRedirectCheckOk: false, lastRedirectCheckDetail: 'sem resposta em 10 s' });
+  assert.equal(bad.tone, 'bad');
+  assert.match(bad.detail, /sem resposta em 10 s/);
+  assert.equal(light({}).tone, 'unknown');
+});
+
+test('link parado: só com 30+ cliques na vida e 14+ dias sem clique', () => {
+  const now = Date.parse('2026-09-18T18:00:00.000Z');
+  const daysAgo = (days: number) => new Date(now - days * 86_400_000).toISOString();
+  assert.equal(stalledLinkDays(daysAgo(20), 100, now), 20);
+  assert.equal(stalledLinkDays(daysAgo(20), 10, now), null, 'pouco volume: silêncio é normal');
+  assert.equal(stalledLinkDays(daysAgo(5), 100, now), null, 'ainda recente');
+  assert.equal(stalledLinkDays(null, 100, now), null);
+});
+
 
 test('trocar o canal muda a chave da consulta (resposta do YouTube não serve pro Instagram)', () => {
   const base = { start: '2026-07-14', end: '2026-09-18', granularity: 'day', videoId: null, position: 'all', traffic: 'qualified' };

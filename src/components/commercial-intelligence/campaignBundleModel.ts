@@ -51,7 +51,7 @@ export interface CampaignBundleTotals extends CampaignPositionMetrics {
   // null = poucos cliques pra afirmar (ver CONVERSION_MIN_CLICKS)
   conversion: number | null;
   // Mesmos números sem filtro de período; null quando o período já é "desde o início".
-  lifetime: { clicks: number; sales: number; additionalSales: number; netAfterFees: number } | null;
+  lifetime: { clicks: number; sales: number; additionalSales: number; netAfterFees: number; lastClickAt: string | null } | null;
 }
 
 export interface VideoCampaignBundleModel {
@@ -195,8 +195,9 @@ function bundleTotals(
         sales: result.sales + (stats?.sales || 0),
         additionalSales: result.additionalSales + (stats?.additionalSales || 0),
         netAfterFees: roundMoney(result.netAfterFees + (stats?.orderNetAfterFees || 0)),
+        lastClickAt: laterOf(result.lastClickAt, stats?.lastQualifiedClickAt || stats?.lastClickAt || null),
       };
-    }, { clicks: 0, sales: 0, additionalSales: 0, netAfterFees: 0 });
+    }, { clicks: 0, sales: 0, additionalSales: 0, netAfterFees: 0, lastClickAt: null as string | null });
   }
   return {
     ...totals,

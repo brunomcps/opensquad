@@ -129,3 +129,65 @@ test('Worker fecha métodos e falhas do backend sem vazar detalhes', async () =>
   const broken = await handleRequest(validRequest(), env, async () => new Response(null, { status: 302 }));
   assert.equal(broken.status, 502);
 });
+
+// Plano B (18/09/2026): o visitante nunca fica no 502. Se o servidor de cliques
+// cair, o link manda direto pra Hotmart com src=fb-<slug>, e avisa no cabeçalho.
+test('Worker usa o plano B quando o backend cai, sem perder o visitante nem esconder que foi plano B', async () => {
+  const fallbackEnv: WorkerEnv = { ...env, FALLBACK_DESTINATION_URL: 'https://go.hotmart.com/K103806991N' };
+  const validRequest = (method = 'GET') => new Request('https://link.example/m7p/0okxyzoxzuk-d', {
+    method,
+    headers: { 'user-agent': 'Mozilla/5.0', 'cf-connecting-ip': '203.0.113.10' },
+  });
+
+  const unreachable = await handleRequest(validRequest(), fallbackEnv, async () => { throw new Error('rede'); });
+  assert.equal(unreachable.status, 302);
+  assert.equal(unreachable.headers.get('x-ci-fallback'), 'upstream_unreachable');
+  const location = new URL(unreachable.headers.get('location') || '');
+  assert.equal(location.hostname, 'go.hotmart.com');
+  assert.equal(location.searchParams.get('src'), 'fb-0okxyzoxzuk-d');
+  assert.equal(location.searchParams.get('sck'), 'fb-0okxyzoxzuk-d');
+  assert.equal(location.searchParams.get('utm_source'), 'link-fallback');
+
+  const broken = await handleRequest(validRequest(), fallbackEnv, async () => new Response('erro', { status: 500 }));
+  assert.equal(broken.status, 302);
+  assert.equal(broken.headers.get('x-ci-fallback'), 'upstream_error');
+
+  const head = await handleRequest(validRequest('HEAD'), fallbackEnv, async () => new Response(null, { status: 503 }));
+  assert.equal(head.status, 302, 'o teste horário (HEAD) também vê o plano B');
+  assert.equal(head.headers.get('x-ci-fallback'), 'upstream_error');
+  assert.equal(await head.text(), '');
+
+  const missingSecret = await handleRequest(validRequest(), { ...fallbackEnv, CLICK_INGEST_SECRET: '' }, async () => new Response(null, { status: 302 }));
+  assert.equal(missingSecret.status, 302);
+  assert.equal(missingSecret.headers.get('x-ci-fallback'), 'secret_missing');
+
+  // Link desativado continua 404: o plano B não ressuscita link que você desligou.
+  const inactive = await handleRequest(validRequest(), fallbackEnv, async () => new Response(null, { status: 404 }));
+  assert.equal(inactive.status, 404);
+
+  // Sem FALLBACK_DESTINATION_URL configurada, o comportamento antigo (502) continua.
+  const noFallback = await handleRequest(validRequest(), env, async () => { throw new Error('rede'); });
+  assert.equal(noFallback.status, 502);
+});
+
+test('Worker encaminha os sinais extras do navegador (pra classificar os cliques unknown) e nunca o IP', async () => {
+  await handleRequest(new Request('https://link.example/m7p/0okxyzoxzuk-d', {
+    headers: {
+      'user-agent': 'Mozilla/5.0', 'cf-connecting-ip': '203.0.113.10',
+      'sec-ch-ua': '"Chromium";v="140"', 'sec-ch-ua-mobile': '?1', 'sec-ch-ua-platform': '"Android"',
+      'sec-fetch-site': 'cross-site', 'sec-fetch-user': '?1', 'upgrade-insecure-requests': '1', 'x-requested-with': 'com.google.android.youtube',
+      'x-forwarded-for': '203.0.113.10', cookie: 'segredo=1',
+    },
+  }), env, async (_input, init) => {
+    const headers = new Headers(init?.headers);
+    assert.equal(headers.get('sec-ch-ua'), '"Chromium";v="140"');
+    assert.equal(headers.get('sec-ch-ua-mobile'), '?1');
+    assert.equal(headers.get('sec-ch-ua-platform'), '"Android"');
+    assert.equal(headers.get('sec-fetch-site'), 'cross-site');
+    assert.equal(headers.get('x-requested-with'), 'com.google.android.youtube');
+    assert.equal(headers.get('cf-connecting-ip'), null);
+    assert.equal(headers.get('x-forwarded-for'), null);
+    assert.equal(headers.get('cookie'), null);
+    return new Response(null, { status: 302, headers: { location: 'https://go.hotmart.com/K103806991N?src=fixture' } });
+  });
+});

@@ -9,6 +9,36 @@ function validFingerprint(value: string | null): string | null {
   return /^[a-f0-9]{64}$/.test(normalized) ? normalized : null;
 }
 
+// Cabeçalhos que ajudam a entender por que um clique ficou "unknown"
+// (navegador de verdade sem sec-fetch? webview do app do YouTube?). Guardados
+// 30 dias em ci_click_signals, só pros unknown, nunca com IP.
+const SIGNAL_HEADERS = [
+  'user-agent', 'accept', 'accept-language', 'sec-fetch-mode', 'sec-fetch-dest', 'sec-fetch-site', 'sec-fetch-user',
+  'sec-ch-ua', 'sec-ch-ua-mobile', 'sec-ch-ua-platform', 'upgrade-insecure-requests', 'x-requested-with',
+] as const;
+
+function collectSignals(request: Request): Record<string, string> {
+  const signals: Record<string, string> = {};
+  for (const name of SIGNAL_HEADERS) {
+    const value = request.headers.get(name);
+    if (value) signals[name] = value.slice(0, 300);
+  }
+  return signals;
+}
+
+function persistUnknownClickSignals(client: any, request: Request, clickId: number) {
+  const task = client.from('ci_click_signals')
+    .insert({ click_id: clickId, signals: collectSignals(request) })
+    .then((result: { error: unknown }) => {
+      if (result.error) console.warn(JSON.stringify({ event: 'click_signals_not_persisted', clickId }));
+    })
+    .catch(() => undefined);
+  // Não atrasa o redirecionamento: o runtime termina a gravação depois da resposta.
+  const runtime = (globalThis as { EdgeRuntime?: { waitUntil?: (promise: Promise<unknown>) => void } }).EdgeRuntime;
+  if (runtime?.waitUntil) runtime.waitUntil(task);
+  return task;
+}
+
 async function recordOperationalFailure(client: any, campaignId: string, code: string | null) {
   const operational = await client.from('ci_operational_events').insert({
     event_type: 'click_persistence_failed',
@@ -83,6 +113,8 @@ Deno.serve(async request => {
             result.data.campaign_id,
             click.error?.code || 'empty_click_rpc_result',
           );
+        } else if (click.data[0]?.recorded_traffic_classification === 'unknown' && click.data[0]?.recorded_click_id) {
+          persistUnknownClickSignals(client, request, Number(click.data[0].recorded_click_id));
         }
       } catch (cause) {
         await recordOperationalFailure(client, result.data.campaign_id, cause instanceof Error ? cause.name : null).catch(() => undefined);

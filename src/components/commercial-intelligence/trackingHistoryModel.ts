@@ -121,7 +121,7 @@ export function isExpectedHotmartSchedule(active: boolean | undefined, expressio
 export type TrackingHealthTone = 'ok' | 'warn' | 'bad' | 'unknown';
 
 export interface TrackingHealthLight {
-  key: 'clicks' | 'sales' | 'reconciliation';
+  key: 'clicks' | 'sales' | 'reconciliation' | 'youtube' | 'redirect';
   label: string;
   tone: TrackingHealthTone;
   detail: string;
@@ -138,6 +138,16 @@ interface HealthFreshness {
   nextHotmartReconciliationAt: string | null;
   hotmartScheduleActive?: boolean;
   hotmartScheduleExpression?: string | null;
+  lastYoutubeSyncAt?: string | null;
+  lastYoutubeSyncStatus?: string | null;
+  lastYoutubeMetricDate?: string | null;
+  youtubeScheduleActive?: boolean;
+  lastRedirectCheckAt?: string | null;
+  lastRedirectCheckOk?: boolean | null;
+  lastRedirectCheckLatencyMs?: number | null;
+  lastRedirectCheckFallback?: boolean;
+  lastRedirectCheckDetail?: string | null;
+  redirectScheduleActive?: boolean;
 }
 
 function ageHours(value: string | null | undefined, now: number): number | null {
@@ -146,8 +156,13 @@ function ageHours(value: string | null | undefined, now: number): number | null 
   return Number.isNaN(parsed) ? null : (now - parsed) / 3_600_000;
 }
 
-// Luzes de saúde da etapa 3: cliques, vendas e conferência Hotmart. A etapa 4
-// acrescenta YouTube e redirecionador, que dependem de dado novo no servidor.
+function daysBetweenDates(earlier: string, later: string): number {
+  return Math.round((Date.parse(`${later}T12:00:00Z`) - Date.parse(`${earlier}T12:00:00Z`)) / 86_400_000);
+}
+
+// As 5 luzes de saúde: cliques, vendas, conferência Hotmart, YouTube e
+// redirecionador. Verde = normal, amarelo = atrasado, vermelho = parado,
+// cinza = ainda sem dado.
 export function trackingHealthLights(freshness: HealthFreshness, now = Date.now()): TrackingHealthLight[] {
   const clickAt = freshness.lastQualifiedClickAt || freshness.lastClickAt;
   const clickAge = ageHours(clickAt, now);
@@ -190,7 +205,66 @@ export function trackingHealthLights(freshness: HealthFreshness, now = Date.now(
     hint: 'Todo dia às 06:40 o painel confere na Hotmart se alguma venda, reembolso ou chargeback passou batido. Verde: conferência completa nas últimas 36 h.',
   };
 
-  return [clicks, sales, reconciliation];
+  // YouTube: o Analytics entrega as métricas com 2-3 dias de atraso, então
+  // "parcial" é o normal; só a sincronização falhar (ou parar) é problema.
+  const today = brtDateInput(new Date(now));
+  const metricDate = freshness.lastYoutubeMetricDate ? String(freshness.lastYoutubeMetricDate).slice(0, 10) : null;
+  const metricLag = metricDate ? daysBetweenDates(metricDate, today) : null;
+  const syncAge = ageHours(freshness.lastYoutubeSyncAt, now);
+  let youtubeTone: TrackingHealthTone = 'unknown';
+  if (freshness.lastYoutubeSyncStatus === 'failed') youtubeTone = 'bad';
+  else if (metricLag !== null) youtubeTone = metricLag <= 3 ? 'ok' : metricLag <= 5 ? 'warn' : 'bad';
+  if (youtubeTone === 'ok' && (syncAge === null || syncAge > 30 || freshness.youtubeScheduleActive === false)) youtubeTone = 'warn';
+  const youtube: TrackingHealthLight = {
+    key: 'youtube',
+    label: 'YouTube',
+    tone: youtubeTone,
+    detail: [
+      metricDate ? `métricas até ${shortDate(metricDate)}` : 'sem métrica diária',
+      freshness.lastYoutubeSyncStatus === 'failed'
+        ? `última sincronização falhou${freshness.lastYoutubeSyncAt ? ` ${formatBrtShort(freshness.lastYoutubeSyncAt)}` : ''}`
+        : metricLag !== null && metricLag <= 3
+          ? 'atraso normal de 2–3 dias'
+          : freshness.lastYoutubeSyncAt ? `última sincronização ${formatBrtShort(freshness.lastYoutubeSyncAt)}` : 'nunca sincronizou',
+      freshness.youtubeScheduleActive === false ? 'automação desligada' : null,
+    ].filter(Boolean).join(' · '),
+    hint: 'Views, likes e comentários vêm do YouTube Analytics todo dia às 06:10. O YouTube libera cada dia com 2 a 3 dias de atraso: isso é normal. Amarelo: 4-5 dias sem métrica. Vermelho: sincronização falhou ou mais de 5 dias parada.',
+  };
+
+  // Redirecionador: HEAD no link curto a cada hora (não conta clique).
+  const checkAge = ageHours(freshness.lastRedirectCheckAt, now);
+  let redirectTone: TrackingHealthTone = 'unknown';
+  if (checkAge !== null && typeof freshness.lastRedirectCheckOk === 'boolean') {
+    if (!freshness.lastRedirectCheckOk) redirectTone = freshness.lastRedirectCheckFallback ? 'warn' : 'bad';
+    else redirectTone = checkAge <= 2 ? 'ok' : checkAge <= 6 ? 'warn' : 'bad';
+  }
+  const redirect: TrackingHealthLight = {
+    key: 'redirect',
+    label: 'Redirecionador',
+    tone: redirectTone,
+    detail: checkAge === null
+      ? 'ainda não testado'
+      : freshness.lastRedirectCheckOk
+        ? `testado ${formatBrtShort(freshness.lastRedirectCheckAt)} · respondeu${freshness.lastRedirectCheckLatencyMs ? ` em ${Math.round(freshness.lastRedirectCheckLatencyMs)} ms` : ''}${checkAge > 2 ? ' · teste atrasado' : ''}`
+        : `falhou ${formatBrtShort(freshness.lastRedirectCheckAt)}${freshness.lastRedirectCheckDetail ? ` · ${freshness.lastRedirectCheckDetail}` : ''}`,
+    hint: 'Todo minuto 17 de cada hora o painel testa o link curto (link.brunosallesphd.com.br/m7p/...) sem contar clique e confere se ele manda pra Hotmart com o código de rastreio. Amarelo: teste atrasado ou plano B ativo (o link manda pra Hotmart sem contar clique). Vermelho: o link não respondeu.',
+  };
+
+  return [clicks, sales, reconciliation, youtube, redirect];
+}
+
+// Link parado: vídeo que já teve volume de cliques e parou de receber. Quase
+// sempre é o link que saiu da descrição/comentário fixado, ou o vídeo que foi
+// pra não listado. Só avisa com volume (30+ cliques) e silêncio de 14+ dias.
+export const STALLED_LINK_MIN_CLICKS = 30;
+export const STALLED_LINK_MIN_DAYS = 14;
+
+export function stalledLinkDays(lastClickAt: string | null | undefined, lifetimeClicks: number, now = Date.now()): number | null {
+  if (!lastClickAt || lifetimeClicks < STALLED_LINK_MIN_CLICKS) return null;
+  const parsed = Date.parse(lastClickAt);
+  if (Number.isNaN(parsed)) return null;
+  const days = Math.floor((now - parsed) / 86_400_000);
+  return days >= STALLED_LINK_MIN_DAYS ? days : null;
 }
 
 export function trackingFiltersKey(filters: {

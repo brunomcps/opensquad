@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { CampaignCatalog, CampaignDto, MemberRole } from '../../../ci-app/src/api';
 import type { CampaignBundleTotals, CampaignPositionItem, VideoCampaignBundleModel } from './campaignBundleModel';
 import { TrackingHistoryExplorer } from './TrackingHistoryExplorer';
-import { CONVERSION_MIN_CLICKS, formatBrtShort } from './trackingHistoryModel';
+import { CONVERSION_MIN_CLICKS, formatBrtShort, stalledLinkDays } from './trackingHistoryModel';
 
 function money(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -208,6 +208,10 @@ export function VideoCampaignBundle({
   }).format(value);
   const allKey = `all-${bundle.videoId}`;
   const linkCount = bundle.items.filter(item => item.campaign.redirectUrl).length;
+  const lifetimeClicks = bundle.totals.lifetime?.clicks ?? bundle.totals.clicks;
+  const lastClickEver = bundle.totals.lifetime?.lastClickAt ?? bundle.totals.lastClickAt;
+  const isPublic = !catalogVideo?.privacy_status || catalogVideo.privacy_status === 'public';
+  const stalledDays = isPublic ? stalledLinkDays(lastClickEver, lifetimeClicks) : null;
 
   return <article className="ci-video-bundle" data-video-id={bundle.videoId}>
     <header className="ci-video-bundle-header">
@@ -223,6 +227,10 @@ export function VideoCampaignBundle({
               ? 'Vídeo privado no YouTube: só você vê. Os links continuam ativos, mas ninguém chega neles pelo vídeo.'
               : 'Vídeo não listado no YouTube: só abre por link direto. Não aparece no canal nem na busca.'}
           >{catalogVideo.privacy_status === 'private' ? 'Privado no YouTube' : 'Não listado no YouTube'}</span>}
+          {stalledDays !== null && <span
+            className="ci-video-privacy ci-video-parado"
+            title={`Este vídeo já teve ${lifetimeClicks.toLocaleString('pt-BR')} cliques e não recebe nenhum há ${stalledDays} dias. Confere se o link continua na descrição e no comentário fixado.`}
+          >Sem clique há {stalledDays} dias</span>}
           {(stats || publishedLabel) && <div className="ci-video-audience">
             {stats && <>
               <span className="ci-audience-chip"><strong>{compactNumber(stats.views)}</strong> views</span>

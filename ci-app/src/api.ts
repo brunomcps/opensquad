@@ -98,6 +98,19 @@ export interface TrackingFreshnessDto {
   unresolvedOperationalFailures?: number;
   hotmartScheduleActive?: boolean;
   hotmartScheduleExpression?: string | null;
+  // Etapa 4 (18/09/2026): luzes de YouTube e redirecionador.
+  lastYoutubeSyncAt?: string | null;
+  lastYoutubeSyncStatus?: string | null;
+  lastYoutubeMetricDate?: string | null;
+  youtubeScheduleActive?: boolean;
+  lastRedirectCheckAt?: string | null;
+  lastRedirectCheckOk?: boolean | null;
+  lastRedirectCheckStatus?: number | null;
+  lastRedirectCheckLatencyMs?: number | null;
+  lastRedirectCheckFallback?: boolean;
+  lastRedirectCheckDetail?: string | null;
+  lastRedirectCheckSlug?: string | null;
+  redirectScheduleActive?: boolean;
 }
 
 export interface TrackingChannelTotalsDto {

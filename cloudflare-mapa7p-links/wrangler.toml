@@ -8,3 +8,5 @@ routes = [
 
 [vars]
 SUPABASE_REDIRECT_URL = "https://vdaualgktroizsttbrfh.supabase.co/functions/v1/ci-campaign-redirect"
+# Plano B (18/09/2026): destino direto quando o servidor de cliques cai. Vai com src=fb-<slug>.
+FALLBACK_DESTINATION_URL = "https://go.hotmart.com/K103806991N"

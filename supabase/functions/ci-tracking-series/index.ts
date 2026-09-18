@@ -113,6 +113,19 @@ function freshness(data: Record<string, any> | null, consultedAt: string) {
       : null,
     latestOperationalFailureAt: data?.latest_operational_failure_at || null,
     unresolvedOperationalFailures: number(data?.unresolved_operational_failures),
+    // Etapa 4 (18/09/2026): luzes de YouTube e redirecionador.
+    lastYoutubeSyncAt: data?.last_youtube_sync_at || null,
+    lastYoutubeSyncStatus: data?.last_youtube_sync_status || null,
+    lastYoutubeMetricDate: data?.last_youtube_metric_date || null,
+    youtubeScheduleActive: data?.youtube_schedule_active === true,
+    lastRedirectCheckAt: data?.last_redirect_check_at || null,
+    lastRedirectCheckOk: typeof data?.last_redirect_check_ok === 'boolean' ? data.last_redirect_check_ok : null,
+    lastRedirectCheckStatus: data?.last_redirect_check_status ?? null,
+    lastRedirectCheckLatencyMs: data?.last_redirect_check_latency_ms ?? null,
+    lastRedirectCheckFallback: data?.last_redirect_check_fallback === true,
+    lastRedirectCheckDetail: data?.last_redirect_check_detail || null,
+    lastRedirectCheckSlug: data?.last_redirect_check_slug || null,
+    redirectScheduleActive: data?.redirect_schedule_active === true,
   };
 }
 

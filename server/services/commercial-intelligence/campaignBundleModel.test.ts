@@ -164,7 +164,7 @@ test('card traz devolvidas, moeda estrangeira, último clique, conversão com vo
   assert.equal(bundle.totals.foreignSales, 1);
   assert.equal(bundle.totals.lastClickAt, '2026-09-18T17:37:00.000Z', 'o mais recente entre os links');
   assert.equal(bundle.totals.conversion, 0.05, 'só o local com clique medido entra: 3 vendas / 60 cliques');
-  assert.deepEqual(bundle.totals.lifetime, { clicks: 640, sales: 32, additionalSales: 0, netAfterFees: 3200 });
+  assert.deepEqual(bundle.totals.lifetime, { clicks: 640, sales: 32, additionalSales: 0, netAfterFees: 3200, lastClickAt: null });
 
   const [technical] = buildVideoCampaignBundles(campaigns, videos, period, { traffic: 'technical' });
   assert.equal(technical.totals.clicks, 34, '(90-60) + (4-0) cliques técnicos');
