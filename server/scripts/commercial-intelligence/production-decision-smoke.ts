@@ -177,13 +177,13 @@ try {
   const desktop = await browser.newPage({ viewport: { width: 1366, height: 768 } });
   await prepare(desktop);
   const desktopResult = await capture(desktop, 'production-desktop-1366', campaignName);
-  if (desktopResult.overflow > 1 || desktopResult.visibleTabs !== 8) throw new Error('Production desktop navigation or horizontal layout failed.');
+  if (desktopResult.overflow > 1 || desktopResult.visibleTabs !== 11) throw new Error('Production desktop navigation or horizontal layout failed.');
   if (desktopResult.selectedProductLabel?.includes('&amp;')) throw new Error('Production desktop still exposes an encoded HTML entity in the product label.');
 
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await prepare(mobile);
   const mobileResult = await capture(mobile, 'production-mobile-390', campaignName);
-  if (mobileResult.overflow > 1 || mobileResult.visibleTabs !== 8) throw new Error('Production mobile navigation or horizontal layout failed.');
+  if (mobileResult.overflow > 1 || mobileResult.visibleTabs !== 11) throw new Error('Production mobile navigation or horizontal layout failed.');
 
   report = {
     ok: true,
