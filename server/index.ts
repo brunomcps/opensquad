@@ -29,6 +29,9 @@ import catalogoRouter from './routes/catalogo.js';
 import nicheRadarRouter from './routes/nicheRadar.js';
 import instagramDmRouter from './routes/instagramDm.js';
 import commercialIntelligenceRouter from './routes/commercialIntelligence.js';
+import manychatRouter from './routes/manychat.js';
+import { igResponderRouter } from './routes/igResponder.js';
+import { startIgResponderCron } from './services/igResponder.js';
 import { startRadarCron } from './services/nicheRadar/cron.js';
 import { startBRollWatcher } from './services/brollWatcher.js';
 import { refreshTokenIfNeeded } from './services/instagram.js';
@@ -67,6 +70,10 @@ if (process.env.NODE_ENV === 'production' && process.env.AUTH_USERS) {
       || req.path === '/api/health'
       || req.path === '/api/instagram-dm/webhook'
       || req.path === '/api/commercial-intel/hotmart/webhook'
+      // esteira de DM do ManyChat: o ManyChat e o Telegram não sabem Basic Auth.
+      // Essas rotas se protegem sozinhas com o SYNC_PUSH_SECRET (ver routes/manychat.ts).
+      || req.path === '/api/manychat/inbox'
+      || req.path === '/api/manychat/tg-callback'
       || req.path.startsWith('/api/telegram/')
       || req.path.startsWith('/favicon')
     ) return next();
@@ -118,6 +125,8 @@ app.use('/api/catalogo', catalogoRouter);
 app.use('/api/niche-radar', nicheRadarRouter);
 app.use('/api/instagram-dm', instagramDmRouter);
 app.use('/api/commercial-intel', commercialIntelligenceRouter);
+app.use('/api/manychat', manychatRouter);
+app.use('/api/ig-responder', igResponderRouter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, timestamp: new Date().toISOString() });
@@ -140,4 +149,5 @@ app.listen(PORT, async () => {
   loadCatalog().catch(e => console.error('[Catalogo] Initial load failed:', e.message));
   loadAgents().catch(e => console.error('[AgentLoader] Initial load failed:', e.message));
   startRadarCron();
+  startIgResponderCron();
 });
