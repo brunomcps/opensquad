@@ -108,11 +108,13 @@ test('disponibilidade do gráfico depende dos valores e reconhece adicional e am
   const zero = {
     bucketStart: '2026-07-15T03:00:00.000Z',
     clicks: 0, sales: 0, revenue: 0,
-    clickDescription: 0, clickPinned: 0, clickReply: 0, clickVideo: 0, clickOther: 0,
-    saleDescription: 0, salePinned: 0, saleReply: 0, saleVideo: 0,
+    clickDescription: 0, clickPinned: 0, clickReply: 0, clickVideo: 0, clickInstagram: 0, clickOther: 0, clickYoutube: 0,
+    saleDescription: 0, salePinned: 0, saleReply: 0, saleVideo: 0, saleInstagram: 0, saleYoutube: 0,
     saleAdditional: 0, saleUnattributed: 0, saleAmbiguous: 0,
   };
   assert.deepEqual(trackingChartAvailability([zero]), { hasClicks: false, hasSales: false });
+  assert.deepEqual(trackingChartAvailability([{ ...zero, clickInstagram: 1 }]), { hasClicks: true, hasSales: false });
+  assert.deepEqual(trackingChartAvailability([{ ...zero, saleInstagram: 1 }]), { hasClicks: false, hasSales: true });
   assert.deepEqual(trackingChartAvailability([{ ...zero, clickReply: 1 }]), { hasClicks: true, hasSales: false });
   assert.deepEqual(trackingChartAvailability([{ ...zero, clickVideo: 1 }]), { hasClicks: true, hasSales: false });
   assert.deepEqual(trackingChartAvailability([{ ...zero, saleVideo: 1 }]), { hasClicks: false, hasSales: true });

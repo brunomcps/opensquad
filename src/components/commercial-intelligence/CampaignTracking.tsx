@@ -11,9 +11,10 @@ import {
   type CampaignDto,
   type MemberRole,
 } from '../../../ci-app/src/api';
-import { buildVideoCampaignBundles } from './campaignBundleModel';
-import { TrackingHistoryExplorer } from './TrackingHistoryExplorer';
-import { brtDateInput } from './trackingHistoryModel';
+import { buildInstagramCampaignBundle, buildVideoCampaignBundles } from './campaignBundleModel';
+import { InstagramCampaignBundle } from './InstagramCampaignBundle';
+import { TrackingHistoryExplorer, type TrackingPageFilters } from './TrackingHistoryExplorer';
+import { brtDateInput, TRACKING_SINCE_DATE, trackingPeriodLabel } from './trackingHistoryModel';
 import { VideoCampaignBundle } from './VideoCampaignBundle';
 
 const POSITION_LABELS: Record<CtaPosition, string> = {
@@ -22,6 +23,7 @@ const POSITION_LABELS: Record<CtaPosition, string> = {
   comment_reply: 'Resposta a comentário',
   video: 'Card do vídeo',
   bio: 'Bio',
+  dm: 'DM',
   community: 'Comunidade',
   other: 'Outro',
 };
@@ -43,10 +45,6 @@ const SORT_LABELS: Record<BundleSortKey, string> = {
 const MAPA7P_PRODUCT_NAME = 'MAPA-7P · Mapeamento de Padrões Dopaminérgico';
 const MAPA7P_HOTLINK = 'https://go.hotmart.com/K103806991N';
 const MAPA7P_POSITIONS: CtaPosition[] = ['description', 'pinned_comment', 'comment_reply', 'video'];
-
-function shift(date: string, days: number): string {
-  return new Date(Date.parse(`${date}T12:00:00.000Z`) + days * 86_400_000).toISOString().slice(0, 10);
-}
 
 function money(value: number, currency = 'BRL'): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(value);
@@ -260,48 +258,85 @@ function BulkCampaignGenerator({
   );
 }
 
+function initialFilters(today: string): TrackingPageFilters {
+  return {
+    start: TRACKING_SINCE_DATE, end: today, preset: 'all', channel: 'all', videoId: '', position: 'all', traffic: 'qualified', products: [],
+  };
+}
+
 export function CampaignTracking({ role }: { role: MemberRole }) {
   const today = brtDateInput();
-  const [start, setStart] = useState(shift(today, -6));
-  const [end, setEnd] = useState(today);
+  // Os filtros nascem no explorador (barra única da página) e chegam aqui prontos.
+  const [filters, setFilters] = useState<TrackingPageFilters>(() => initialFilters(today));
+  const { start, end, channel } = filters;
   const [campaigns, setCampaigns] = useState<CampaignDto[]>([]);
   const [catalog, setCatalog] = useState<CampaignCatalog>({ videos: [], products: [] });
   const [attribution, setAttribution] = useState<AttributionDto | null>(null);
   const [loadedAttributionKey, setLoadedAttributionKey] = useState<string | null>(null);
+  // Relatório sem filtro (desde o início, todos os canais) pros "na vida" dos cards.
+  const [lifetimeAttribution, setLifetimeAttribution] = useState<AttributionDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [copyError, setCopyError] = useState<string | null>(null);
   const [expandedVideoId, setExpandedVideoId] = useState<string | null>(null);
+  const [criarAberto, setCriarAberto] = useState(false);
+  const criarRef = useRef<HTMLDetailsElement | null>(null);
   const loadSequence = useRef(0);
-  const attributionKey = `${start}|${end}`;
+  const attributionKey = `${start}|${end}|${channel}`;
+  const lifetimeKey = `${TRACKING_SINCE_DATE}|${today}|all`;
   const visibleAttribution = loadedAttributionKey === attributionKey ? attribution : null;
+  const periodLabel = trackingPeriodLabel(start, end, today);
+
+  const bundleOptions = useMemo(() => ({
+    position: filters.position,
+    traffic: filters.traffic,
+    lifetime: attributionKey === lifetimeKey ? null : lifetimeAttribution?.campaigns || null,
+  }), [attributionKey, filters.position, filters.traffic, lifetimeAttribution, lifetimeKey]);
 
   const campaignBundles = useMemo(() => buildVideoCampaignBundles(
     campaigns,
     catalog.videos,
     visibleAttribution?.campaigns || [],
-  ), [campaigns, catalog.videos, visibleAttribution]);
+    bundleOptions,
+  ), [bundleOptions, campaigns, catalog.videos, visibleAttribution]);
+
+  const instagramBundle = useMemo(() => buildInstagramCampaignBundle(
+    campaigns,
+    visibleAttribution?.campaigns || [],
+    bundleOptions,
+  ), [bundleOptions, campaigns, visibleAttribution]);
 
   const [bundleQuery, setBundleQuery] = useState('');
-  const [bundleSort, setBundleSort] = useState<BundleSortKey>('sales');
+  const [bundleSort, setBundleSort] = useState<BundleSortKey>('recent');
   // Desenhar os 53 vídeos de uma vez passava de 11 mil elementos e congelava o
   // navegador (incidente 20/07). Mostra um lote por vez; busca e ordenação
   // continuam valendo sobre a lista INTEIRA, não só sobre o lote visível.
   const LOTE_BUNDLES = 10;
   const [bundleLimit, setBundleLimit] = useState(LOTE_BUNDLES);
   const [bundleView, setBundleView] = useState<'lista' | 'grade'>('lista');
+  const catalogByVideo = useMemo(() => new Map(catalog.videos.map(video => [video.video_id, video])), [catalog.videos]);
   const visibleBundles = useMemo(() => {
-    const catalogByVideo = new Map(catalog.videos.map(video => [video.video_id, video]));
+    if (channel === 'instagram') return [];
     const normalized = bundleQuery.trim().toLocaleLowerCase('pt-BR');
-    const filtered = normalized
-      ? campaignBundles.filter(bundle => displayText(bundle.title).toLocaleLowerCase('pt-BR').includes(normalized)
-        || bundle.videoId.toLocaleLowerCase('pt-BR').includes(normalized))
+    let filtered = filters.videoId
+      ? campaignBundles.filter(bundle => bundle.videoId === filters.videoId)
       : campaignBundles;
+    if (normalized) {
+      filtered = filtered.filter(bundle => displayText(bundle.title).toLocaleLowerCase('pt-BR').includes(normalized)
+        || bundle.videoId.toLocaleLowerCase('pt-BR').includes(normalized));
+    }
     const stat = (videoId: string, key: 'views' | 'likes' | 'comments') => catalogByVideo.get(videoId)?.stats?.[key] || 0;
     const published = (videoId: string) => Date.parse(catalogByVideo.get(videoId)?.published_at || '') || 0;
+    // Vídeo não listado/privado vai pro fim: ninguém chega nele pelo canal.
+    const hidden = (videoId: string) => {
+      const privacy = catalogByVideo.get(videoId)?.privacy_status;
+      return privacy && privacy !== 'public' ? 1 : 0;
+    };
     const sorted = [...filtered];
     sorted.sort((left, right) => {
+      const privacyOrder = hidden(left.videoId) - hidden(right.videoId);
+      if (privacyOrder) return privacyOrder;
       switch (bundleSort) {
         case 'clicks': return right.totals.clicks - left.totals.clicks;
         case 'net': return right.totals.netAfterFees - left.totals.netAfterFees;
@@ -314,16 +349,21 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
       }
     });
     return sorted;
-  }, [bundleQuery, bundleSort, campaignBundles, catalog.videos]);
+  }, [bundleQuery, bundleSort, campaignBundles, catalogByVideo, channel, filters.videoId]);
+  const hiddenCount = useMemo(() => visibleBundles.filter(bundle => {
+    const privacy = catalogByVideo.get(bundle.videoId)?.privacy_status;
+    return privacy && privacy !== 'public';
+  }).length, [catalogByVideo, visibleBundles]);
 
   // Buscar ou reordenar volta pro primeiro lote: sem isso, quem buscasse depois
   // de expandir a lista continuaria pagando o custo de render do total.
   useEffect(() => {
     setBundleLimit(LOTE_BUNDLES);
-  }, [bundleQuery, bundleSort]);
+  }, [bundleQuery, bundleSort, filters.videoId, channel]);
 
   const renderedBundles = visibleBundles.slice(0, bundleLimit);
   const bundlesRestantes = visibleBundles.length - renderedBundles.length;
+  const showInstagram = channel !== 'youtube' && !filters.videoId && !bundleQuery.trim() && Boolean(instagramBundle);
 
   const load = useCallback(async () => {
     const requestId = ++loadSequence.current;
@@ -333,11 +373,16 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
     try {
       const campaignResult = await getCampaigns();
       if (requestId !== loadSequence.current) return;
-      const attributionResult = await getAttribution({ start, end, currency: 'BRL' });
+      const attributionResult = await getAttribution({ start, end, currency: 'BRL', channel });
+      if (requestId !== loadSequence.current) return;
+      const lifetimeResult = requestAttributionKey === lifetimeKey
+        ? attributionResult
+        : await getAttribution({ start: TRACKING_SINCE_DATE, end: today, currency: 'BRL', channel: 'all' });
       if (requestId !== loadSequence.current) return;
       setCampaigns(campaignResult.campaigns);
       setCatalog(campaignResult.catalog);
       setAttribution(attributionResult);
+      setLifetimeAttribution(lifetimeResult);
       setLoadedAttributionKey(requestAttributionKey);
     } catch (cause) {
       if (requestId !== loadSequence.current) return;
@@ -345,7 +390,7 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
     } finally {
       if (requestId === loadSequence.current) setLoading(false);
     }
-  }, [attributionKey, end, start]);
+  }, [attributionKey, channel, end, lifetimeKey, start, today]);
 
   useEffect(() => {
     void load();
@@ -358,9 +403,14 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
     return () => window.removeEventListener('ci:data-updated', reloadAfterSync);
   }, [load]);
 
-  const handlePeriodChange = useCallback((nextStart: string, nextEnd: string) => {
-    setStart(nextStart);
-    setEnd(nextEnd);
+  const handleFiltersChange = useCallback((next: TrackingPageFilters) => {
+    setFilters(current => (
+      current.start === next.start && current.end === next.end && current.preset === next.preset
+      && current.channel === next.channel && current.videoId === next.videoId && current.position === next.position
+      && current.traffic === next.traffic && current.products.join(',') === next.products.join(',')
+        ? current
+        : next
+    ));
   }, []);
 
   async function copy(label: string, value: string) {
@@ -385,6 +435,11 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
     }
   }
 
+  function abrirCriarLinks() {
+    setCriarAberto(true);
+    window.setTimeout(() => criarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  }
+
   // Só a PRIMEIRA carga troca a tela inteira pelo aviso de carregamento. Antes a
   // condição olhava `visibleAttribution`, que zera a cada troca de período: ao
   // clicar em "90 dias" o explorador era DESMONTADO e remontava com o estado
@@ -393,94 +448,121 @@ export function CampaignTracking({ role }: { role: MemberRole }) {
   const primeiraCarga = loading && !catalog.videos.length && !campaigns.length;
   if (primeiraCarga) return <div className="ci-overview-state"><span className="loading-pulse">Carregando rastreamento...</span></div>;
 
+  const cabecalho = <div className="ci-tracking-secao">
+    <div>
+      <h2>Campanhas e links</h2>
+      <p>Use o link rastreável pra medir clique. Nada de HotLink cru no YouTube: ele não conta clique.</p>
+    </div>
+    {role === 'admin' && <button type="button" className="ci-criar-links" onClick={abrirCriarLinks}>+ Criar links</button>}
+  </div>;
+
+  const cards = <>
+    {error && <div className="ci-warning-box" role="alert"><strong>Rastreamento indisponível</strong><span>{error}</span></div>}
+
+    {!visibleAttribution && !error && <div className="ci-overview-state"><span className="loading-pulse">Atualizando campanhas e atribuição para o período escolhido...</span></div>}
+
+    {visibleAttribution && <>
+      {!campaigns.length && <section className="ci-empty-action"><strong>Ainda não existe campanha rastreável</strong><span>Use "+ Criar links" pra gerar os primeiros. As transações históricas que chegaram sem código de origem permanecem sem atribuição.</span></section>}
+
+      {!!campaigns.length && <section className="ci-panel ci-bundle-secao">
+        <header>
+          <div className="ci-bundle-controls">
+            <label className="ci-select-label">Buscar
+              <input
+                type="search"
+                value={bundleQuery}
+                placeholder="Título ou ID do vídeo"
+                onChange={event => setBundleQuery(event.target.value)}
+              />
+            </label>
+            <label className="ci-select-label">Ordenar por
+              <select value={bundleSort} onChange={event => setBundleSort(event.target.value as BundleSortKey)}>
+                <option value="recent">Mais recentes</option>
+                <option value="sales">Mais vendas</option>
+                <option value="clicks">Mais cliques</option>
+                <option value="net">Mais receita</option>
+                <option value="views">Mais views</option>
+                <option value="likes">Mais likes</option>
+                <option value="comments">Mais comentários</option>
+                <option value="oldest">Mais antigos</option>
+              </select>
+            </label>
+            <div className="ci-view-toggle" role="group" aria-label="Formato da lista de vídeos">
+              <button type="button" className={bundleView === 'lista' ? 'active' : ''} onClick={() => setBundleView('lista')} aria-pressed={bundleView === 'lista'}>Lista</button>
+              <button type="button" className={bundleView === 'grade' ? 'active' : ''} onClick={() => setBundleView('grade')} aria-pressed={bundleView === 'grade'}>Grade</button>
+            </div>
+          </div>
+          <p className="ci-bundle-contagem">
+            {channel === 'instagram'
+              ? <>Só o Instagram · período: {periodLabel}</>
+              : <>Mostrando <strong>{renderedBundles.length}</strong> de {visibleBundles.length} vídeo(s){hiddenCount ? ` (${hiddenCount} não listado(s) no fim)` : ''}{bundleQuery.trim() ? ' que casam com a busca' : ''} · ordenado por {SORT_LABELS[bundleSort]} · período: {periodLabel}</>}
+          </p>
+        </header>
+        {!visibleBundles.length && channel !== 'instagram' && <div className="ci-empty">Nenhum vídeo encontrado nessa busca ou nesse filtro.</div>}
+        <div className={`ci-campaign-list${bundleView === 'grade' ? ' ci-campaign-list--grade' : ''}`}>
+          {showInstagram && instagramBundle && <InstagramCampaignBundle
+            bundle={instagramBundle}
+            role={role}
+            copied={copied}
+            copyError={copyError}
+            onCopy={copy}
+            onToggle={toggle}
+            historyExpanded={expandedVideoId === 'instagram'}
+            historyVideos={catalog.videos}
+            historyStart={start}
+            historyEnd={end}
+            onHistoryToggle={() => setExpandedVideoId(current => current === 'instagram' ? null : 'instagram')}
+            periodLabel={periodLabel}
+          />}
+          {renderedBundles.map(bundle => <VideoCampaignBundle
+            key={bundle.videoId}
+            bundle={bundle}
+            role={role}
+            copied={copied}
+            copyError={copyError}
+            onCopy={copy}
+            onToggle={toggle}
+            historyExpanded={expandedVideoId === bundle.videoId}
+            historyVideos={catalog.videos}
+            historyStart={start}
+            historyEnd={end}
+            onHistoryToggle={videoId => setExpandedVideoId(current => current === videoId ? null : videoId)}
+            periodLabel={periodLabel}
+          />)}
+        </div>
+        {bundlesRestantes > 0 && <button
+          type="button"
+          className="ci-bundle-mais"
+          onClick={() => setBundleLimit(atual => atual + LOTE_BUNDLES)}
+        >
+          Carregar mais {Math.min(LOTE_BUNDLES, bundlesRestantes)} · faltam {bundlesRestantes}
+        </button>}
+      </section>}
+
+      {!!visibleAttribution.unknownCodes.length && <section className="ci-warning-box"><strong>Códigos de origem ainda não cadastrados</strong>{visibleAttribution.unknownCodes.map(item => <span key={item.code}><code>{item.code}</code> · {item.sales} venda(s) · {money(item.netAfterFees)}</span>)}</section>}
+    </>}
+  </>;
+
+  const criarLinks = role === 'admin'
+    ? <details className="ci-tracking-recolhido ci-criar-links-secao" ref={criarRef} open={criarAberto} onToggle={event => setCriarAberto(event.currentTarget.open)}>
+      <summary>Gerador MAPA-7P e Nova campanha<small>também abrem pelo botão "+ Criar links"</small></summary>
+      <BulkCampaignGenerator catalog={catalog} campaigns={campaigns} onCreated={load} />
+      <CampaignForm catalog={catalog} onCreated={load} />
+    </details>
+    : null;
+
   return (
     <div className="ci-decision-view">
-      <section className="ci-method-banner ci-method-direct">
-        <div><span className="ci-evidence-badge ci-evidence-direct">Atribuição direta</span><strong>Venda com código conhecido → campanha comprovada</strong></div>
-        <p>O crédito só existe quando a Hotmart devolve o mesmo SCK, SRC ou XCOD cadastrado. Venda sem origem continua sem atribuição.</p>
-      </section>
-
-      {role === 'admin' && <>
-        <BulkCampaignGenerator catalog={catalog} campaigns={campaigns} onCreated={load} />
-        <CampaignForm catalog={catalog} onCreated={load} />
-      </>}
-
       <TrackingHistoryExplorer
         videos={catalog.videos}
         products={catalog.products}
         onPanelRefresh={load}
-        onPeriodChange={handlePeriodChange}
+        onFiltersChange={handleFiltersChange}
+        attribution={visibleAttribution}
+        beforeFilters={cabecalho}
+        afterKpis={cards}
+        afterLedger={criarLinks}
       />
-
-      {error && <div className="ci-warning-box" role="alert"><strong>Rastreamento indisponível</strong><span>{error}</span></div>}
-
-      {!visibleAttribution && !error && <div className="ci-overview-state"><span className="loading-pulse">Atualizando campanhas e atribuição para o período escolhido...</span></div>}
-
-      {visibleAttribution && <>
-        {!campaigns.length && <section className="ci-empty-action"><strong>Ainda não existe campanha rastreável</strong><span>Crie a primeira campanha acima. As transações históricas que chegaram sem código de origem permanecem sem atribuição.</span></section>}
-
-        {!!campaigns.length && <section className="ci-panel">
-          <header>
-            <div><span>Campanhas e links</span><small>Use o link rastreável para medir clique; o link direto preserva a origem Hotmart como fallback</small></div>
-            <div className="ci-bundle-controls">
-              <label className="ci-select-label">Buscar
-                <input
-                  type="search"
-                  value={bundleQuery}
-                  placeholder="Título ou ID do vídeo"
-                  onChange={event => setBundleQuery(event.target.value)}
-                />
-              </label>
-              <label className="ci-select-label">Ordenar por
-                <select value={bundleSort} onChange={event => setBundleSort(event.target.value as BundleSortKey)}>
-                  <option value="sales">Mais vendas</option>
-                  <option value="clicks">Mais cliques</option>
-                  <option value="net">Mais receita</option>
-                  <option value="views">Mais views</option>
-                  <option value="likes">Mais likes</option>
-                  <option value="comments">Mais comentários</option>
-                  <option value="recent">Mais recentes</option>
-                  <option value="oldest">Mais antigos</option>
-                </select>
-              </label>
-              <div className="ci-view-toggle" role="group" aria-label="Formato da lista de vídeos">
-                <button type="button" className={bundleView === 'lista' ? 'active' : ''} onClick={() => setBundleView('lista')} aria-pressed={bundleView === 'lista'}>Lista</button>
-                <button type="button" className={bundleView === 'grade' ? 'active' : ''} onClick={() => setBundleView('grade')} aria-pressed={bundleView === 'grade'}>Grade</button>
-              </div>
-            </div>
-          </header>
-          {!visibleBundles.length && <div className="ci-empty">Nenhum vídeo encontrado nessa busca.</div>}
-          {!!visibleBundles.length && <p className="ci-bundle-contagem">
-            Mostrando <strong>{renderedBundles.length}</strong> de {visibleBundles.length} vídeo(s)
-            {bundleQuery.trim() ? ' que casam com a busca' : ''} · ordenado por {SORT_LABELS[bundleSort]}
-          </p>}
-          <div className={`ci-campaign-list${bundleView === 'grade' ? ' ci-campaign-list--grade' : ''}`}>
-            {renderedBundles.map(bundle => <VideoCampaignBundle
-              key={bundle.videoId}
-              bundle={bundle}
-              role={role}
-              copied={copied}
-              copyError={copyError}
-              onCopy={copy}
-              onToggle={toggle}
-              historyExpanded={expandedVideoId === bundle.videoId}
-              historyVideos={catalog.videos}
-              historyStart={start}
-              historyEnd={end}
-              onHistoryToggle={videoId => setExpandedVideoId(current => current === videoId ? null : videoId)}
-            />)}
-          </div>
-          {bundlesRestantes > 0 && <button
-            type="button"
-            className="ci-bundle-mais"
-            onClick={() => setBundleLimit(atual => atual + LOTE_BUNDLES)}
-          >
-            Carregar mais {Math.min(LOTE_BUNDLES, bundlesRestantes)} · faltam {bundlesRestantes}
-          </button>}
-        </section>}
-
-        {!!visibleAttribution.unknownCodes.length && <section className="ci-warning-box"><strong>Códigos de origem ainda não cadastrados</strong>{visibleAttribution.unknownCodes.map(item => <span key={item.code}><code>{item.code}</code> · {item.sales} venda(s) · {money(item.netAfterFees)}</span>)}</section>}
-      </>}
     </div>
   );
 }

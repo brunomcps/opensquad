@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from 'react';
 import {
   CartesianGrid,
@@ -17,7 +18,9 @@ import {
 import {
   getTrackingEvents,
   getTrackingSeries,
+  type AttributionDto,
   type CampaignCatalog,
+  type TrackingChannelFilter,
   type TrackingEventDto,
   type TrackingGranularity,
   type TrackingHistoryFilters,
@@ -33,24 +36,43 @@ import {
   purchaseStatusPresentation,
   trackingChartAvailability,
   trackingFiltersKey,
+  trackingHealthLights,
+  trackingPeriodLabel,
+  trackingPresetRange,
   type TrackingChartDatum,
+  type TrackingRangePreset,
 } from './trackingHistoryModel';
 
-type RangePreset = 'today' | '7d' | '30d' | '90d' | 'custom';
+type RangePreset = TrackingRangePreset;
 
 const TIME_ZONE = 'America/Sao_Paulo';
-const POSITION_OPTIONS: Array<{ value: TrackingPositionFilter; label: string; short: string }> = [
+
+// Locais do link por canal. No Instagram "comment_reply" é o comentário que o
+// robô ManyChat responde por DM, por isso o rótulo muda.
+const YOUTUBE_POSITION_OPTIONS: Array<{ value: TrackingPositionFilter; label: string; short: string }> = [
   { value: 'all', label: 'Todos os locais', short: 'Todos' },
   { value: 'description', label: 'Descrição', short: 'D' },
   { value: 'pinned_comment', label: 'Comentário fixado', short: 'C' },
   { value: 'comment_reply', label: 'Resposta a comentário', short: 'R' },
   { value: 'video', label: 'Card do vídeo', short: 'V' },
 ];
+const INSTAGRAM_POSITION_OPTIONS: Array<{ value: TrackingPositionFilter; label: string; short: string }> = [
+  { value: 'all', label: 'Todos os locais', short: 'Todos' },
+  { value: 'bio', label: 'Bio', short: 'B' },
+  { value: 'comment_reply', label: 'Comentário → DM', short: 'C' },
+  { value: 'dm', label: 'DM manual', short: 'DM' },
+];
+const CHANNEL_OPTIONS: Array<{ value: TrackingChannelFilter; label: string }> = [
+  { value: 'all', label: 'Todos os canais' },
+  { value: 'youtube', label: 'YouTube' },
+  { value: 'instagram', label: 'Instagram' },
+];
 const PRESETS: Array<{ value: RangePreset; label: string }> = [
   { value: 'today', label: 'Hoje' },
   { value: '7d', label: '7 dias' },
   { value: '30d', label: '30 dias' },
   { value: '90d', label: '90 dias' },
+  { value: 'all', label: 'Desde o início' },
   { value: 'custom', label: 'Personalizado' },
 ];
 
@@ -69,22 +91,22 @@ const SERIES_OPTIONS: Array<{ key: SeriesKey; label: string; hint: string }> = [
 ];
 
 // Modo "Por origem": uma linha por local do link, pra comparar de onde vem
-// clique/venda (descrição vs resposta vs card...). Cores bem distintas entre si.
+// clique/venda (descrição vs resposta vs card vs Instagram). Cores bem distintas.
 const ORIGIN_SERIES = [
-  { key: 'description', label: 'Descrição', clickField: 'clickDescription', saleField: 'saleDescription', color: '#2f7fd6' },
-  { key: 'pinned', label: 'Comentário fixado', clickField: 'clickPinned', saleField: 'salePinned', color: '#c98a1f' },
-  { key: 'reply', label: 'Resposta', clickField: 'clickReply', saleField: 'saleReply', color: '#1d9d59' },
-  { key: 'video', label: 'Card do vídeo', clickField: 'clickVideo', saleField: 'saleVideo', color: '#9b4dca' },
+  { key: 'description', label: 'YouTube · Descrição', clickField: 'clickDescription', saleField: 'saleDescription', color: '#2f7fd6' },
+  { key: 'pinned', label: 'YouTube · Comentário fixado', clickField: 'clickPinned', saleField: 'salePinned', color: '#c98a1f' },
+  { key: 'reply', label: 'YouTube · Resposta', clickField: 'clickReply', saleField: 'saleReply', color: '#1d9d59' },
+  { key: 'video', label: 'YouTube · Card', clickField: 'clickVideo', saleField: 'saleVideo', color: '#9b4dca' },
+  { key: 'instagram', label: 'Instagram (bio, comentário → DM, DM)', clickField: 'clickInstagram', saleField: 'saleInstagram', color: '#B23A6A' },
 ] as const;
 
-function shiftDate(date: string, days: number): string {
-  return new Date(Date.parse(`${date}T12:00:00.000Z`) + days * 86_400_000).toISOString().slice(0, 10);
-}
+// Modo "Por canal": YouTube inteiro contra Instagram inteiro.
+const CHANNEL_SERIES = [
+  { key: 'youtube', label: 'YouTube', clickField: 'clickYoutube', saleField: 'saleYoutube', color: '#C4302B' },
+  { key: 'instagram', label: 'Instagram', clickField: 'clickInstagram', saleField: 'saleInstagram', color: '#B23A6A' },
+] as const;
 
-export function trackingPresetRange(preset: Exclude<RangePreset, 'custom'>, today = brtDateInput()): { start: string; end: string } {
-  const length = preset === 'today' ? 1 : Number.parseInt(preset, 10);
-  return { start: shiftDate(today, -(length - 1)), end: today };
-}
+export { trackingPresetRange };
 
 function formatDateTime(value: string | null): string {
   if (!value) return 'Ainda não registrado';
@@ -123,8 +145,21 @@ function displayText(value: string): string {
   return value.replace(/&(amp|quot|#39|lt|gt);/g, match => entities[match.slice(1, -1)] || match);
 }
 
-function positionLabel(position: TrackingEventDto['ctaPosition']): string {
-  return POSITION_OPTIONS.find(option => option.value === position)?.label || 'Sem local atribuído';
+function eventChannel(event: TrackingEventDto): 'youtube' | 'instagram' | null {
+  if (event.channel === 'instagram' || event.channel === 'youtube') return event.channel;
+  if (event.videoId) return 'youtube';
+  if (event.ctaPosition === 'bio' || event.ctaPosition === 'dm') return 'instagram';
+  return null;
+}
+
+function positionLabel(event: TrackingEventDto): string {
+  const options = eventChannel(event) === 'instagram' ? INSTAGRAM_POSITION_OPTIONS : YOUTUBE_POSITION_OPTIONS;
+  return options.find(option => option.value === event.ctaPosition)?.label
+    || (event.ctaPosition === 'bio' ? 'Bio' : event.ctaPosition === 'dm' ? 'DM' : 'Sem local atribuído');
+}
+
+function channelLabel(channel: 'youtube' | 'instagram' | null): string {
+  return channel === 'instagram' ? 'Instagram' : channel === 'youtube' ? 'YouTube' : '—';
 }
 
 function isPurchaseEvent(event: TrackingEventDto): boolean {
@@ -166,6 +201,12 @@ function eventKind(event: TrackingEventDto): { label: string; tone: string } {
   if (!isPurchaseEvent(event)) return { label: 'Clique', tone: 'click' };
   const status = purchaseStatusPresentation(event.status);
   return { label: status.eventLabel, tone: status.tone };
+}
+
+function eventSubject(event: TrackingEventDto): { title: string; sub: string | null } {
+  if (event.videoTitle) return { title: displayText(event.videoTitle), sub: event.videoId };
+  if (event.campaignName) return { title: displayText(event.campaignName), sub: null };
+  return { title: eventChannel(event) === 'instagram' ? 'Link do Instagram' : 'Sem vídeo atribuído', sub: null };
 }
 
 function reconciliationScheduleLabel(freshness: TrackingSeriesDto['freshness'] | null | undefined): string {
@@ -224,36 +265,69 @@ function reconciliationProblemDetail(freshness: TrackingSeriesDto['freshness']):
     || 'A tentativa não atualizou todos os dados. O último sucesso completo continua sendo o carimbo confiável.';
 }
 
+// Tudo que a página inteira precisa saber sobre o filtro escolhido: a lista de
+// vídeos, o card do Instagram e o relatório de atribuição seguem estes valores.
+export interface TrackingPageFilters {
+  start: string;
+  end: string;
+  preset: RangePreset;
+  channel: TrackingChannelFilter;
+  videoId: string;
+  position: TrackingPositionFilter;
+  traffic: TrackingTrafficFilter;
+  products: string[];
+}
+
+function Explain({ text }: { text: string }) {
+  return <span className="ci-explica" title={text} aria-label={text} role="img">?</span>;
+}
+
 export function TrackingHistoryExplorer({
   videos,
   products = [],
   fixedVideoId = null,
+  fixedChannel = null,
   compact = false,
   initialStart,
   initialEnd,
   onPanelRefresh,
   onPeriodChange,
+  onFiltersChange,
+  attribution = null,
+  beforeFilters,
+  afterKpis,
+  afterLedger,
 }: {
   videos: CampaignCatalog['videos'];
   products?: CampaignCatalog['products'];
   fixedVideoId?: string | null;
+  fixedChannel?: TrackingChannelFilter | null;
   compact?: boolean;
   initialStart?: string;
   initialEnd?: string;
   onPanelRefresh?: () => Promise<void> | void;
   onPeriodChange?: (start: string, end: string) => void;
+  onFiltersChange?: (filters: TrackingPageFilters) => void;
+  // Relatório de atribuição do mesmo período/canal: enriquece os números-resumo
+  // com devolvidas, vendas em outra moeda e o total aprovado.
+  attribution?: AttributionDto | null;
+  // Encaixes da página em volta do histórico (título + botão, cards, gerador).
+  beforeFilters?: ReactNode;
+  afterKpis?: ReactNode;
+  afterLedger?: ReactNode;
 }) {
-  const defaultRange = trackingPresetRange('7d');
-  const [preset, setPreset] = useState<RangePreset>(initialStart || initialEnd ? 'custom' : '7d');
+  const defaultRange = trackingPresetRange('all');
+  const [preset, setPreset] = useState<RangePreset>(initialStart || initialEnd ? 'custom' : 'all');
   const [start, setStart] = useState(initialStart || defaultRange.start);
   const [end, setEnd] = useState(initialEnd || defaultRange.end);
   const [videoId, setVideoId] = useState(fixedVideoId || '');
+  const [channel, setChannel] = useState<TrackingChannelFilter>(fixedChannel || 'all');
   const [position, setPosition] = useState<TrackingPositionFilter>('all');
   const [traffic, setTraffic] = useState<TrackingTrafficFilter>('qualified');
   const [granularity, setGranularity] = useState<TrackingGranularity>('auto');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [hiddenSeries, setHiddenSeries] = useState<Set<SeriesKey>>(new Set());
-  const [chartMode, setChartMode] = useState<'total' | 'origem'>('total');
+  const [chartMode, setChartMode] = useState<'total' | 'origem' | 'canal'>('total');
   const [originMetric, setOriginMetric] = useState<'clicks' | 'sales'>('clicks');
   const [series, setSeries] = useState<TrackingSeriesDto | null>(null);
   const [events, setEvents] = useState<TrackingEventDto[]>([]);
@@ -271,6 +345,9 @@ export function TrackingHistoryExplorer({
   const loadedFilterKeyRef = useRef<string | null>(null);
   const currentFilterKeyRef = useRef('');
 
+  const effectiveChannel = fixedChannel || channel;
+  const positionOptions = effectiveChannel === 'instagram' ? INSTAGRAM_POSITION_OPTIONS : YOUTUBE_POSITION_OPTIONS;
+
   const filters = useMemo<TrackingHistoryFilters>(() => ({
     start,
     end,
@@ -279,7 +356,8 @@ export function TrackingHistoryExplorer({
     position,
     traffic,
     products: selectedProducts.length ? selectedProducts : null,
-  }), [end, fixedVideoId, granularity, position, selectedProducts, start, traffic, videoId]);
+    channel: effectiveChannel,
+  }), [effectiveChannel, end, fixedVideoId, granularity, position, selectedProducts, start, traffic, videoId]);
   const filterKey = useMemo(() => trackingFiltersKey(filters), [filters]);
   currentFilterKeyRef.current = filterKey;
 
@@ -369,6 +447,12 @@ export function TrackingHistoryExplorer({
     onPeriodChange?.(start, end);
   }, [end, onPeriodChange, start]);
 
+  useEffect(() => {
+    onFiltersChange?.({
+      start, end, preset, channel: effectiveChannel, videoId: fixedVideoId || videoId, position, traffic, products: selectedProducts,
+    });
+  }, [effectiveChannel, end, fixedVideoId, onFiltersChange, position, preset, selectedProducts, start, traffic, videoId]);
+
   // Sem polling por relógio: a tela recarregava sozinha a cada 30 s (e ao voltar
   // o foco pra aba), o que atropelava a leitura no meio de uma análise. Agora a
   // busca acontece quando o filtro muda, quando o usuario clica em "Buscar dados
@@ -380,6 +464,15 @@ export function TrackingHistoryExplorer({
     const range = trackingPresetRange(nextPreset);
     setStart(range.start);
     setEnd(range.end);
+  }
+
+  // Trocar de canal troca a lista de locais; um local que não existe no canal
+  // novo (ex.: "Card do vídeo" no Instagram) volta pra "Todos".
+  function applyChannel(nextChannel: TrackingChannelFilter) {
+    setChannel(nextChannel);
+    const options = nextChannel === 'instagram' ? INSTAGRAM_POSITION_OPTIONS : YOUTUBE_POSITION_OPTIONS;
+    if (!options.some(option => option.value === position)) setPosition('all');
+    if (nextChannel === 'instagram') setVideoId('');
   }
 
   async function refreshPanel() {
@@ -435,51 +528,61 @@ export function TrackingHistoryExplorer({
   const conversion = visibleSeries?.totals.qualifiedClicks
     ? visibleSeries.totals.attributedSales / visibleSeries.totals.qualifiedClicks
     : null;
-  const chartData = useMemo<TrackingChartDatum[]>(() => (visibleSeries?.buckets || []).map(bucket => ({
-    bucketStart: bucket.bucketStart,
-    clicks: bucket.clicks.total,
-    sales: bucket.sales.description + bucket.sales.pinnedComment + bucket.sales.commentReply
-      + bucket.sales.video + bucket.sales.additional,
-    revenue: bucket.netAfterFees,
-    clickDescription: bucket.clicks.description,
-    clickPinned: bucket.clicks.pinnedComment,
-    clickReply: bucket.clicks.commentReply,
-    clickVideo: bucket.clicks.video,
-    clickOther: bucket.clicks.other,
-    saleDescription: bucket.sales.description,
-    salePinned: bucket.sales.pinnedComment,
-    saleReply: bucket.sales.commentReply,
-    saleVideo: bucket.sales.video,
-    saleAdditional: bucket.sales.additional,
-    saleUnattributed: bucket.sales.unattributed,
-    saleAmbiguous: bucket.sales.ambiguous,
-  })), [visibleSeries]);
+  const chartData = useMemo<TrackingChartDatum[]>(() => (visibleSeries?.buckets || []).map(bucket => {
+    const clickInstagram = bucket.clicks.instagram || 0;
+    const saleInstagram = bucket.sales.instagram || 0;
+    const clickYoutube = bucket.clicks.description + bucket.clicks.pinnedComment + bucket.clicks.commentReply + bucket.clicks.video;
+    const saleYoutube = bucket.sales.description + bucket.sales.pinnedComment + bucket.sales.commentReply + bucket.sales.video;
+    return {
+      bucketStart: bucket.bucketStart,
+      clicks: bucket.clicks.total,
+      sales: saleYoutube + saleInstagram + bucket.sales.additional,
+      revenue: bucket.netAfterFees,
+      clickDescription: bucket.clicks.description,
+      clickPinned: bucket.clicks.pinnedComment,
+      clickReply: bucket.clicks.commentReply,
+      clickVideo: bucket.clicks.video,
+      clickInstagram,
+      clickOther: bucket.clicks.other,
+      clickYoutube,
+      saleDescription: bucket.sales.description,
+      salePinned: bucket.sales.pinnedComment,
+      saleReply: bucket.sales.commentReply,
+      saleVideo: bucket.sales.video,
+      saleInstagram,
+      saleYoutube,
+      saleAdditional: bucket.sales.additional,
+      saleUnattributed: bucket.sales.unattributed,
+      saleAmbiguous: bucket.sales.ambiguous,
+    };
+  }), [visibleSeries]);
   // Totais por origem no período/filtros ativos. Somados dos mesmos buckets que
   // alimentam o gráfico, pra tabela e gráfico nunca discordarem entre si.
   const originTotals = useMemo(() => {
     type OriginRow = { key: string; label: string; color: string; clicks: number; sales: number };
-    const rows: OriginRow[] = ORIGIN_SERIES.map(origin => {
-      const clicks = chartData.reduce((sum, item) => sum + (Number(item[origin.clickField as keyof TrackingChartDatum]) || 0), 0);
-      const sales = chartData.reduce((sum, item) => sum + (Number(item[origin.saleField as keyof TrackingChartDatum]) || 0), 0);
-      return { key: origin.key, label: origin.label, color: origin.color, clicks, sales };
-    });
-    const otherClicks = chartData.reduce((sum, item) => sum + (Number(item.clickOther) || 0), 0);
-    const unattributedSales = chartData.reduce((sum, item) => sum + (Number(item.saleUnattributed) || 0), 0);
-    const ambiguousSales = chartData.reduce((sum, item) => sum + (Number(item.saleAmbiguous) || 0), 0);
-    const additionalSales = chartData.reduce((sum, item) => sum + (Number(item.saleAdditional) || 0), 0);
+    const sum = (field: keyof TrackingChartDatum) => chartData.reduce((total, item) => total + (Number(item[field]) || 0), 0);
+    const rows: OriginRow[] = ORIGIN_SERIES
+      .filter(origin => effectiveChannel === 'all' || (effectiveChannel === 'instagram') === (origin.key === 'instagram'))
+      .map(origin => ({
+        key: origin.key, label: origin.label, color: origin.color, clicks: sum(origin.clickField), sales: sum(origin.saleField),
+      }));
+    const otherClicks = sum('clickOther');
+    const unattributedSales = sum('saleUnattributed');
+    const ambiguousSales = sum('saleAmbiguous');
+    const additionalSales = sum('saleAdditional');
     if (otherClicks || unattributedSales || ambiguousSales) {
       rows.push({
         key: 'other',
-        label: 'Sem local atribuído',
+        label: 'Sem local (venda sem código)',
         color: '#8a8172',
         clicks: otherClicks,
         sales: unattributedSales + ambiguousSales,
       });
     }
-    const totalClicks = rows.reduce((sum, row) => sum + row.clicks, 0);
-    const totalSales = rows.reduce((sum, row) => sum + row.sales, 0);
+    const totalClicks = rows.reduce((total, row) => total + row.clicks, 0);
+    const totalSales = rows.reduce((total, row) => total + row.sales, 0);
     return { rows, totalClicks, totalSales, additionalSales };
-  }, [chartData]);
+  }, [chartData, effectiveChannel]);
   const { hasClicks, hasSales } = useMemo(() => trackingChartAvailability(chartData), [chartData]);
   const hasRevenue = useMemo(() => chartData.some(item => item.revenue !== 0), [chartData]);
   const hasChartData = hasClicks || hasSales || hasRevenue;
@@ -516,7 +619,7 @@ export function TrackingHistoryExplorer({
       : [...current, productId]);
   }
   const selectedVideo = videos.find(video => video.video_id === (fixedVideoId || videoId));
-  const title = fixedVideoId ? 'Histórico deste vídeo' : 'Histórico de cliques e compras';
+  const title = fixedVideoId ? 'Histórico deste vídeo' : fixedChannel === 'instagram' ? 'Histórico do Instagram' : 'Histórico de cliques e compras';
   const lastSuccessAge = lastSuccessfulAt ? Date.now() - Date.parse(lastSuccessfulAt) : Number.POSITIVE_INFINITY;
   const liveTone = error ? 'error' : refreshing || lastSuccessAge > 90_000 ? 'warning' : 'healthy';
   const liveMessage = error
@@ -524,31 +627,57 @@ export function TrackingHistoryExplorer({
     : refreshing
       ? 'Atualizando o painel agora'
       : `Painel atualizado ${relativeAge(lastSuccessfulAt)}`;
+  const periodLabel = trackingPeriodLabel(start, end);
+  const healthLights = useMemo(() => visibleSeries ? trackingHealthLights(visibleSeries.freshness) : [], [visibleSeries]);
+  const otherProductNames = products
+    .filter(product => !product.productName.toLocaleLowerCase('pt-BR').includes('mapa-7p'))
+    .map(product => displayText(product.productName).split('·')[0].trim());
+  const foreignCurrencies = attribution
+    ? [...new Set(attribution.campaigns.flatMap(campaign => Object.keys(campaign.foreignBreakdown || {})))]
+    : [];
+  const chipParts = [
+    periodLabel,
+    CHANNEL_OPTIONS.find(option => option.value === effectiveChannel)?.label.toLocaleLowerCase('pt-BR') || 'todos os canais',
+    fixedVideoId || videoId ? (selectedVideo ? displayText(selectedVideo.title) : 'um vídeo') : 'todos os vídeos',
+    position === 'all' ? null : positionOptions.find(option => option.value === position)?.label.toLocaleLowerCase('pt-BR') || null,
+    traffic === 'qualified' ? 'cliques qualificados' : traffic === 'technical' ? 'só tráfego técnico' : 'todos os eventos',
+    selectedProducts.length ? `${selectedProducts.length} produto(s)` : null,
+  ].filter(Boolean);
+  const chartSeries = chartMode === 'canal' ? CHANNEL_SERIES : ORIGIN_SERIES;
 
   return <section className={`ci-tracking-explorer${compact ? ' ci-tracking-explorer-compact' : ''}`}>
-    <header className="ci-tracking-explorer-heading">
+    {!compact && healthLights.length > 0 && <div className="ci-luzes" aria-label="Saúde do rastreamento">
+      {healthLights.map(light => <div className={`ci-luz ci-luz-${light.tone}`} key={light.key} title={light.hint}>
+        <i aria-hidden="true" />
+        <div><b>{light.label}</b><small>{light.detail}</small></div>
+      </div>)}
+    </div>}
+
+    {!compact && visibleSeries && ['partial', 'failed'].includes(visibleSeries.freshness.lastHotmartReconciliationStatus || '') && <div className="ci-warning-box" role="alert">
+      <strong>{visibleSeries.freshness.lastHotmartReconciliationStatus === 'failed' ? 'A última conferência na Hotmart falhou' : 'A última conferência na Hotmart foi parcial'}</strong>
+      <span>{reconciliationProblemDetail(visibleSeries.freshness)}</span>
+    </div>}
+
+    {!compact && Boolean(visibleSeries?.freshness.unresolvedOperationalFailures) && <div className="ci-warning-box" role="status">
+      <strong>{visibleSeries!.freshness.unresolvedOperationalFailures} falha(s) operacional(is) ainda não resolvida(s)</strong>
+      <span>Última ocorrência em {formatDateTime(visibleSeries!.freshness.latestOperationalFailureAt || null)}. Consulte “Qualidade dos dados” para o diagnóstico completo.</span>
+    </div>}
+
+    {beforeFilters}
+
+    {compact && <header className="ci-tracking-explorer-heading">
       <div>
         <span>{title}</span>
-        <small>{fixedVideoId && selectedVideo ? displayText(selectedVideo.title) : 'Compare o total, cada vídeo e o local exato do link.'}</small>
+        <small>{fixedVideoId && selectedVideo ? displayText(selectedVideo.title) : 'Os filtros abaixo valem só para este histórico.'}</small>
       </div>
       <div className={`ci-live-state ci-live-state-${liveTone}`}>
         <span className="ci-live-dot" aria-hidden="true" />
-        <span><strong>{liveMessage}</strong><small>A tela não recarrega sozinha. Ela busca ao trocar um filtro ou quando você pede.</small></span>
+        <span><strong>{liveMessage}</strong></span>
       </div>
-    </header>
-
-    <section className="ci-data-flow-guide" aria-label="Como os dados chegam">
-      <strong>Como os dados chegam</strong>
-      <ol>
-        <li><span>1</span><div><strong>Cliques</strong><small>Gravados no redirecionamento, em tempo real.</small></div></li>
-        <li><span>2</span><div><strong>Vendas</strong><small>Entram pelo webhook Hotmart; confirme a última chegada logo abaixo.</small></div></li>
-        <li><span>3</span><div><strong>Reconciliação</strong><small>{reconciliationScheduleLabel(visibleSeries?.freshness)}.</small></div></li>
-        <li><span>4</span><div><strong>Tela</strong><small>Consulta o banco ao trocar um filtro ou quando você clica em “Buscar dados agora”.</small></div></li>
-      </ol>
-    </section>
+    </header>}
 
     <div className="ci-history-filterbar">
-      <div className="ci-segmented ci-period-presets" aria-label="Período do histórico">
+      <div className="ci-segmented ci-period-presets" aria-label="Período">
         {PRESETS.map(option => <button
           type="button"
           key={option.value}
@@ -570,14 +699,22 @@ export function TrackingHistoryExplorer({
           onChange={event => { setPreset('custom'); setEnd(event.target.value); }}
         /></label>
       </div>
-      {!fixedVideoId && <label className="ci-select-label ci-history-video-filter">Vídeo
+      {!fixedChannel && !fixedVideoId && <div className="ci-segmented ci-canal-filtros" aria-label="Canal">
+        {CHANNEL_OPTIONS.map(option => <button
+          type="button"
+          key={option.value}
+          className={channel === option.value ? 'active' : ''}
+          onClick={() => applyChannel(option.value)}
+        >{option.label}</button>)}
+      </div>}
+      {!fixedVideoId && effectiveChannel !== 'instagram' && <label className="ci-select-label ci-history-video-filter">Vídeo
         <select value={videoId} onChange={event => setVideoId(event.target.value)}>
           <option value="">Todos os vídeos</option>
           {videos.map(video => <option key={video.video_id} value={video.video_id}>{displayText(video.title)}</option>)}
         </select>
       </label>}
       <div className="ci-segmented ci-position-filters" aria-label="Local do link">
-        {POSITION_OPTIONS.map(option => <button
+        {positionOptions.map(option => <button
           type="button"
           key={option.value}
           title={option.label}
@@ -605,6 +742,10 @@ export function TrackingHistoryExplorer({
         </select>
       </label>
       <button type="button" className="ci-refresh" disabled={refreshing} onClick={refreshPanel} title="Os filtros já aplicam sozinhos. Use isto para buscar dados novos agora.">{refreshing ? 'Buscando...' : 'Buscar dados agora'}</button>
+      {!compact && <div className="ci-filtro-chip-linha">
+        <span className="ci-filtro-chip">Filtrado por: {chipParts.join(' · ')}</span>
+        <span className="ci-filtro-nota">Vale pra tudo abaixo: resumo, cards, gráfico e livro-caixa.</span>
+      </div>}
     </div>
 
     {products.length > 1 && <div className="ci-product-filterbar" role="group" aria-label="Filtro de produtos">
@@ -629,25 +770,50 @@ export function TrackingHistoryExplorer({
 
     {visibleSeries && <>
     <div className="ci-history-kpis">
-      <article><span>{traffic === 'qualified' ? 'Cliques qualificados' : traffic === 'technical' ? 'Cliques técnicos / bots' : 'Cliques (todos os eventos)'}</span><strong>{displayedClicks.toLocaleString('pt-BR')}</strong><small>De {visibleSeries.totals.totalClicks.toLocaleString('pt-BR')} cliques no período: {visibleSeries.totals.qualifiedClicks} qualificado(s) · {visibleSeries.totals.technicalClicks} técnico(s) · {visibleSeries.totals.unknownClicks} sem classificação</small></article>
-      <article><span>Compras atribuídas</span><strong>{visibleSeries.totals.attributedSales}</strong><small>{visibleSeries.totals.unattributedSales} sem origem · {visibleSeries.totals.ambiguousSales} com origem conflitante</small></article>
-      <article><span>Produtos adicionais</span><strong>{visibleSeries.totals.additionalProducts}</strong><small>Separados das compras principais do MAPA</small></article>
-      <article><span>Conversão clique → compra</span><strong>{percent(conversion)}</strong><small>Compra MAPA atribuída ÷ cliques qualificados</small></article>
-      <article><span>Líquido total originado</span><strong>{money(visibleSeries.totals.netAfterFees)}</strong><small>{visibleSeries.totals.financialDataIncomplete} compra(s) originada(s) sem financeiro completo</small></article>
+      <article>
+        <span>{traffic === 'qualified' ? 'Cliques qualificados' : traffic === 'technical' ? 'Cliques técnicos / bots' : 'Cliques (todos os eventos)'}<Explain text="Clique qualificado = pessoa de verdade: sem robô, sem scanner de link e sem clique repetido da mesma pessoa em 10 minutos." /></span>
+        <strong>{displayedClicks.toLocaleString('pt-BR')}</strong>
+        <small>{periodLabel} · de {visibleSeries.totals.totalClicks.toLocaleString('pt-BR')} acessos: {visibleSeries.totals.qualifiedClicks.toLocaleString('pt-BR')} de gente · {visibleSeries.totals.technicalClicks.toLocaleString('pt-BR')} técnicos · {visibleSeries.totals.unknownClicks} sem classificação</small>
+      </article>
+      <article>
+        <span>Vendas do MAPA por link<Explain text="Venda aprovada na Hotmart que chegou com o código de um link seu (SCK, SRC ou XCOD). Venda sem código fica em 'sem origem'." /></span>
+        <strong>{visibleSeries.totals.attributedSales.toLocaleString('pt-BR')}</strong>
+        <small>{periodLabel}{attribution ? ` · de ${attribution.totals.approvedSales.toLocaleString('pt-BR')} aprovadas` : ''} · {visibleSeries.totals.unattributedSales} sem origem · {visibleSeries.totals.ambiguousSales} com origem conflitante{attribution?.totals.foreignSales ? ` · ${attribution.totals.foreignSales} em outra moeda` : ''} · conversão {percent(conversion)}</small>
+      </article>
+      <article>
+        <span>Outros produtos por link<Explain text="Compras de outros produtos (2AS, Manual de Rotina...) que chegaram pelo mesmo link do MAPA. Contadas à parte para não inflar a venda do MAPA." /></span>
+        <strong>{visibleSeries.totals.additionalProducts.toLocaleString('pt-BR')}</strong>
+        <small>{periodLabel}{otherProductNames.length ? ` · ${otherProductNames.join(', ')}` : ' · separados das compras principais do MAPA'}</small>
+      </article>
+      <article>
+        <span>Devolvidas<Explain text="Reembolso ou chargeback de uma venda que tinha sido aprovada no período. A venda continua contada acima; aqui é quanto voltou." /></span>
+        <strong>{attribution ? (attribution.totals.refunds ?? 0).toLocaleString('pt-BR') : '—'}</strong>
+        <small>{attribution ? `${periodLabel} · reembolso ou chargeback de venda aprovada` : 'carregando o relatório de atribuição'}</small>
+      </article>
+      <article>
+        <span>Líquido pelos links<Explain text="Valor que sobrou para você depois das taxas da Hotmart, somando MAPA e outros produtos originados pelos links. Vendas em outra moeda não entram na soma em reais." /></span>
+        <strong>{money(visibleSeries.totals.netAfterFees)}</strong>
+        <small>{periodLabel}{attribution ? ` · ${money(attribution.totals.attributedNetAfterFees)} MAPA + ${money(attribution.totals.attributedAdditionalNetAfterFees)} outros` : ''}{foreignCurrencies.length ? ` · vendas em ${foreignCurrencies.join(', ')} fora da soma` : ''}{visibleSeries.totals.financialDataIncomplete ? ` · ${visibleSeries.totals.financialDataIncomplete} sem financeiro completo` : ''}</small>
+      </article>
     </div>
+    </>}
 
+    {afterKpis}
+
+    {visibleSeries && <>
+    <div className={compact ? 'ci-tracking-analise ci-tracking-analise-compact' : 'ci-tracking-analise'}>
     <article className="ci-panel ci-origin-breakdown">
       <header>
         <div>
           <span>Cliques e compras por origem</span>
-          <small>Soma do período e dos filtros ativos. Conversão = compras atribuídas ÷ cliques da mesma origem.</small>
+          <small>{periodLabel} · cada linha é um lugar onde o link vive. Conversão = compras ÷ cliques da mesma origem.</small>
         </div>
       </header>
       <div className="ci-origin-table-wrap">
         <table className="ci-origin-table">
           <thead>
             <tr>
-              <th scope="col">Origem do link</th>
+              <th scope="col">Origem</th>
               <th scope="col">Cliques</th>
               <th scope="col">Compras</th>
               <th scope="col">Conversão</th>
@@ -659,7 +825,7 @@ export function TrackingHistoryExplorer({
                 <span className="ci-origin-dot" style={{ background: row.color }} aria-hidden="true" />
                 {row.label}
               </th>
-              <td>{row.clicks.toLocaleString('pt-BR')}</td>
+              <td>{row.key === 'other' ? '—' : row.clicks.toLocaleString('pt-BR')}</td>
               <td>{row.sales.toLocaleString('pt-BR')}</td>
               <td>{percent(row.clicks ? row.sales / row.clicks : null)}</td>
             </tr>)}
@@ -675,30 +841,9 @@ export function TrackingHistoryExplorer({
         </table>
       </div>
       {Boolean(originTotals.additionalSales) && <small className="ci-origin-note">
-        {originTotals.additionalSales} compra(s) de produto adicional fora desta tabela, por não terem local de link próprio.
+        {originTotals.additionalSales} compra(s) de outro produto fora desta tabela, por não terem local de link próprio.
       </small>}
     </article>
-
-    <div className="ci-freshness-grid" aria-label="Atualidade dos dados">
-      <span><small>Dados consultados</small><strong>{formatDateTime(visibleSeries.freshness.consultedAt || visibleSeries.generatedAt)}</strong></span>
-      <span><small>Último acesso bruto</small><strong>{formatDateTime(visibleSeries.freshness.lastClickAt)}</strong></span>
-      <span><small>Último clique qualificado</small><strong>{formatDateTime(visibleSeries.freshness.lastQualifiedClickAt || null)}</strong></span>
-      <span><small>Último webhook Hotmart</small><strong>{formatDateTime(visibleSeries.freshness.lastHotmartWebhookAt)}</strong></span>
-      <span><small>Última tentativa Hotmart</small><strong>{reconciliationAttemptLabel(visibleSeries.freshness)}</strong></span>
-      <span><small>Último sucesso completo</small><strong>{formatDateTime(visibleSeries.freshness.lastHotmartReconciliationSuccessAt || visibleSeries.freshness.lastHotmartReconciliationAt)}</strong></span>
-      <span><small>Última execução parcial</small><strong>{formatDateTime(visibleSeries.freshness.lastHotmartReconciliationPartialAt || null)}</strong></span>
-      <span><small>Próxima automática</small><strong>{nextReconciliationLabel(visibleSeries.freshness)}</strong></span>
-    </div>
-
-    {['partial', 'failed'].includes(visibleSeries.freshness.lastHotmartReconciliationStatus || '') && <div className="ci-warning-box" role="alert">
-      <strong>{visibleSeries.freshness.lastHotmartReconciliationStatus === 'failed' ? 'A última reconciliação falhou' : 'A última reconciliação foi parcial'}</strong>
-      <span>{reconciliationProblemDetail(visibleSeries.freshness)}</span>
-    </div>}
-
-    {Boolean(visibleSeries.freshness.unresolvedOperationalFailures) && <div className="ci-warning-box" role="status">
-      <strong>{visibleSeries.freshness.unresolvedOperationalFailures} falha(s) operacional(is) ainda não resolvida(s)</strong>
-      <span>Última ocorrência em {formatDateTime(visibleSeries.freshness.latestOperationalFailureAt || null)}. Consulte “Qualidade dos dados” para o diagnóstico completo.</span>
-    </div>}
 
     <article className="ci-panel ci-unified-chart-panel">
       <header>
@@ -706,12 +851,15 @@ export function TrackingHistoryExplorer({
           <span>Evolução no tempo</span>
           <small>{chartMode === 'total'
             ? 'Linhas de cliques e vendas na escala da esquerda; receita líquida em R$ na escala da direita.'
-            : `Uma linha por origem do link, comparando ${originMetric === 'clicks' ? 'cliques' : 'vendas'}. Use o filtro de local em "Todos" para ver todas as origens.`}</small>
+            : chartMode === 'origem'
+              ? `Uma linha por origem do link, comparando ${originMetric === 'clicks' ? 'cliques' : 'vendas'}. Use o filtro de local em "Todos" para ver todas as origens.`
+              : `YouTube inteiro contra Instagram inteiro, comparando ${originMetric === 'clicks' ? 'cliques' : 'vendas'}.`}</small>
         </div>
         <div className="ci-chart-header-controls">
           <div className="ci-view-toggle" role="group" aria-label="Modo do gráfico">
             <button type="button" className={chartMode === 'total' ? 'active' : ''} aria-pressed={chartMode === 'total'} onClick={() => setChartMode('total')}>Total</button>
             <button type="button" className={chartMode === 'origem' ? 'active' : ''} aria-pressed={chartMode === 'origem'} onClick={() => setChartMode('origem')}>Por origem</button>
+            <button type="button" className={chartMode === 'canal' ? 'active' : ''} aria-pressed={chartMode === 'canal'} onClick={() => setChartMode('canal')}>Por canal</button>
           </div>
           {chartMode === 'total'
             ? <div className="ci-series-toggles" role="group" aria-label="Linhas do gráfico">
@@ -731,12 +879,12 @@ export function TrackingHistoryExplorer({
               })}
             </div>
             : <>
-              <div className="ci-view-toggle" role="group" aria-label="Métrica por origem">
+              <div className="ci-view-toggle" role="group" aria-label="Métrica comparada">
                 <button type="button" className={originMetric === 'clicks' ? 'active' : ''} aria-pressed={originMetric === 'clicks'} onClick={() => setOriginMetric('clicks')}>Cliques</button>
                 <button type="button" className={originMetric === 'sales' ? 'active' : ''} aria-pressed={originMetric === 'sales'} onClick={() => setOriginMetric('sales')}>Vendas</button>
               </div>
-              <div className="ci-series-toggles" role="group" aria-label="Origens">
-                {ORIGIN_SERIES.map(origin => <span className="ci-series-legenda" key={origin.key}>
+              <div className="ci-series-toggles" role="group" aria-label="Linhas">
+                {chartSeries.map(origin => <span className="ci-series-legenda" key={origin.key}>
                   <span className="ci-series-dot" style={{ background: origin.color }} aria-hidden="true" />
                   {origin.label}
                 </span>)}
@@ -759,7 +907,7 @@ export function TrackingHistoryExplorer({
             <YAxis
               yAxisId="money"
               orientation="right"
-              hide={chartMode === 'origem'}
+              hide={chartMode !== 'total'}
               tick={{ fontSize: 10, fill: SERIES_COLORS.revenue }}
               width={58}
               tickFormatter={value => new Intl.NumberFormat('pt-BR', {
@@ -786,7 +934,7 @@ export function TrackingHistoryExplorer({
                 stroke={SERIES_COLORS.revenue} strokeWidth={2.5} dot={false} isAnimationActive={false}
               />}
             </>}
-            {chartMode === 'origem' && ORIGIN_SERIES.map(origin => <Line
+            {chartMode !== 'total' && chartSeries.map(origin => <Line
               key={origin.key}
               yAxisId="counts"
               type="monotone"
@@ -801,20 +949,24 @@ export function TrackingHistoryExplorer({
         </ResponsiveContainer>
       </div> : <div className="ci-empty">Nenhum clique ou venda nesse filtro.</div>}
     </article>
+    </div>
 
     <article className="ci-panel ci-event-ledger">
-      <header><div><span>Livro-caixa de eventos</span><small>Horário exato em Brasília. Para vendas, a data é a da compra/aprovação; o badge mostra o status atual, inclusive reembolso ou chargeback.</small></div></header>
+      <header><div><span>Livro-caixa de eventos</span><small>{periodLabel} · horário exato em Brasília. Para vendas, a data é a da compra/aprovação; o badge mostra o status atual, inclusive reembolso ou chargeback.</small></div></header>
       {visibleEvents.length ? <>
         <div className="ci-event-table-desktop">
           <table>
-            <thead><tr><th>Data e hora</th><th>Evento</th><th>Vídeo</th><th>Local</th><th>Classificação</th><th>Detalhes</th></tr></thead>
+            <thead><tr><th>Data e hora</th><th>Evento</th><th>Canal</th><th>Vídeo / link</th><th>Local</th><th>Classificação</th><th>Detalhes</th></tr></thead>
             <tbody>{visibleEvents.map(event => {
               const kind = eventKind(event);
+              const subject = eventSubject(event);
+              const eventCh = eventChannel(event);
               return <tr key={event.eventId}>
               <td><time dateTime={event.occurredAt}>{formatDateTime(event.occurredAt)}</time></td>
               <td><span className={`ci-event-kind ci-event-kind-${kind.tone}`}>{kind.label}</span></td>
-              <td><div className="ci-event-video">{event.thumbnailUrl && <img src={event.thumbnailUrl} alt="" />}<span><strong>{event.videoTitle ? displayText(event.videoTitle) : 'Sem vídeo atribuído'}</strong>{event.videoId && <small>{event.videoId}</small>}</span></div></td>
-              <td>{positionLabel(event.ctaPosition)}</td>
+              <td><span className={`ci-canal-tag ci-canal-tag-${eventCh || 'none'}`}>{channelLabel(eventCh)}</span></td>
+              <td><div className="ci-event-video">{event.thumbnailUrl && <img src={event.thumbnailUrl} alt="" />}<span><strong>{subject.title}</strong>{subject.sub && <small>{subject.sub}</small>}</span></div></td>
+              <td>{positionLabel(event)}</td>
               <td><span className={`ci-event-evidence ci-event-evidence-${isPurchaseEvent(event) ? event.attribution : event.traffic}`}>{trafficLabel(event)}</span></td>
               <td><span>{eventDetail(event) || '—'}</span>{event.trackingCode && <code>{event.trackingCode}</code>}</td>
             </tr>})}</tbody>
@@ -823,16 +975,49 @@ export function TrackingHistoryExplorer({
         <div className="ci-event-list-mobile">
           {visibleEvents.map(event => {
             const kind = eventKind(event);
+            const subject = eventSubject(event);
             return <article key={event.eventId}>
             <header><span className={`ci-event-kind ci-event-kind-${kind.tone}`}>{kind.label}</span><time dateTime={event.occurredAt}>{formatDateTime(event.occurredAt)}</time></header>
-            <strong>{event.videoTitle ? displayText(event.videoTitle) : 'Sem vídeo atribuído'}</strong>
-            <div><span>{positionLabel(event.ctaPosition)}</span><span>{trafficLabel(event)}</span></div>
+            <strong>{subject.title}</strong>
+            <div><span>{channelLabel(eventChannel(event))} · {positionLabel(event)}</span><span>{trafficLabel(event)}</span></div>
             <small>{eventDetail(event) || 'Sem detalhes adicionais'}</small>
           </article>})}
         </div>
         {visibleNextCursor && <div className="ci-ledger-more"><button type="button" disabled={loadingMore} onClick={loadMore}>{loadingMore ? 'Carregando...' : 'Carregar eventos anteriores'}</button></div>}
       </> : <div className="ci-empty">Nenhum evento exato nesse filtro.</div>}
     </article>
+
+    <details className="ci-tracking-recolhido">
+      <summary>Como os dados chegam<small>4 passos: clique → venda → conferência → tela</small></summary>
+      <section className="ci-data-flow-guide" aria-label="Como os dados chegam">
+        <ol>
+          <li><span>1</span><div><strong>Cliques</strong><small>Gravados no redirecionamento (link.brunosallesphd.com.br/m7p/...), em tempo real.</small></div></li>
+          <li><span>2</span><div><strong>Vendas</strong><small>Entram pelo aviso automático da Hotmart (webhook). O crédito só existe quando a Hotmart devolve o mesmo SCK, SRC ou XCOD cadastrado; venda sem origem continua sem atribuição.</small></div></li>
+          <li><span>3</span><div><strong>Conferência</strong><small>{reconciliationScheduleLabel(visibleSeries.freshness)}.</small></div></li>
+          <li><span>4</span><div><strong>Tela</strong><small>Consulta o banco ao trocar um filtro ou quando você clica em “Buscar dados agora”. Não recarrega sozinha.</small></div></li>
+        </ol>
+      </section>
+    </details>
+
+    <details className="ci-tracking-recolhido">
+      <summary>Carimbos de atualização<small>{liveMessage} · último clique {formatDateTime(visibleSeries.freshness.lastQualifiedClickAt || visibleSeries.freshness.lastClickAt)}</small></summary>
+      <div className={`ci-live-state ci-live-state-${liveTone}`}>
+        <span className="ci-live-dot" aria-hidden="true" />
+        <span><strong>{liveMessage}</strong><small>A tela não recarrega sozinha. Ela busca ao trocar um filtro ou quando você pede.</small></span>
+      </div>
+      <div className="ci-freshness-grid" aria-label="Atualidade dos dados">
+        <span><small>Dados consultados</small><strong>{formatDateTime(visibleSeries.freshness.consultedAt || visibleSeries.generatedAt)}</strong></span>
+        <span><small>Último acesso bruto</small><strong>{formatDateTime(visibleSeries.freshness.lastClickAt)}</strong></span>
+        <span><small>Último clique qualificado</small><strong>{formatDateTime(visibleSeries.freshness.lastQualifiedClickAt || null)}</strong></span>
+        <span><small>Último webhook Hotmart</small><strong>{formatDateTime(visibleSeries.freshness.lastHotmartWebhookAt)}</strong></span>
+        <span><small>Última tentativa Hotmart</small><strong>{reconciliationAttemptLabel(visibleSeries.freshness)}</strong></span>
+        <span><small>Último sucesso completo</small><strong>{formatDateTime(visibleSeries.freshness.lastHotmartReconciliationSuccessAt || visibleSeries.freshness.lastHotmartReconciliationAt)}</strong></span>
+        <span><small>Última execução parcial</small><strong>{formatDateTime(visibleSeries.freshness.lastHotmartReconciliationPartialAt || null)}</strong></span>
+        <span><small>Próxima automática</small><strong>{nextReconciliationLabel(visibleSeries.freshness)}</strong></span>
+      </div>
+    </details>
     </>}
+
+    {afterLedger}
   </section>;
 }

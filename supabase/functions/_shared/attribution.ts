@@ -44,7 +44,8 @@ export interface DirectAttributionReport {
     campaignId: string;
     campaignName: string;
     trackingCode: string;
-    videoId: string;
+    // null nas campanhas do Instagram (não têm vídeo)
+    videoId: string | null;
     productName: string;
     ctaLabel: string;
     ctaPosition: string;
