@@ -55,22 +55,27 @@ async function listCampaigns(client: any) {
   const [campaignResult, videoResult, productResult, clickResult, statsResult] = await Promise.all([
     client.from('ci_campaigns').select(CAMPAIGN_FIELDS).order('created_at', { ascending: false }),
     client.from('ci_youtube_videos').select('video_id,title,published_at,content_type,thumbnail_url,privacy_status').order('published_at', { ascending: false }),
-    client.from('ci_hotmart_transactions').select('product_id,product_name,offer_code').not('product_id', 'is', null),
-    client.from('ci_click_events').select('campaign_id,is_bot'),
+    // Views agregadas no banco. Antes lia a tabela de vendas (1.371 linhas) e a
+    // de cliques (12.700) inteiras pelo PostgREST, que corta em 1.000: um
+    // produto podia sumir do filtro e a contagem de cliques vinha errada.
+    client.from('ci_product_catalog').select('product_id,product_name,offer_codes'),
+    client.from('ci_campaign_click_counts').select('campaign_id,human_clicks'),
     client.from('ci_youtube_video_stats').select('video_id,views,likes,comments'),
   ]);
   if (campaignResult.error || videoResult.error || productResult.error || clickResult.error || statsResult.error) databaseFailure();
 
   const clickCounts = new Map<string, number>();
-  for (const click of clickResult.data || []) {
-    if (!click.is_bot) clickCounts.set(click.campaign_id, (clickCounts.get(click.campaign_id) || 0) + 1);
+  for (const row of clickResult.data || []) {
+    clickCounts.set(String(row.campaign_id), Number(row.human_clicks) || 0);
   }
   const products = new Map<string, { productId: string; productName: string; offerCodes: Set<string> }>();
   for (const row of productResult.data || []) {
     if (!row.product_id) continue;
-    const product = products.get(row.product_id) || { productId: row.product_id, productName: row.product_name, offerCodes: new Set<string>() };
-    if (row.offer_code) product.offerCodes.add(row.offer_code);
-    products.set(row.product_id, product);
+    products.set(String(row.product_id), {
+      productId: String(row.product_id),
+      productName: String(row.product_name || row.product_id),
+      offerCodes: new Set<string>((row.offer_codes || []).map((code: unknown) => String(code))),
+    });
   }
   const videoStats = new Map<string, { views: number; likes: number; comments: number }>();
   for (const row of statsResult.data || []) {

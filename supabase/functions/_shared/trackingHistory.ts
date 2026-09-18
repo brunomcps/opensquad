@@ -1,14 +1,18 @@
 import { CommercialIntelligenceError } from './errors.ts';
 
 export const TRACKING_TIMEZONE = 'America/Sao_Paulo';
-export const TRACKING_POSITIONS = ['description', 'pinned_comment', 'comment_reply', 'video'] as const;
+export const TRACKING_POSITIONS = ['description', 'pinned_comment', 'comment_reply', 'video', 'bio', 'dm', 'community', 'other'] as const;
 export const TRACKING_TRAFFIC = ['qualified', 'technical', 'all'] as const;
 export const TRACKING_EVENT_TYPES = ['click', 'sale'] as const;
+// Canal = onde a pessoa clicou. ManyChat NÃO é canal (é o robô que manda a DM
+// no Instagram); aparece como etiqueta na linha, nunca como filtro.
+export const TRACKING_CHANNELS = ['youtube', 'instagram'] as const;
 
 export type TrackingGranularity = 'hour' | 'day' | 'week';
 export type TrackingPosition = typeof TRACKING_POSITIONS[number];
 export type TrackingTraffic = typeof TRACKING_TRAFFIC[number];
 export type TrackingEventType = typeof TRACKING_EVENT_TYPES[number];
+export type TrackingChannel = typeof TRACKING_CHANNELS[number];
 
 export interface TrackingFilters {
   start: string;
@@ -20,6 +24,7 @@ export interface TrackingFilters {
   position: TrackingPosition | null;
   traffic: TrackingTraffic;
   products: string[] | null;
+  channel: TrackingChannel | null;
 }
 
 export interface TrackingCursor {
@@ -161,6 +166,10 @@ export function parseTrackingFilters(url: URL, now = new Date()): TrackingFilter
   const position = !positionValue || positionValue === 'all'
     ? null
     : enumValue(positionValue, TRACKING_POSITIONS, 'description');
+  const channelValue = url.searchParams.get('channel');
+  const channel = !channelValue || channelValue === 'all'
+    ? null
+    : enumValue(channelValue, TRACKING_CHANNELS, 'youtube');
 
   return {
     start: start.display,
@@ -172,6 +181,7 @@ export function parseTrackingFilters(url: URL, now = new Date()): TrackingFilter
     position,
     traffic: enumValue(url.searchParams.get('traffic'), TRACKING_TRAFFIC, 'all'),
     products: optionalProducts(url.searchParams.get('products') || url.searchParams.get('product')),
+    channel,
   };
 }
 

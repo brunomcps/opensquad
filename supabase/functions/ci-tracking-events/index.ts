@@ -73,6 +73,7 @@ Deno.serve(async request => {
         p_cursor_at: cursor?.occurredAt || null,
         p_cursor_id: cursor?.sortId || null,
         p_limit: limit + 1,
+        p_channel: filters.channel,
       }),
       client.rpc('ci_tracking_freshness').maybeSingle(),
     ]);
@@ -102,6 +103,8 @@ Deno.serve(async request => {
       amount: numberOrNull(row.amount),
       currency: row.currency || null,
       productName: row.product_name || null,
+      channel: row.channel || null,
+      campaignName: row.campaign_name || null,
     }));
     const last = visible.at(-1);
     const nextCursor = hasNext && last
@@ -123,6 +126,7 @@ Deno.serve(async request => {
         videoId: filters.videoId,
         position: filters.position || 'all',
         traffic: filters.traffic,
+        channel: filters.channel || 'all',
         types,
       },
       freshness: freshness(freshnessResult.data as Record<string, any> | null, generatedAt),

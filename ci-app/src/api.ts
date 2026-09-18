@@ -38,8 +38,28 @@ export interface CampaignCatalog {
   }>;
 }
 
-export interface AttributionDto extends DirectAttributionReport {
+// Campos que a etapa 2 (18/09/2026) acrescentou por cima do relatório antigo,
+// agora calculado no banco (ci_campaign_attribution_report). Opcionais para o
+// front continuar funcionando com respostas antigas em cache.
+export interface AttributionCampaignExtras {
+  channel?: string;
+  campaignStatus?: string;
+  clicksTotal?: number;
+  refunds?: number;
+  additionalRefunds?: number;
+  foreignSales?: number;
+  foreignBreakdown?: Record<string, number>;
+  lastClickAt?: string | null;
+  lastQualifiedClickAt?: string | null;
+}
+
+export type TrackingChannelFilter = 'all' | 'youtube' | 'instagram';
+
+export interface AttributionDto extends Omit<DirectAttributionReport, 'campaigns' | 'totals'> {
   period: { start: string; end: string };
+  channel?: string | null;
+  totals: DirectAttributionReport['totals'] & { refunds?: number; foreignSales?: number };
+  campaigns: Array<DirectAttributionReport['campaigns'][number] & AttributionCampaignExtras>;
 }
 
 export type TrackingGranularity = 'auto' | 'hour' | 'day' | 'week';
@@ -55,6 +75,7 @@ export interface TrackingHistoryFilters {
   position: TrackingPositionFilter;
   traffic: TrackingTrafficFilter;
   products?: string[] | null;
+  channel?: TrackingChannelFilter;
 }
 
 export interface TrackingFreshnessDto {
@@ -78,6 +99,14 @@ export interface TrackingFreshnessDto {
   hotmartScheduleExpression?: string | null;
 }
 
+export interface TrackingChannelTotalsDto {
+  clicks: number;
+  qualifiedClicks: number;
+  attributedSales: number;
+  additionalProducts: number;
+  netAfterFees: number;
+}
+
 export interface TrackingSeriesBucketDto {
   bucketStart: string;
   clicks: {
@@ -85,6 +114,8 @@ export interface TrackingSeriesBucketDto {
     pinnedComment: number;
     commentReply: number;
     video: number;
+    // Instagram (bio, comentário → DM, DM). Separado do YouTube desde 18/09/2026.
+    instagram?: number;
     other: number;
     total: number;
     unknown: number;
@@ -94,6 +125,7 @@ export interface TrackingSeriesBucketDto {
     pinnedComment: number;
     commentReply: number;
     video: number;
+    instagram?: number;
     additional: number;
     unattributed: number;
     ambiguous: number;
@@ -121,6 +153,7 @@ export interface TrackingSeriesDto {
     financialDataIncomplete: number;
     netAfterFees: number;
   };
+  byChannel?: Record<string, TrackingChannelTotalsDto>;
   buckets: TrackingSeriesBucketDto[];
 }
 
@@ -143,6 +176,8 @@ export interface TrackingEventDto {
   amount: number | null;
   currency: string | null;
   productName: string | null;
+  channel?: string | null;
+  campaignName?: string | null;
 }
 
 export interface TrackingEventsDto {
@@ -291,8 +326,9 @@ export async function updateCampaignStatus(campaignId: string, status: Extract<C
   return result.campaign;
 }
 
-export async function getAttribution(filters: { start: string; end: string; currency: string }): Promise<AttributionDto> {
-  const query = new URLSearchParams(filters);
+export async function getAttribution(filters: { start: string; end: string; currency: string; channel?: TrackingChannelFilter }): Promise<AttributionDto> {
+  const query = new URLSearchParams({ start: filters.start, end: filters.end, currency: filters.currency });
+  if (filters.channel && filters.channel !== 'all') query.set('channel', filters.channel);
   const result = await request<{ ok: true; attribution: AttributionDto }>(`ci-attribution?${query.toString()}`);
   return result.attribution;
 }
@@ -307,6 +343,7 @@ function trackingQuery(filters: TrackingHistoryFilters): URLSearchParams {
   });
   if (filters.videoId) query.set('videoId', filters.videoId);
   if (filters.products?.length) query.set('products', filters.products.join(','));
+  if (filters.channel && filters.channel !== 'all') query.set('channel', filters.channel);
   return query;
 }
 

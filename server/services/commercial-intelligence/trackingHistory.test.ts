@@ -66,13 +66,27 @@ test('filtros rejeitam período, posição e tráfego inválidos', () => {
     (error: any) => error.code === 'invalid_tracking_period' && error.statusCode === 400,
   );
   assert.throws(
-    () => parseTrackingFilters(new URL('https://example.test?position=bio')),
+    () => parseTrackingFilters(new URL('https://example.test?position=rodape')),
     (error: any) => error.code === 'invalid_tracking_filter',
   );
   assert.throws(
     () => parseTrackingFilters(new URL('https://example.test?traffic=maybe')),
     (error: any) => error.code === 'invalid_tracking_filter',
   );
+  assert.throws(
+    () => parseTrackingFilters(new URL('https://example.test?channel=tiktok')),
+    (error: any) => error.code === 'invalid_tracking_filter',
+  );
+});
+
+test('posições do Instagram (bio, dm) e o filtro de canal são aceitos desde 18/09/2026', () => {
+  const bio = parseTrackingFilters(new URL('https://example.test?position=bio&channel=instagram'));
+  assert.equal(bio.position, 'bio');
+  assert.equal(bio.channel, 'instagram');
+  const todos = parseTrackingFilters(new URL('https://example.test?channel=all'));
+  assert.equal(todos.channel, null);
+  const semCanal = parseTrackingFilters(new URL('https://example.test'));
+  assert.equal(semCanal.channel, null);
 });
 
 test('cursor preserva timestamp e desempate UTF-8 sem expor formato SQL', () => {
